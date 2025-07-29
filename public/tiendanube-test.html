@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoolPops Widget - Tienda Nube Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .store-info {
+      background: #f0f0f0;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+    .product {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+    .product img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+    .price {
+      font-size: 24px;
+      color: #8B5CF6;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    .btn {
+      background: #8B5CF6;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .btn:hover {
+      background: #7C3AED;
+    }
+    .trigger-buttons {
+      margin: 20px 0;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .config-info {
+      background: #e3f2fd;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px 0;
+      font-family: monospace;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🛍️ Mi Tienda Demo - Tienda Nube</h1>
+    <p>Esta es una página de prueba para el widget CoolPops en Tienda Nube</p>
+    
+    <div class="store-info">
+      <h3>Información de la tienda simulada:</h3>
+      <p><strong>Store ID:</strong> demo-store-123</p>
+      <p><strong>Nombre:</strong> Mi Tienda Demo</p>
+      <p><strong>Moneda:</strong> ARS</p>
+      <p><strong>Idioma:</strong> es</p>
+    </div>
+
+    <div class="config-info">
+      <h3>Configuración actual del widget:</h3>
+      <p id="config-display">Cargando...</p>
+    </div>
+
+    <div class="trigger-buttons">
+      <button class="btn" onclick="window.CoolPopsWidget.show()">
+        Mostrar Widget Manualmente
+      </button>
+      <button class="btn coolpops-trigger">
+        Trigger con Clase CSS
+      </button>
+      <button class="btn" onclick="reloadWithTrigger('immediate')">
+        Probar: Immediate
+      </button>
+      <button class="btn" onclick="reloadWithTrigger('delay', 3)">
+        Probar: Delay (3s)
+      </button>
+      <button class="btn" onclick="reloadWithTrigger('scroll', null, 50)">
+        Probar: Scroll (50%)
+      </button>
+      <button class="btn" onclick="reloadWithTrigger('exit_intent')">
+        Probar: Exit Intent
+      </button>
+      <button class="btn" onclick="reloadWithTrigger('onfirstinteraction')">
+        Probar: On First Interaction
+      </button>
+    </div>
+
+    <div class="products">
+      <div class="product">
+        <img src="https://via.placeholder.com/250x200/8B5CF6/ffffff?text=Producto+1" alt="Producto 1">
+        <h3>Producto Ejemplo 1</h3>
+        <p class="price">$1,299</p>
+        <button class="btn">Agregar al carrito</button>
+      </div>
+      <div class="product">
+        <img src="https://via.placeholder.com/250x200/7C3AED/ffffff?text=Producto+2" alt="Producto 2">
+        <h3>Producto Ejemplo 2</h3>
+        <p class="price">$899</p>
+        <button class="btn">Agregar al carrito</button>
+      </div>
+      <div class="product">
+        <img src="https://via.placeholder.com/250x200/6D28D9/ffffff?text=Producto+3" alt="Producto 3">
+        <h3>Producto Ejemplo 3</h3>
+        <p class="price">$1,599</p>
+        <button class="btn">Agregar al carrito</button>
+      </div>
+    </div>
+
+    <div style="height: 1000px; margin-top: 50px;">
+      <p>Scroll down para probar el trigger de scroll...</p>
+    </div>
+  </div>
+
+  <!-- Simulate Tienda Nube environment -->
+  <script>
+    // Mock Tienda Nube LS object
+    window.LS = {
+      store: {
+        id: 'demo-store-123',
+        name: 'Mi Tienda Demo',
+        currency: 'ARS',
+        language: 'es'
+      },
+      event: {
+        on: function(event, callback) {
+          console.log('[Mock LS] Event registered:', event);
+        }
+      },
+      notification: {
+        show: function(options) {
+          alert(options.message);
+        }
+      },
+      checkout: {
+        setDiscount: function(code) {
+          console.log('[Mock LS] Discount applied:', code);
+        }
+      }
+    };
+
+    // Helper function to reload with different triggers
+    function reloadWithTrigger(trigger, delay, scrollPercentage) {
+      const params = new URLSearchParams(window.location.search);
+      params.set('trigger', trigger);
+      if (delay) params.set('delay', delay);
+      if (scrollPercentage) params.set('scrollPercentage', scrollPercentage);
+      window.location.search = params.toString();
+    }
+
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const trigger = urlParams.get('trigger') || 'exit_intent';
+    const delay = urlParams.get('delay') || '0';
+    const scrollPercentage = urlParams.get('scrollPercentage') || '50';
+    const wheelId = urlParams.get('wheelId') || 'test-wheel-123';
+
+    // Update config display
+    document.addEventListener('DOMContentLoaded', function() {
+      const configDisplay = document.getElementById('config-display');
+      const configText = `
+Trigger: ${trigger}
+Delay: ${delay} segundos
+Scroll Percentage: ${scrollPercentage}%
+Wheel ID: ${wheelId}
+Test Mode: true
+Development URL: http://localhost:5173
+      `;
+      configDisplay.textContent = configText;
+
+      // Log when widget is loaded
+      setTimeout(() => {
+        if (window.CoolPopsWidget && window.CoolPopsWidget.config) {
+          console.log('Widget Configuration:', window.CoolPopsWidget.config);
+        }
+      }, 1000);
+    });
+  </script>
+
+  <!-- CoolPops Widget for Tienda Nube -->
+  <script 
+    src="http://localhost:5173/tiendanube-widget.js"
+    data-wheel-id="test-wheel-123"
+    data-trigger="<?php echo htmlspecialchars($_GET['trigger'] ?? 'exit_intent'); ?>"
+    data-delay="<?php echo htmlspecialchars($_GET['delay'] ?? '0'); ?>"
+    data-scroll-percentage="<?php echo htmlspecialchars($_GET['scrollPercentage'] ?? '50'); ?>"
+    data-test="true"
+    data-store-id="demo-store-123">
+  </script>
+  
+  <!-- Use JavaScript to set attributes dynamically -->
+  <script>
+    // Update script attributes based on URL parameters
+    const scriptTag = document.querySelector('script[src*="tiendanube-widget.js"]');
+    if (scriptTag) {
+      scriptTag.setAttribute('data-trigger', trigger);
+      scriptTag.setAttribute('data-delay', delay);
+      scriptTag.setAttribute('data-scroll-percentage', scrollPercentage);
+      scriptTag.setAttribute('data-wheel-id', wheelId);
+    }
+  </script>
+</body>
+</html>

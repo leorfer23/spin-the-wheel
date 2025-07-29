@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Wheel Alignment Test</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            justify-content: center;
+            padding: 20px;
+        }
+        .wheel-test {
+            text-align: center;
+        }
+        svg {
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid #ff0000;
+        }
+        .wheel-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Test wheels with different segment counts -->
+    </div>
+
+    <script>
+        function createWheel(segmentCount) {
+            const size = 200;
+            const radius = size / 2;
+            const innerRadius = 30;
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = 'wheel-test';
+            
+            const wheelWrapper = document.createElement('div');
+            wheelWrapper.className = 'wheel-wrapper';
+            
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', size);
+            svg.setAttribute('height', size);
+            
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('transform', `translate(${radius}, ${radius})`);
+            
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA500', '#98D8C8', '#FFD93D', '#6BCF7F', '#E91E63'];
+            
+            // Calculate segment angle and offset
+            const angle = 360 / segmentCount;
+            const segmentOffset = -angle / 2; // Always offset by half segment
+            
+            // Create segments
+            for (let i = 0; i < segmentCount; i++) {
+                const startAngle = i * angle + segmentOffset;
+                const endAngle = startAngle + angle;
+                
+                // Convert to radians (subtract 90 to make top = 0)
+                const startRad = (startAngle - 90) * (Math.PI / 180);
+                const endRad = (endAngle - 90) * (Math.PI / 180);
+                
+                // Calculate path points
+                const x1 = radius * Math.cos(startRad);
+                const y1 = radius * Math.sin(startRad);
+                const x2 = radius * Math.cos(endRad);
+                const y2 = radius * Math.sin(endRad);
+                const x3 = innerRadius * Math.cos(endRad);
+                const y3 = innerRadius * Math.sin(endRad);
+                const x4 = innerRadius * Math.cos(startRad);
+                const y4 = innerRadius * Math.sin(startRad);
+                
+                const largeArcFlag = angle > 180 ? 1 : 0;
+                
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', `
+                    M ${x1} ${y1}
+                    A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}
+                    L ${x3} ${y3}
+                    A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${x4} ${y4}
+                    Z
+                `);
+                path.setAttribute('fill', colors[i % colors.length]);
+                path.setAttribute('stroke', 'white');
+                path.setAttribute('stroke-width', '2');
+                
+                g.appendChild(path);
+                
+                // Add text
+                const textAngle = startAngle + angle / 2;
+                const textRad = (textAngle - 90) * (Math.PI / 180);
+                const textRadius = (radius + innerRadius) / 2;
+                const textX = textRadius * Math.cos(textRad);
+                const textY = textRadius * Math.sin(textRad);
+                
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', textX);
+                text.setAttribute('y', textY);
+                text.setAttribute('fill', 'white');
+                text.setAttribute('font-size', '16');
+                text.setAttribute('font-weight', 'bold');
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('dominant-baseline', 'middle');
+                text.setAttribute('transform', `rotate(${textAngle}, ${textX}, ${textY})`);
+                text.textContent = i + 1;
+                
+                g.appendChild(text);
+            }
+            
+            // Add center guide lines for debugging
+            const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            vLine.setAttribute('x1', '0');
+            vLine.setAttribute('y1', '-' + radius);
+            vLine.setAttribute('x2', '0');
+            vLine.setAttribute('y2', radius);
+            vLine.setAttribute('stroke', 'rgba(0,0,0,0.1)');
+            vLine.setAttribute('stroke-width', '1');
+            vLine.setAttribute('stroke-dasharray', '2,2');
+            g.appendChild(vLine);
+            
+            const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            hLine.setAttribute('x1', '-' + radius);
+            hLine.setAttribute('y1', '0');
+            hLine.setAttribute('x2', radius);
+            hLine.setAttribute('y2', '0');
+            hLine.setAttribute('stroke', 'rgba(0,0,0,0.1)');
+            hLine.setAttribute('stroke-width', '1');
+            hLine.setAttribute('stroke-dasharray', '2,2');
+            g.appendChild(hLine);
+            
+            svg.appendChild(g);
+            wheelWrapper.appendChild(svg);
+            
+            // Add pointer
+            const pointer = document.createElement('div');
+            pointer.className = 'pointer';
+            wheelWrapper.appendChild(pointer);
+            
+            wrapper.appendChild(wheelWrapper);
+            
+            // Add info
+            const info = document.createElement('div');
+            info.className = 'info';
+            info.innerHTML = `
+                <strong>${segmentCount} Segments</strong><br>
+                Angle: ${angle.toFixed(1)}°<br>
+                Offset: ${segmentOffset.toFixed(1)}°<br>
+                Type: ${segmentCount % 2 === 0 ? 'Even' : 'Odd'}
+            `;
+            wrapper.appendChild(info);
+            
+            return wrapper;
+        }
+        
+        // Create test wheels
+        const container = document.querySelector('.container');
+        for (let i = 2; i <= 9; i++) {
+            container.appendChild(createWheel(i));
+        }
+    </script>
+</body>
+</html>

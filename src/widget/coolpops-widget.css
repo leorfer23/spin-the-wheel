@@ -1,0 +1,319 @@
+/* CoolPops Widget Styles */
+/* Duplicates spinwheel styles for coolpops namespace */
+
+/* Import the base widget styles */
+@import './widget.css';
+
+/* Map all coolpops classes to spinwheel equivalents */
+.coolpops-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.coolpops-close:hover {
+  background: #ffffff;
+  transform: scale(1.1);
+}
+
+.coolpops-container {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  position: relative;
+  animation: coolpops-fade-in 0.3s ease-out;
+}
+
+.coolpops-modal {
+  padding: 40px;
+  text-align: center;
+  min-width: 400px;
+}
+
+@media (max-width: 480px) {
+  .coolpops-modal {
+    padding: 30px 20px;
+    min-width: auto;
+  }
+}
+
+.coolpops-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 10px;
+  color: #1a1a1a;
+}
+
+.coolpops-subtitle {
+  font-size: 18px;
+  color: #666;
+  margin: 0 0 30px;
+}
+
+.coolpops-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0 0 20px;
+}
+
+.coolpops-field {
+  margin-bottom: 16px;
+}
+
+.coolpops-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.coolpops-input {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 16px;
+  border: 2px solid #e5e5e5;
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.coolpops-input:focus {
+  border-color: #8B5CF6;
+}
+
+.coolpops-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+}
+
+.coolpops-checkbox input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.coolpops-button {
+  padding: 16px 32px;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.coolpops-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+}
+
+.coolpops-button:active {
+  transform: translateY(0);
+}
+
+.coolpops-button.coolpops-primary {
+  background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+}
+
+.coolpops-button.coolpops-secondary {
+  background: transparent;
+  color: #8B5CF6;
+  border: 2px solid #8B5CF6;
+}
+
+.coolpops-button.coolpops-secondary:hover {
+  background: #8B5CF6;
+  color: white;
+}
+
+.coolpops-consent {
+  font-size: 13px;
+  color: #666;
+  margin-top: 16px;
+}
+
+.coolpops-consent a {
+  color: #8B5CF6;
+  text-decoration: none;
+}
+
+.coolpops-consent a:hover {
+  text-decoration: underline;
+}
+
+.coolpops-terms {
+  font-size: 12px;
+  color: #999;
+  margin: 0;
+}
+
+.coolpops-wheel-container {
+  padding: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 500px;
+}
+
+.coolpops-result {
+  padding: 40px;
+  text-align: center;
+  position: relative;
+}
+
+.coolpops-confetti {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.coolpops-win-title {
+  font-size: 36px;
+  font-weight: 700;
+  margin: 0 0 20px;
+  background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.coolpops-win-message {
+  font-size: 20px;
+  color: #666;
+  margin: 0 0 30px;
+}
+
+.coolpops-description {
+  font-size: 16px;
+  color: #666;
+  margin: 20px 0;
+  line-height: 1.6;
+}
+
+.coolpops-promo-code {
+  margin: 0 0 30px;
+}
+
+.coolpops-code-label {
+  display: block;
+  font-size: 16px;
+  color: #666;
+  margin: 0 0 10px;
+}
+
+.coolpops-code-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 10px;
+  border: 2px dashed #ddd;
+}
+
+.coolpops-code-box code {
+  flex: 1;
+  font-size: 24px;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  color: #8B5CF6;
+}
+
+.coolpops-copy-button {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #8B5CF6;
+  background: white;
+  border: 2px solid #8B5CF6;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.coolpops-copy-button:hover {
+  color: white;
+  background: #8B5CF6;
+}
+
+.coolpops-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .coolpops-container {
+    max-width: 95vw;
+    max-height: 95vh;
+  }
+
+  .coolpops-title {
+    font-size: 24px;
+  }
+
+  .coolpops-subtitle {
+    font-size: 16px;
+  }
+
+  .coolpops-wheel-container {
+    padding: 20px;
+    min-height: 400px;
+  }
+
+  .coolpops-win-title {
+    font-size: 28px;
+  }
+
+  .coolpops-code-box {
+    flex-direction: column;
+  }
+
+  .coolpops-code-box code {
+    font-size: 20px;
+  }
+
+  .coolpops-actions {
+    flex-direction: column;
+  }
+}
+
+/* Animations */
+@keyframes coolpops-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

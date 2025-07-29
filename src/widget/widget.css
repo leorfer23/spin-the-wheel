@@ -1,0 +1,414 @@
+/* CoolPops / SpinWheel Pro Widget Styles */
+/* Scoped to prevent conflicts with host site */
+
+.coolpops-widget,
+.spinwheel-widget {
+  all: initial;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #1a1a1a;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+.coolpops-widget *,
+.spinwheel-widget * {
+  box-sizing: border-box;
+}
+
+/* Close button */
+.spinwheel-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.spinwheel-close:hover {
+  background: #ffffff;
+  transform: scale(1.1);
+}
+
+/* Container */
+.spinwheel-container {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  position: relative;
+}
+
+/* Modal content */
+.spinwheel-modal {
+  padding: 40px;
+  text-align: center;
+  min-width: 400px;
+}
+
+@media (max-width: 480px) {
+  .spinwheel-modal {
+    padding: 30px 20px;
+    min-width: auto;
+  }
+}
+
+.spinwheel-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 10px;
+  color: #1a1a1a;
+}
+
+.spinwheel-subtitle {
+  font-size: 18px;
+  color: #666;
+  margin: 0 0 30px;
+}
+
+/* Form */
+.spinwheel-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0 0 20px;
+}
+
+.spinwheel-input {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 16px;
+  border: 2px solid #e5e5e5;
+  border-radius: 10px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.spinwheel-input:focus {
+  border-color: #8B5CF6;
+}
+
+.spinwheel-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+}
+
+.spinwheel-checkbox input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.spinwheel-button {
+  padding: 16px 32px;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.spinwheel-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+}
+
+.spinwheel-button:active {
+  transform: translateY(0);
+}
+
+.spinwheel-terms {
+  font-size: 12px;
+  color: #999;
+  margin: 0;
+}
+
+/* Wheel container */
+.spinwheel-wheel-container {
+  padding: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 500px;
+}
+
+/* Result display */
+.spinwheel-result {
+  padding: 40px;
+  text-align: center;
+  position: relative;
+}
+
+.spinwheel-confetti {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.spinwheel-win-title {
+  font-size: 36px;
+  font-weight: 700;
+  margin: 0 0 20px;
+  background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.spinwheel-win-message {
+  font-size: 20px;
+  color: #666;
+  margin: 0 0 30px;
+}
+
+.spinwheel-promo-code {
+  margin: 0 0 30px;
+}
+
+.spinwheel-code-label {
+  display: block;
+  font-size: 16px;
+  color: #666;
+  margin: 0 0 10px;
+}
+
+.spinwheel-code-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 10px;
+  border: 2px dashed #ddd;
+}
+
+.spinwheel-code-box code {
+  flex: 1;
+  font-size: 24px;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  color: #8B5CF6;
+}
+
+.spinwheel-copy-button {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #8B5CF6;
+  background: white;
+  border: 2px solid #8B5CF6;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.spinwheel-copy-button:hover {
+  color: white;
+  background: #8B5CF6;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .spinwheel-container {
+    max-width: 95vw;
+    max-height: 95vh;
+  }
+
+  .spinwheel-title {
+    font-size: 24px;
+  }
+
+  .spinwheel-subtitle {
+    font-size: 16px;
+  }
+
+  .spinwheel-wheel-container {
+    padding: 20px;
+    min-height: 400px;
+  }
+
+  .spinwheel-win-title {
+    font-size: 28px;
+  }
+
+  .spinwheel-code-box {
+    flex-direction: column;
+  }
+
+  .spinwheel-code-box code {
+    font-size: 20px;
+  }
+}
+
+/* Animations */
+@keyframes spinwheel-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.spinwheel-container {
+  animation: spinwheel-fade-in 0.3s ease-out;
+}
+
+/* Floating handle styles */
+.spinwheel-floating-handle {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 9999;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.spinwheel-floating-handle.right {
+  right: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.spinwheel-floating-handle.left {
+  left: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.spinwheel-floating-handle:hover {
+  transform: translateY(-50%) scale(1.05);
+}
+
+.spinwheel-floating-handle:hover.right {
+  transform: translateY(-50%) translateX(-5px) scale(1.05);
+}
+
+.spinwheel-floating-handle:hover.left {
+  transform: translateY(-50%) translateX(5px) scale(1.05);
+}
+
+.spinwheel-floating-handle-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinwheel-floating-handle-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+/* CoolPops class mappings - duplicate the spinwheel styles */
+.coolpops-close,
+.coolpops-container,
+.coolpops-modal,
+.coolpops-title,
+.coolpops-subtitle,
+.coolpops-form,
+.coolpops-input,
+.coolpops-checkbox,
+.coolpops-button,
+.coolpops-terms,
+.coolpops-wheel-container,
+.coolpops-result,
+.coolpops-confetti,
+.coolpops-win-title,
+.coolpops-win-message,
+.coolpops-promo-code,
+.coolpops-code-label,
+.coolpops-code-box,
+.coolpops-copy-button {
+  /* Styles are defined above with spinwheel- prefix */
+}
+
+/* Additional CoolPops specific styles */
+.coolpops-button.coolpops-primary {
+  background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+}
+
+.coolpops-button.coolpops-secondary {
+  background: transparent;
+  color: #8B5CF6;
+  border: 2px solid #8B5CF6;
+}
+
+.coolpops-button.coolpops-secondary:hover {
+  background: #8B5CF6;
+  color: white;
+}
+
+.coolpops-field {
+  margin-bottom: 16px;
+}
+
+.coolpops-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.coolpops-consent {
+  font-size: 13px;
+  color: #666;
+  margin-top: 16px;
+}
+
+.coolpops-consent a {
+  color: #8B5CF6;
+  text-decoration: none;
+}
+
+.coolpops-consent a:hover {
+  text-decoration: underline;
+}
+
+.coolpops-description {
+  font-size: 16px;
+  color: #666;
+  margin: 20px 0;
+  line-height: 1.6;
+}
+
+.coolpops-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+@media (max-width: 480px) {
+  .coolpops-actions {
+    flex-direction: column;
+  }
+}
