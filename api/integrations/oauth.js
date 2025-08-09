@@ -1,7 +1,6 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { TiendaNubeAuthService } from '../../src/services/integrations/tiendanube/authService';
+const { TiendaNubeAuthService } = require('../lib/tiendaNubeAuth');
 
-const handler = async (req: VercelRequest, res: VercelResponse) => {
+module.exports = async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -55,5 +54,3 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
     });
   }
 };
-
-export default handler;

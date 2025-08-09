@@ -1,6 +1,5 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';  
-import { TiendaNubeAuthService } from '../../src/services/integrations/tiendanube/authService';
-import { createClient } from '@supabase/supabase-js';
+const { TiendaNubeAuthService } = require('../lib/tiendaNubeAuth');
+const { createClient } = require('@supabase/supabase-js');
 
 // Initialize Supabase client
 function getSupabaseClient() {
@@ -19,7 +18,7 @@ function getSupabaseClient() {
   });
 }
 
-const handler = async (req: VercelRequest, res: VercelResponse) => {
+module.exports = async (req, res) => {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -32,7 +31,7 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
 
     if (error) {
       // Redirect to dashboard with error
-      return res.redirect(302, `/dashboard?integration_error=${encodeURIComponent(error as string)}`);
+      return res.redirect(302, `/dashboard?integration_error=${encodeURIComponent(error)}`);
     }
 
     if (!code || !state) {
@@ -42,7 +41,7 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
     // Decode state from base64
     let stateData;
     try {
-      const decodedState = Buffer.from(state as string, 'base64').toString('utf-8');
+      const decodedState = Buffer.from(state, 'base64').toString('utf-8');
       stateData = JSON.parse(decodedState);
     } catch (e) {
       console.error('Failed to decode state:', e);
@@ -53,7 +52,7 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
 
     // Exchange code for token
     console.log('Exchanging code for token...');
-    const tokenData = await tiendaNubeAuth.exchangeCodeForToken(code as string);
+    const tokenData = await tiendaNubeAuth.exchangeCodeForToken(code);
     console.log('Token data received:', {
       user_id: tokenData.user_id,
       has_access_token: !!tokenData.access_token,
@@ -202,5 +201,3 @@ const handler = async (req: VercelRequest, res: VercelResponse) => {
     )}`);
   }
 };
-
-export default handler;
