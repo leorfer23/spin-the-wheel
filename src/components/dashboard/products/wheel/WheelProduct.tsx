@@ -218,7 +218,10 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
           </div>
 
           {/* Greyed out wheel placeholder */}
-          <div className="relative opacity-30 hover:opacity-50 transition-opacity duration-300">
+          <div 
+            className="relative opacity-30 hover:opacity-50 transition-opacity duration-300 pointer-events-none"
+            onClick={(e) => e.stopPropagation()}
+          >
             <FortuneWheel
               config={{
                 segments: [

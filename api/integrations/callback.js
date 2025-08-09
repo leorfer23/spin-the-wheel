@@ -127,12 +127,13 @@ module.exports = async (req, res) => {
         console.log('Found existing store:', existingStore);
         finalStoreId = existingStore.id;
         
-        // Update the existing store with new information
+        // Update the existing store with new information including tiendanube_store_id
         const { error: updateError } = await supabase
           .schema('spinawheel')
           .from('stores')
           .update({
             platform: 'tienda_nube',
+            tiendanube_store_id: tokenData.user_id?.toString() || null,
             store_url: storeInfo?.store_domain || existingStore.store_url || '',
             is_active: true,
             updated_at: new Date().toISOString(),
@@ -151,6 +152,7 @@ module.exports = async (req, res) => {
           user_id: userId,
           store_name: finalStoreName,
           platform: 'tienda_nube',
+          tiendanube_store_id: tokenData.user_id?.toString() || null,
           store_url: storeInfo?.store_domain || '',
           plan_tier: 'free',
           is_active: true,
@@ -239,12 +241,13 @@ module.exports = async (req, res) => {
 
     console.log('Integration upserted successfully:', integration);
 
-    // Update store with integration_id
+    // Update store with integration_id and tiendanube_store_id
     await supabase
       .schema('spinawheel')
       .from('stores')
       .update({
         integration_id: integration.id,
+        tiendanube_store_id: tokenData.user_id?.toString() || null,
         store_url: storeInfo?.store_domain || '',
         updated_at: new Date().toISOString(),
       })
