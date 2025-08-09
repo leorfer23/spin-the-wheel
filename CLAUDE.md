@@ -8,6 +8,8 @@ Fortune Wheel Platform - A comprehensive React-based spin wheel application plat
 
 PLEASE REMEMBER: NO TYPESCRIPT ERRORS SHOULD BE PRESENT IN THE CODEBASE. ALL CODE MUST PASS TYPE CHECKS.
 
+REMEMBER SCHEMA IS SPINAWHEEL NOT PUBLIC.
+
 Always User Facing Text is in Spanish.
 
 USE CLEAN CODE PRINCIPLES: Write clear, maintainable, and well-structured code. Follow best practices for React and TypeScript development. NO FILES SHOULD HAVE UNNECESSARY COMPLEXITY OR BE OVERLY COMPLICATED.
