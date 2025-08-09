@@ -49,8 +49,7 @@ export const SimpleCouponSelector: React.FC<SimpleCouponSelectorProps> = ({
     coupons,
     isLoading,
     isCreating,
-    createCoupon,
-    generateUniqueCode
+    createCoupon
   } = useTiendaNubeCouponsContext();
 
   // Filter coupons based on search
@@ -116,13 +115,6 @@ export const SimpleCouponSelector: React.FC<SimpleCouponSelectorProps> = ({
     });
   };
 
-  const handleGenerateUnique = async () => {
-    const code = await generateUniqueCode('SPIN');
-    if (code) {
-      onValueChange(code);
-      setOpen(false);
-    }
-  };
 
   const handleClearValue = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -244,21 +236,6 @@ export const SimpleCouponSelector: React.FC<SimpleCouponSelectorProps> = ({
                 </button>
               )}
 
-              {/* Generate unique code button */}
-              {!searchValue && (
-                <button
-                  onClick={handleGenerateUnique}
-                  className="w-full p-3 text-left hover:bg-purple-50 transition-colors flex items-center gap-2"
-                >
-                  <div className="p-1.5 bg-purple-100 rounded-lg">
-                    <Ticket className="w-3 h-3 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Generar código único</p>
-                    <p className="text-xs text-muted-foreground">Crear un código automático</p>
-                  </div>
-                </button>
-              )}
 
               {/* Create new coupon option */}
               {showCreateOption && (

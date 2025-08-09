@@ -401,7 +401,7 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({
         onMouseDown={config.spinConfig.allowDrag ? handleMouseDown : undefined}
         onTouchStart={config.spinConfig.allowDrag ? handleTouchStart : undefined}
       >
-        {/* Render wheel segments */}
+        {/* Render wheel segments and pegs together so they rotate as one */}
         <g ref={wheelRef} style={{ transformOrigin: 'center center' }}>
           {config.segments.map((segment, index) => (
             <Segment
@@ -412,9 +412,17 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({
               totalSegments={config.segments.length}
             />
           ))}
+          
+          {/* Decorative peg ring - inside the rotating group */}
+          <PegRing
+            dimensions={config.dimensions}
+            segmentCount={config.segments.length}
+            pegColor={config.pegConfig?.color || config.style?.pegColor || config.style?.borderColor}
+            pegStyle={config.pegConfig?.style}
+          />
         </g>
 
-        {/* Center circle with text/logo */}
+        {/* Center circle with text/logo - stays static */}
         <CenterCircle
           dimensions={config.dimensions}
           config={config.centerCircle}
@@ -422,26 +430,19 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({
         />
       </svg>
 
-      {/* Decorative peg ring */}
-      <PegRing
-        dimensions={config.dimensions}
-        segmentCount={config.segments.length}
-        pegColor={config.style?.borderColor}
-      />
-
       {/* Pointer indicator */}
       {!hidePointer && config.pointer && (
         <div 
           style={{
             position: 'absolute',
-            top: -10,
+            top: -30,
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 20
           }}
         >
-          <svg width="60" height="60" viewBox="0 0 60 60">
-            <g ref={pointerRef} style={{ transformOrigin: '30px 30px' }}>
+          <svg width="100" height="100" viewBox="-50 -80 100 100">
+            <g ref={pointerRef} style={{ transformOrigin: '0 0' }}>
               <Pointer config={config.pointer} isSpinning={isSpinning} />
             </g>
           </svg>

@@ -8,6 +8,8 @@ import { SimpleCouponSelector } from "../components/SimpleCouponSelector";
 import { SaveStatusIndicator } from "../components/SaveStatusIndicator";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import type { TiendaNubeCoupon } from "@/types/tiendanube.types";
+import { CouponDebugPanel } from "../components/CouponDebugPanel";
+import { useStore } from "@/contexts/StoreContext";
 interface SegmentsSectionProps {
   segments: Segment[];
   onUpdateSegments: (segments: Segment[]) => void;
@@ -21,6 +23,8 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
   saveStatus: _saveStatus, // Unused, keeping for backward compatibility
   selectedColorTheme 
 }) => {
+  const { stores, selectedStoreId } = useStore();
+  const currentStore = stores.find(s => s.tiendanube_store_id === selectedStoreId);
   const [localSegments, setLocalSegments] = useState(segments);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [colorPickerState, setColorPickerState] = useState<{
@@ -442,6 +446,13 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
           </div>
         </div>,
         document.body
+      )}
+      
+      {/* Debug Panel - Only show in development */}
+      {import.meta.env.DEV && currentStore?.tiendanube_store_id && (
+        <div className="mt-6">
+          <CouponDebugPanel storeId={currentStore.tiendanube_store_id} />
+        </div>
       )}
     </motion.div>
   );

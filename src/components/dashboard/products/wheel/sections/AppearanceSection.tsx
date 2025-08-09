@@ -181,13 +181,11 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
               onUpdateDesign={updateDesign} 
             />
             
-            {/* Pointer Configuration - Advanced only */}
-            {mode === 'advanced' && (
-              <PointerConfig 
-                wheelDesign={wheelDesign} 
-                onUpdateDesign={updateDesign} 
-              />
-            )}
+            {/* Pointer Configuration */}
+            <PointerConfig 
+              wheelDesign={wheelDesign} 
+              onUpdateDesign={updateDesign} 
+            />
           </div>
         </motion.div>
 

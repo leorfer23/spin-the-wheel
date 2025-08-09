@@ -133,7 +133,7 @@ export const TopBar: React.FC = () => {
                     Mis tiendas
                   </div>
                   
-                  <div className="max-h-64 overflow-y-auto">
+                  <div className="max-h-64 overflow-y-auto overflow-x-hidden">
                     {stores.map((store) => (
                       <button
                         key={store.id}

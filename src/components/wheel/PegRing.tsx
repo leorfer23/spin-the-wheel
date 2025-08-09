@@ -26,12 +26,10 @@ export const PegRing: React.FC<PegRingProps> = React.memo(({
     // Calculate angle to position pegs at segment boundaries
     const segmentAngle = 360 / pegCount;
     
-    // Always offset by half a segment to align with segment boundaries
-    // This ensures pegs are positioned between segments correctly
-    const segmentOffset = -segmentAngle / 2;
-    
-    // Position pegs at the start of each segment (which are the boundaries)
-    const angle = segmentAngle * i + segmentOffset;
+    // Position pegs at segment boundaries (edges between segments)
+    // Segments start at -segmentAngle/2, so to place pegs at boundaries
+    // we need to offset by -segmentAngle/2 to match segment positioning
+    const angle = segmentAngle * i - segmentAngle / 2;
     
     // Convert to radians, subtracting 90 to align with top being 0 degrees
     const rad = (angle - 90) * (Math.PI / 180);

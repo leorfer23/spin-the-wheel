@@ -50,13 +50,13 @@ export const PegSettings: React.FC<PegSettingsProps> = ({
             <input
               type="color"
               value={wheelDesign.pegColor}
-              onChange={(e) => onUpdateDesign({ pegColor: e.target.value })}
+              onChange={(e) => onUpdateDesign({ pegColor: e.target.value, pegStyle: wheelDesign.pegStyle })}
               className="w-14 h-14 rounded-xl cursor-pointer ring-2 ring-gray-200 hover:ring-purple-300 transition-all"
             />
             <input
               type="text"
               value={wheelDesign.pegColor}
-              onChange={(e) => onUpdateDesign({ pegColor: e.target.value })}
+              onChange={(e) => onUpdateDesign({ pegColor: e.target.value, pegStyle: wheelDesign.pegStyle })}
               className="flex-1 px-4 py-3 bg-gray-50 rounded-xl text-sm font-mono"
             />
           </div>
@@ -70,7 +70,7 @@ export const PegSettings: React.FC<PegSettingsProps> = ({
               min="5"
               max="40"
               value={wheelDesign.pegSize}
-              onChange={(e) => onUpdateDesign({ pegSize: parseInt(e.target.value) })}
+              onChange={(e) => onUpdateDesign({ pegSize: parseInt(e.target.value), pegStyle: wheelDesign.pegStyle })}
               className="flex-1 accent-purple-600"
             />
             <span className="text-sm font-medium text-gray-600 w-12 text-right">{wheelDesign.pegSize}px</span>

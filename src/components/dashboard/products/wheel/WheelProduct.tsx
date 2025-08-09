@@ -407,7 +407,7 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
             capturePrivacyText: 'Al participar, aceptas recibir emails promocionales. Puedes darte de baja en cualquier momento.',
             captureFormat: 'instant'
           }}
-          wheelDesignConfig={selectedWheel?.wheelDesign || wheelDesignConfig}
+          wheelDesignConfig={{...wheelDesignConfig, ...selectedWheel?.wheelDesign}}
           activeConfigSection={activeConfigSection}
         />
       </div>

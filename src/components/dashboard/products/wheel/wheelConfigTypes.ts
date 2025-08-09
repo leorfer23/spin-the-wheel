@@ -96,6 +96,27 @@ export interface WidgetConfig {
   captureButtonText: string;
   capturePrivacyText: string;
   captureFormat?: 'instant' | 'minimal' | 'social';
+  // Conversion optimization toggles
+  showCountdownTimer?: boolean;
+  countdownMinutes?: number;
+  countdownText?: string;
+  showLiveActivity?: boolean;
+  liveActivityMin?: number;
+  liveActivityMax?: number;
+  liveActivityText?: string;
+  showSocialProof?: boolean;
+  socialProofText?: string;
+  socialProofTimeAgo?: string;
+  showTrustBadges?: boolean;
+  trustBadge1?: string;
+  trustBadge2?: string;
+  trustBadge3?: string;
+  showPrizeHighlight?: boolean;
+  prizeHighlightText?: string;
+  showMicroAnimations?: boolean;
+  showGlowEffects?: boolean;
+  showUrgencyMessage?: boolean;
+  urgencyMessageText?: string;
 }
 
 export interface WheelConfigurationProps {

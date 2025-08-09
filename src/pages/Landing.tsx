@@ -168,12 +168,12 @@ export const Landing: React.FC = () => {
       
       {/* Hero Section */}
       <motion.section 
-        className="relative min-h-screen flex items-center justify-center px-4 py-20 lg:py-20"
+        className="relative flex items-start px-4 pt-20 pb-12 lg:pt-24 lg:pb-16"
         style={{ opacity: heroOpacity }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/50" />
         
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10 mt-16 lg:mt-0">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
           {/* Left Column - Text */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}

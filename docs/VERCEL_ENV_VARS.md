@@ -16,6 +16,7 @@ The following environment variables need to be configured in your Vercel project
    - Your Supabase service role key (secret)
    - Used for server-side operations in API functions
    - ⚠️ Keep this secret and never expose it to the client
+   - Note: Even though it has VITE_ prefix, this is only used server-side in API functions
 
 4. **VITE_TIENDANUBE_APP_ID**
    - Your TiendaNube application ID
