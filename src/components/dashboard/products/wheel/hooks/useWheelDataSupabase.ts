@@ -199,9 +199,9 @@ export function useWheelDataSupabase() {
         centerButtonFontWeight: 'bold',
         
         // Pointer
-        pointerStyle: 'arrow',
+        pointerStyle: 'triangle',
         pointerColor: '#FF1744',
-        pointerSize: 40,
+        pointerSize: 60,
         pointerGlowEnabled: false,
         pointerGlowColor: '#FF1744',
         

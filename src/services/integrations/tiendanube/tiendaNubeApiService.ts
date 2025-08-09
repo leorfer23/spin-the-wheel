@@ -65,7 +65,22 @@ export class TiendaNubeApiService {
     body?: any
   ): Promise<ApiResponse<T>> {
     try {
-      const url = `/api/tiendanube/proxy/${path}`;
+      // Use alternative endpoint in production that uses query params instead of catch-all route
+      const isProduction = window.location.hostname === 'www.rooleta.com' || window.location.hostname === 'rooleta.com';
+      const url = isProduction 
+        ? `/api/tiendanube-proxy?path=${encodeURIComponent(path)}`
+        : `/api/tiendanube/proxy/${path}`;
+      
+      // Enhanced production debugging
+      console.log('🚀 [makeRequest] Production API Request:', {
+        fullUrl: window.location.origin + url,
+        environment: import.meta.env.MODE,
+        deploymentUrl: import.meta.env.VERCEL_URL,
+        path,
+        method,
+        isProduction,
+        usingAlternativeEndpoint: isProduction
+      });
       
       console.log('🔐 [makeRequest] Auth debug:', {
         url,
@@ -90,7 +105,24 @@ export class TiendaNubeApiService {
       const response = await fetch(url, options);
       const responseText = await response.text();
 
+      // Log response details for debugging
+      console.log('📥 [makeRequest] Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        responsePreview: responseText ? responseText.substring(0, 200) : 'empty'
+      });
+
       if (!response.ok) {
+        // Special handling for 404 in production
+        if (response.status === 404) {
+          console.error('❌ [makeRequest] 404 Error - Endpoint not found:', {
+            requestedUrl: url,
+            fullUrl: window.location.origin + url,
+            possibleIssue: 'Vercel may not be recognizing the [...path].js catch-all route'
+          });
+        }
+        
         // Check for 401 Unauthorized
         if (response.status === 401) {
           return {

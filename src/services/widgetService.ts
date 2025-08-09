@@ -147,7 +147,7 @@ export const widgetService = {
         centerCircleColor: styleConfig.centerButtonBackgroundColor || '#8B5CF6',
         centerCircleSize: 80,
         pointerColor: styleConfig.pointerColor || '#EF4444',
-        pointerStyle: 'arrow' as const,
+        pointerStyle: 'triangle' as const,
         fontFamily: 'Arial, sans-serif',
         fontSize: 16,
         // Additional style properties from database

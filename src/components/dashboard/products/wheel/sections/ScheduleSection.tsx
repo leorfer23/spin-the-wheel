@@ -64,18 +64,26 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
       exit={{ opacity: 0, y: -20 }}
       className="flex-1 overflow-hidden"
     >
-      <div className="h-full overflow-y-auto custom-scrollbar relative">
-        {/* Save Status - Fixed position at top */}
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50">
-          <SaveStatusIndicator status={saveStatus} />
+      <div className="h-full overflow-y-auto custom-scrollbar">
+        <div className="p-6 space-y-6">
+          {/* Header with Save Status */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">
+                Programación de Horarios
+              </h3>
+              <p className="text-sm text-gray-500">Configura cuándo estará activa tu ruleta</p>
+            </div>
+            <SaveStatusIndicator status={saveStatus} />
+          </div>
+          
+          <SimpleScheduleConfig
+            config={localScheduleConfig}
+            onChange={handleScheduleConfigChange}
+            enabled={localScheduleConfig.enabled}
+            onEnabledChange={handleEnabledChange}
+          />
         </div>
-        
-        <SimpleScheduleConfig
-          config={localScheduleConfig}
-          onChange={handleScheduleConfigChange}
-          enabled={localScheduleConfig.enabled}
-          onEnabledChange={handleEnabledChange}
-        />
       </div>
     </motion.div>
   );

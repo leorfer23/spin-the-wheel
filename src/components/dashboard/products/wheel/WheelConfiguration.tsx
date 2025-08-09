@@ -94,9 +94,9 @@ export function WheelConfiguration({
     centerButtonFontWeight: 'bold',
     
     // Pointer
-    pointerStyle: 'arrow',
+    pointerStyle: 'triangle',
     pointerColor: '#EF4444',
-    pointerSize: 40,
+    pointerSize: 60,
     pointerGlowEnabled: false,
     pointerGlowColor: '#EF4444',
     

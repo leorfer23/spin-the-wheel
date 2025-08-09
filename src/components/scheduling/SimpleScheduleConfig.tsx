@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Clock, Calendar as CalendarIcon, Check } from 'lucide-react';
+import { Plus, Trash2, Clock, Calendar as CalendarIcon, Check, AlertTriangle } from 'lucide-react';
 import type { WheelScheduleConfig } from '../../types/models';
 
 interface SimpleScheduleConfigProps {
@@ -69,6 +69,8 @@ export const SimpleScheduleConfig: React.FC<SimpleScheduleConfigProps> = ({
   console.log('[SimpleScheduleConfig] Enabled:', enabled);
   // Track selected template for visual feedback
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  // Warning modal state
+  const [showActivationWarning, setShowActivationWarning] = useState(false);
   
   // Check which template matches current config
   const getMatchingTemplate = () => {
@@ -310,7 +312,14 @@ export const SimpleScheduleConfig: React.FC<SimpleScheduleConfigProps> = ({
             <input 
               type="checkbox" 
               checked={enabled}
-              onChange={(e) => onEnabledChange(e.target.checked)}
+              onChange={(e) => {
+                // If disabling (switching to always active), show warning
+                if (!e.target.checked) {
+                  setShowActivationWarning(true);
+                } else {
+                  onEnabledChange(true);
+                }
+              }}
               className="sr-only peer"
             />
             <div className="w-14 h-8 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-purple-600 peer-checked:to-pink-600"></div>
@@ -572,6 +581,71 @@ export const SimpleScheduleConfig: React.FC<SimpleScheduleConfigProps> = ({
               )}
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Warning Modal */}
+      <AnimatePresence>
+        {showActivationWarning && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setShowActivationWarning(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative bg-white rounded-3xl shadow-2xl max-w-md w-full p-8"
+            >
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+                  <AlertTriangle className="w-8 h-8 text-yellow-600" />
+                </div>
+                
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  ¿Activar Ruleta Permanentemente?
+                </h3>
+                
+                <p className="text-gray-600 mb-6">
+                  Al seleccionar "Siempre activa", tu ruleta estará disponible 
+                  <strong className="text-gray-900"> inmediatamente y las 24 horas del día</strong>.
+                  Los clientes podrán participar en cualquier momento.
+                </p>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 w-full">
+                  <p className="text-sm text-yellow-800 font-medium">
+                    ⚠️ La ruleta se activará inmediatamente al confirmar
+                  </p>
+                </div>
+                
+                <div className="flex gap-3 w-full">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setShowActivationWarning(false)}
+                    className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
+                  >
+                    Cancelar
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      onEnabledChange(false);
+                      setShowActivationWarning(false);
+                    }}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-xl shadow-lg transition-all"
+                  >
+                    Activar Siempre
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

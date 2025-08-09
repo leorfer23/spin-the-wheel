@@ -27,6 +27,7 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
   const currentStore = stores.find(s => s.tiendanube_store_id === selectedStoreId);
   const [localSegments, setLocalSegments] = useState(segments);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [colorPickerState, setColorPickerState] = useState<{
     isOpen: boolean;
     segmentId: string | null;
@@ -112,26 +113,57 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
     save(newSegments);
   };
 
-  const handleDragStart = (index: number) => {
+  const handleDragStart = (index: number, e: React.DragEvent) => {
     setDraggedIndex(index);
+    // Add a slight transparency to the dragged element
+    const target = e.currentTarget as HTMLElement;
+    target.style.opacity = '0.5';
   };
 
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
+  const handleDragEnter = (index: number) => {
     if (draggedIndex === null || draggedIndex === index) return;
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDragOverIndex(null);
+      return;
+    }
     
     const newSegments = [...localSegments];
     const draggedSegment = newSegments[draggedIndex];
+    
+    // Remove the dragged item
     newSegments.splice(draggedIndex, 1);
-    newSegments.splice(index, 0, draggedSegment);
+    
+    // Insert at the new position
+    const insertIndex = draggedIndex < dropIndex ? dropIndex - 1 : dropIndex;
+    newSegments.splice(insertIndex, 0, draggedSegment);
+    
     setLocalSegments(newSegments);
-    setDraggedIndex(index);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    
+    // Save the new order after drop
+    save(newSegments);
   };
 
-  const handleDragEnd = () => {
+  const handleDragEnd = (e: React.DragEvent) => {
+    // Reset opacity
+    const target = e.currentTarget as HTMLElement;
+    target.style.opacity = '1';
     setDraggedIndex(null);
-    // Save the new order after drag ends
-    save(localSegments);
+    setDragOverIndex(null);
   };
 
   const handleCouponValueChange = (segmentId: string, value: string, coupon?: TiendaNubeCoupon) => {
@@ -289,27 +321,58 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-4 pr-2">
-        <AnimatePresence>
+        <AnimatePresence mode="popLayout">
           {localSegments.map((segment, index) => {
             const percentage = Math.round(((segment.weight || 10) / totalWeight) * 100);
+            const isDragOver = dragOverIndex === index;
+            
             return (
+              <React.Fragment key={segment.id}>
+                {/* Drop indicator line */}
+                {isDragOver && draggedIndex !== null && draggedIndex < index && (
+                  <motion.div
+                    initial={{ opacity: 0, scaleX: 0 }}
+                    animate={{ opacity: 1, scaleX: 1 }}
+                    exit={{ opacity: 0, scaleX: 0 }}
+                    className="h-1 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full mx-4"
+                    transition={{ duration: 0.2 }}
+                  />
+                )}
               <motion.div
                 key={segment.id}
                 layout
+                layoutId={segment.id}
                 initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
+                animate={{ 
+                  opacity: draggedIndex === index ? 0.5 : 1, 
+                  x: 0,
+                  scale: dragOverIndex === index ? 1.03 : 1,
+                  y: dragOverIndex === index ? -5 : 0
+                }}
                 exit={{ opacity: 0, x: 20 }}
-                onDragOver={(e) => handleDragOver(e, index)}
-                whileHover={{ scale: 1.02 }}
-                className={`bg-gradient-to-r from-white to-gray-50 backdrop-blur-sm rounded-2xl p-6 border-2 ${
-                  draggedIndex === index ? 'border-purple-400 shadow-2xl scale-105' : 'border-gray-200'
+                transition={{ 
+                  layout: { duration: 0.3, type: "spring", stiffness: 300, damping: 30 },
+                  opacity: { duration: 0.2 },
+                  scale: { duration: 0.2 }
+                }}
+                onDragOver={handleDragOver}
+                onDragEnter={() => handleDragEnter(index)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, index)}
+                whileHover={{ scale: draggedIndex === null ? 1.02 : 1 }}
+                className={`relative bg-gradient-to-r from-white to-gray-50 backdrop-blur-sm rounded-2xl p-6 border-2 ${
+                  draggedIndex === index 
+                    ? 'border-purple-400 shadow-2xl opacity-50' 
+                    : dragOverIndex === index 
+                      ? 'border-purple-500 shadow-xl bg-purple-50/30' 
+                      : 'border-gray-200'
                 } hover:shadow-lg transition-all group`}
               >
                 <div className="flex items-center gap-4">
                   <div 
                     className="flex items-center gap-2 opacity-50 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing p-2 -m-2 rounded-lg hover:bg-gray-100"
                     draggable
-                    onDragStart={() => handleDragStart(index)}
+                    onDragStart={(e) => handleDragStart(index, e)}
                     onDragEnd={handleDragEnd}
                     title="Arrastra para reordenar"
                   >
@@ -401,6 +464,18 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
                   </div>
                 </div>
               </motion.div>
+                
+                {/* Drop indicator line for bottom */}
+                {isDragOver && draggedIndex !== null && draggedIndex > index && (
+                  <motion.div
+                    initial={{ opacity: 0, scaleX: 0 }}
+                    animate={{ opacity: 1, scaleX: 1 }}
+                    exit={{ opacity: 0, scaleX: 0 }}
+                    className="h-1 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full mx-4"
+                    transition={{ duration: 0.2 }}
+                  />
+                )}
+              </React.Fragment>
             );
           })}
         </AnimatePresence>

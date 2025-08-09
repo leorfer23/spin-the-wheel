@@ -247,8 +247,6 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
           </div>
         </motion.div>
 
-        {/* Quick Presets */}
-        <QuickPresets onUpdateDesign={updateDesign} />
       </div>
     </motion.div>
   );
@@ -390,49 +388,119 @@ const PointerConfig: React.FC<{
 }> = ({ wheelDesign, onUpdateDesign }) => (
   <div>
     <label className="text-sm font-medium text-gray-700 mb-3 block">Diseño del Puntero</label>
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
-        <label className="text-xs font-medium text-gray-600 mb-2 block">Estilo del Puntero</label>
+        <label className="text-xs font-medium text-gray-600 mb-3 block">Estilo del Puntero</label>
         <div className="grid grid-cols-3 gap-3">
           {[
-            { id: 'arrow', name: 'Flecha', icon: '▼' },
-            { id: 'circle', name: 'Círculo', icon: '●' },
-            { id: 'triangle', name: 'Triángulo', icon: '▲' }
+            { 
+              id: 'triangle', 
+              name: 'Triángulo', 
+              preview: (
+                <svg width="60" height="60" viewBox="0 0 60 60">
+                  <g transform="translate(30, 40)">
+                    <path d="M 0,0 L 12,-30 L -12,-30 Z" fill={wheelDesign.pointerColor} stroke="#ffffff" strokeWidth="2"/>
+                  </g>
+                </svg>
+              )
+            },
+            { 
+              id: 'arrow', 
+              name: 'Flecha', 
+              preview: (
+                <svg width="60" height="60" viewBox="0 0 60 60">
+                  <g transform="translate(30, 40)">
+                    <circle cx="0" cy="-20" r="12" fill={wheelDesign.pointerColor} opacity="0.9"/>
+                    <path d="M 0,-5 L 8,-15 L 5,-25 L 0,-30 L -5,-25 L -8,-15 Z" fill={wheelDesign.pointerColor}/>
+                    <ellipse cx="0" cy="-20" rx="6" ry="5" fill="#ffffff" opacity="0.4"/>
+                  </g>
+                </svg>
+              )
+            },
+            { 
+              id: 'circle', 
+              name: 'Círculo', 
+              preview: (
+                <svg width="60" height="60" viewBox="0 0 60 60">
+                  <g transform="translate(30, 40)">
+                    <circle cx="0" cy="-20" r="14" fill={wheelDesign.pointerColor} opacity="0.3"/>
+                    <circle cx="0" cy="-20" r="11" fill={wheelDesign.pointerColor}/>
+                    <path d="M -8,-10 L 0,0 L 8,-10 Z" fill={wheelDesign.pointerColor}/>
+                    <circle cx="0" cy="-20" r="4" fill="#ffffff" opacity="0.8"/>
+                  </g>
+                </svg>
+              )
+            }
           ].map((style) => (
             <motion.button
               key={style.id}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => onUpdateDesign({ pointerStyle: style.id })}
-              className={`p-4 rounded-2xl transition-all flex flex-col items-center gap-2 ${
+              className={`relative p-4 rounded-2xl transition-all flex flex-col items-center gap-3 min-h-[140px] ${
                 wheelDesign.pointerStyle === style.id
-                  ? "ring-2 ring-purple-500 bg-purple-50 shadow-lg scale-105"
-                  : "ring-1 ring-gray-200 hover:ring-purple-300 hover:bg-gray-50"
+                  ? "ring-2 ring-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 shadow-xl"
+                  : "ring-1 ring-gray-200 hover:ring-purple-300 hover:bg-gray-50 bg-white"
               }`}
             >
-              <span className="text-2xl" style={{ color: wheelDesign.pointerColor }}>{style.icon}</span>
+              {wheelDesign.pointerStyle === style.id && (
+                <div className="absolute top-2 right-2 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
+              <div className="flex-1 flex items-center justify-center">
+                {style.preview}
+              </div>
               <span className="text-sm font-medium text-gray-700">{style.name}</span>
             </motion.button>
           ))}
         </div>
       </div>
       
-      <div>
-        <label className="text-xs font-medium text-gray-600 mb-2 block">Color del Puntero</label>
-        <div className="flex items-center gap-3">
-          <input
-            type="color"
-            value={wheelDesign.pointerColor}
-            onChange={(e) => onUpdateDesign({ pointerColor: e.target.value })}
-            className="w-14 h-14 rounded-xl cursor-pointer ring-2 ring-gray-200 hover:ring-purple-300 transition-all"
-          />
-          <input
-            type="text"
-            value={wheelDesign.pointerColor}
-            onChange={(e) => onUpdateDesign({ pointerColor: e.target.value })}
-            className="flex-1 px-4 py-3 bg-gray-50 rounded-xl text-sm font-mono"
-            placeholder="#FF1744"
-          />
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="text-xs font-medium text-gray-600 mb-2 block">Color del Puntero</label>
+          <div className="flex items-center gap-3">
+            <input
+              type="color"
+              value={wheelDesign.pointerColor}
+              onChange={(e) => onUpdateDesign({ pointerColor: e.target.value })}
+              className="w-14 h-14 rounded-xl cursor-pointer ring-2 ring-gray-200 hover:ring-purple-300 transition-all"
+            />
+            <input
+              type="text"
+              value={wheelDesign.pointerColor}
+              onChange={(e) => onUpdateDesign({ pointerColor: e.target.value })}
+              className="flex-1 px-3 py-3 bg-gray-50 rounded-xl text-sm font-mono"
+              placeholder="#FF1744"
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label className="text-xs font-medium text-gray-600 mb-2 block">Tamaño del Puntero</label>
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="30"
+                max="80"
+                value={wheelDesign.pointerSize || 60}
+                onChange={(e) => onUpdateDesign({ pointerSize: parseInt(e.target.value) })}
+                className="flex-1 accent-purple-600"
+              />
+              <span className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-lg min-w-[60px] text-center">
+                {wheelDesign.pointerSize || 60}px
+              </span>
+            </div>
+            <div className="flex justify-between text-xs text-gray-400">
+              <span>Pequeño</span>
+              <span>Mediano</span>
+              <span>Grande</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -546,77 +614,4 @@ const AnimationSettings: React.FC<{
       </div>
     </div>
   </div>
-);
-
-
-const QuickPresets: React.FC<{
-  onUpdateDesign: (updates: Partial<WheelDesignConfig>) => void;
-}> = ({ onUpdateDesign }) => (
-  <motion.div 
-    className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-3xl p-6"
-    initial={{ y: 20, opacity: 0 }}
-    animate={{ y: 0, opacity: 1 }}
-    transition={{ delay: 0.4 }}
-  >
-    <h4 className="text-lg font-semibold text-gray-800 mb-4">Presets Rápidos</h4>
-    <div className="grid grid-cols-4 gap-3">
-      {[
-        { 
-          name: 'Elegante', 
-          colors: ['#1a1a1a', '#FFD700'],
-          design: {
-            shadowColor: '#1a1a1a',
-            pegColor: '#FFD700',
-            centerButtonBackgroundColor: '#1a1a1a',
-            centerButtonTextColor: '#FFD700'
-          }
-        },
-        { 
-          name: 'Juguetón', 
-          colors: ['#FF6B6B', '#4ECDC4'],
-          design: {
-            shadowColor: '#FF6B6B',
-            pegColor: '#4ECDC4',
-            centerButtonBackgroundColor: '#FF6B6B',
-            centerButtonTextColor: '#FFFFFF'
-          }
-        },
-        { 
-          name: 'Moderno', 
-          colors: ['#8B5CF6', '#EC4899'],
-          design: {
-            shadowColor: '#8B5CF6',
-            pegColor: '#EC4899',
-            centerButtonBackgroundColor: '#8B5CF6',
-            centerButtonTextColor: '#FFFFFF'
-          }
-        },
-        { 
-          name: 'Clásico', 
-          colors: ['#DC2626', '#059669'],
-          design: {
-            shadowColor: '#DC2626',
-            pegColor: '#059669',
-            centerButtonBackgroundColor: '#DC2626',
-            centerButtonTextColor: '#FFFFFF'
-          }
-        }
-      ].map((preset) => (
-        <motion.button
-          key={preset.name}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => onUpdateDesign(preset.design)}
-          className="p-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all"
-        >
-          <div className="flex gap-1 mb-2 justify-center">
-            {preset.colors.map((color, i) => (
-              <div key={i} className="w-6 h-6 rounded-full" style={{ backgroundColor: color }} />
-            ))}
-          </div>
-          <span className="text-sm font-medium text-gray-700">{preset.name}</span>
-        </motion.button>
-      ))}
-    </div>
-  </motion.div>
 );

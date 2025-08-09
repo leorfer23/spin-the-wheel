@@ -181,7 +181,7 @@ export const PreviewCarousel: React.FC<PreviewCarouselProps> = ({
                 pointer: {
                   color: wheelDesignConfig?.pointerColor || "#FF1744",
                   size: wheelDesignConfig?.pointerSize || 60,
-                  style: (wheelDesignConfig?.pointerStyle as 'arrow' | 'circle' | 'triangle') || "arrow",
+                  style: (wheelDesignConfig?.pointerStyle as 'arrow' | 'circle' | 'triangle') || "triangle",
                 },
                 spinConfig: {
                   duration: wheelDesignConfig?.spinDuration || 4,

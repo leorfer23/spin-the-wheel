@@ -33,8 +33,14 @@ export const Pointer: React.FC<PointerProps> = ({
         }
       });
     } else {
-      controls.stop();
-      controls.set({ rotate: 0 });
+      // Smoothly animate back to original position
+      controls.start({
+        rotate: 0,
+        transition: {
+          duration: 0.2,
+          ease: "easeOut"
+        }
+      });
     }
   }, [isSpinning, controls]);
 
@@ -157,7 +163,8 @@ export const Pointer: React.FC<PointerProps> = ({
     <motion.g
       className="wheel-pointer"
       animate={controls}
-      style={{ transformOrigin: 'center' }}
+      style={{ transformOrigin: '0 0' }}
+      initial={{ rotate: 0 }}
       onAnimationComplete={() => {
         if (pegHitAnimation && onPegHit) {
           onPegHit();

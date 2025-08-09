@@ -12,6 +12,7 @@ interface Wheel {
   schedule?: WheelScheduleConfig;
   wheelDesign?: any;
   widgetConfig?: any;
+  is_active?: boolean;
 }
 
 interface WheelState {

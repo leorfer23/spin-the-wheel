@@ -16,6 +16,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTiendaNubeIntegration } from '@/hooks/useTiendaNubeCoupons';
@@ -138,59 +144,69 @@ export const SimpleCouponSelector: React.FC<SimpleCouponSelectorProps> = ({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn(
-            "w-full justify-between bg-white/60 backdrop-blur-sm border-0 hover:bg-white/80",
-            "focus:outline-none focus:ring-4 focus:ring-purple-500/20",
-            className
-          )}
-        >
-          <div className="flex items-center gap-2 flex-1 text-left">
-            {value ? (
-              <>
-                {value === 'SIN_PREMIO' ? (
-                  <>
-                    <div className="p-1 bg-gray-100 rounded">
-                      <X className="w-3 h-3 text-gray-600" />
-                    </div>
-                    <span className="truncate">Sin Premio</span>
-                  </>
-                ) : (
-                  <>
-                    {selectedCoupon && (
-                      <div className="p-1 bg-purple-100 rounded">
-                        {getCouponIcon(selectedCoupon.type)}
+    <TooltipProvider>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            className={cn(
+              "w-full justify-between bg-white/60 backdrop-blur-sm border-0 hover:bg-white/80",
+              "focus:outline-none focus:ring-4 focus:ring-purple-500/20 min-w-0",
+              className
+            )}
+          >
+            <div className="flex items-center gap-2 flex-1 text-left min-w-0 overflow-hidden">
+              {value ? (
+                <>
+                  {value === 'SIN_PREMIO' ? (
+                    <>
+                      <div className="p-1 bg-gray-100 rounded flex-shrink-0">
+                        <X className="w-3 h-3 text-gray-600" />
                       </div>
-                    )}
-                    <span className="truncate">{value}</span>
-                    {selectedCoupon && (
-                      <span className="text-xs text-muted-foreground">
-                        {formatCouponValue(selectedCoupon)}
-                      </span>
-                    )}
-                  </>
-                )}
-              </>
-            ) : (
-              <span className="text-muted-foreground">{placeholder}</span>
-            )}
-          </div>
-          <div className="flex items-center gap-1">
-            {value && (
-              <X
-                className="h-3 w-3 text-gray-500 hover:text-gray-700"
-                onClick={handleClearValue}
-              />
-            )}
-            <ChevronDown className="h-4 w-4 text-gray-500" />
-          </div>
-        </Button>
-      </PopoverTrigger>
+                      <span className="truncate">Sin Premio</span>
+                    </>
+                  ) : (
+                    <>
+                      {selectedCoupon && (
+                        <div className="p-1 bg-purple-100 rounded flex-shrink-0">
+                          {getCouponIcon(selectedCoupon.type)}
+                        </div>
+                      )}
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="truncate max-w-[150px] inline-block align-bottom">{value}</span>
+                        </TooltipTrigger>
+                        {value.length > 15 && (
+                          <TooltipContent>
+                            <p>{value}</p>
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                      {selectedCoupon && (
+                        <span className="text-xs text-muted-foreground flex-shrink-0">
+                          {formatCouponValue(selectedCoupon)}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </>
+              ) : (
+                <span className="text-muted-foreground truncate">{placeholder}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+              {value && (
+                <X
+                  className="h-3 w-3 text-gray-500 hover:text-gray-700"
+                  onClick={handleClearValue}
+                />
+              )}
+              <ChevronDown className="h-4 w-4 text-gray-500" />
+            </div>
+          </Button>
+        </PopoverTrigger>
       <PopoverContent 
         className="w-[var(--radix-popover-trigger-width)] p-0"
         align="start"
@@ -277,15 +293,24 @@ export const SimpleCouponSelector: React.FC<SimpleCouponSelectorProps> = ({
                       value === coupon.code && "bg-purple-50"
                     )}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
                       <div className={cn(
-                        "p-1.5 rounded-lg",
+                        "p-1.5 rounded-lg flex-shrink-0",
                         value === coupon.code ? "bg-purple-200" : "bg-gray-100"
                       )}>
                         {getCouponIcon(coupon.type)}
                       </div>
-                      <div>
-                        <p className="text-sm font-medium">{coupon.code}</p>
+                      <div className="min-w-0 flex-1">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <p className="text-sm font-medium truncate">{coupon.code}</p>
+                          </TooltipTrigger>
+                          {coupon.code.length > 20 && (
+                            <TooltipContent>
+                              <p>{coupon.code}</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-muted-foreground">
                             {formatCouponValue(coupon)}
@@ -299,7 +324,7 @@ export const SimpleCouponSelector: React.FC<SimpleCouponSelectorProps> = ({
                       </div>
                     </div>
                     {value === coupon.code && (
-                      <Check className="w-4 h-4 text-purple-600" />
+                      <Check className="w-4 h-4 text-purple-600 flex-shrink-0" />
                     )}
                   </button>
                 ))
@@ -309,5 +334,6 @@ export const SimpleCouponSelector: React.FC<SimpleCouponSelectorProps> = ({
         </div>
       </PopoverContent>
     </Popover>
+    </TooltipProvider>
   );
 };

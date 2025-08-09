@@ -110,7 +110,7 @@ export function widgetAPIPlugin(): Plugin {
                   // Center circle size - use a proportional default based on wheel size
                   centerCircleSize: styleConfig.centerCircleSize || styleConfig.centerButtonSize || 100,
                   pointerColor: styleConfig.pointerColor || '#EF4444',
-                  pointerStyle: styleConfig.pointerStyle || 'arrow',
+                  pointerStyle: styleConfig.pointerStyle || 'triangle',
                   fontFamily: styleConfig.fontFamily || 'Arial, sans-serif',
                   fontSize: styleConfig.fontSize || 16,
                   // Pass through any additional style properties

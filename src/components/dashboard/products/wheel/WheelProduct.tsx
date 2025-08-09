@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Eye, BarChart3 } from "lucide-react";
+import { Eye, BarChart3, CheckCircle } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FortuneWheel } from "../../../wheel/FortuneWheel";
 import { WheelSelector } from "./WheelSelector";
@@ -118,9 +118,9 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
     centerButtonFontWeight: 'bold',
     
     // Pointer
-    pointerStyle: 'arrow',
+    pointerStyle: 'triangle',
     pointerColor: '#FF1744',
-    pointerSize: 40,
+    pointerSize: 60,
     pointerGlowEnabled: false,
     pointerGlowColor: '#FF1744',
     
@@ -342,6 +342,21 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
 
         {/* Action Buttons on the right */}
         <div className="w-48 flex justify-end gap-2">
+          {/* Active Indicator */}
+          {selectedWheel?.is_active && (
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1.5 px-3 py-2 bg-green-50 rounded-lg">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-700">Activa</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="bg-gray-900 text-white">
+                Esta ruleta está actualmente activa
+              </TooltipContent>
+            </Tooltip>
+          )}
+          
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <motion.button

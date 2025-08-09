@@ -67,20 +67,90 @@ export const Segment: React.FC<SegmentProps> = React.memo(({
   const textX = textRadius * Math.cos(textRad);
   const textY = textRadius * Math.sin(textRad);
   
-  // Calculate adaptive font size based on wheel diameter and number of segments
-  // Base font size is proportional to wheel diameter
-  const baseFontSize = dimensions.diameter * 0.035; // 3.5% of diameter
-  
-  // Adjust font size based on number of segments (more segments = smaller text)
-  const segmentFactor = Math.min(1, 8 / totalSegments); // Optimal for 8 segments or less
-  
-  // Adjust font size based on available segment arc length
+  // Calculate available space for text
+  const segmentRadialHeight = radius - innerRadius;
   const segmentArcLength = 2 * Math.PI * textRadius * (angle / 360);
-  const widthFactor = Math.min(1, segmentArcLength / (segment.label.length * 10));
   
-  // Calculate final font size with min and max limits
-  const calculatedFontSize = baseFontSize * segmentFactor * widthFactor;
-  const fontSize = Math.max(10, Math.min(24, calculatedFontSize)); // Min 10px, Max 24px
+  // Split text into words for potential wrapping
+  const words = segment.label.split(' ');
+  const needsWrapping = words.length > 1 && segment.label.length > 15;
+  
+  // Calculate dynamic font size based on multiple factors
+  const baseFontSize = dimensions.diameter * 0.04; // 4% of diameter as base
+  
+  // Factor 1: Number of segments (more segments = smaller text)
+  const segmentCountFactor = Math.min(1, 6 / totalSegments);
+  
+  // Factor 2: Text length (shorter text = bigger font)
+  // Inverse relationship: as text gets shorter, font gets bigger
+  const textLengthFactor = Math.min(1.5, 8 / Math.max(3, segment.label.length));
+  // This gives us:
+  // 3 chars (10%): 8/3 = 2.67 -> capped at 1.5
+  // 4 chars (150%): 8/4 = 2.0 -> capped at 1.5  
+  // 5 chars: 8/5 = 1.6 -> capped at 1.5
+  // 8 chars: 8/8 = 1.0
+  // 12 chars: 8/12 = 0.67
+  // 20 chars: 8/20 = 0.4
+  
+  // Factor 3: Available arc width
+  const arcWidthFactor = Math.min(1, segmentArcLength / (segment.label.length * 8));
+  
+  // Factor 4: Radial space (narrow segments need smaller text)
+  const radialFactor = Math.min(1, segmentRadialHeight / 60);
+  
+  // Combine all factors with different weights
+  const combinedFactor = 
+    segmentCountFactor * 0.3 + 
+    textLengthFactor * 0.3 + 
+    arcWidthFactor * 0.2 + 
+    radialFactor * 0.2;
+  
+  // Calculate final font size
+  let fontSize = baseFontSize * combinedFactor;
+  
+  // Apply different limits based on text length
+  // Shorter text gets higher min and max limits
+  if (segment.label.length <= 3) {
+    fontSize = Math.max(18, Math.min(32, fontSize)); // "10%" gets biggest range
+  } else if (segment.label.length <= 5) {
+    fontSize = Math.max(15, Math.min(26, fontSize)); // "150%" gets medium-large range
+  } else if (segment.label.length <= 8) {
+    fontSize = Math.max(13, Math.min(22, fontSize));
+  } else if (segment.label.length <= 15) {
+    fontSize = Math.max(11, Math.min(18, fontSize));
+  } else {
+    fontSize = Math.max(9, Math.min(14, fontSize));
+  }
+  
+  // Further reduce if wrapping is needed
+  if (needsWrapping) {
+    fontSize *= 0.85;
+  }
+  
+  // Function to split text into lines if needed
+  const getTextLines = () => {
+    if (!needsWrapping) {
+      return [segment.label];
+    }
+    
+    // Try to split at a reasonable point
+    const midPoint = Math.floor(words.length / 2);
+    const line1 = words.slice(0, midPoint).join(' ');
+    const line2 = words.slice(midPoint).join(' ');
+    
+    // If one line is too much longer than the other, adjust
+    if (line1.length > line2.length * 1.5 && midPoint > 1) {
+      return [
+        words.slice(0, midPoint - 1).join(' '),
+        words.slice(midPoint - 1).join(' ')
+      ];
+    }
+    
+    return [line1, line2];
+  };
+  
+  const textLines = getTextLines();
+  const lineHeight = fontSize * 1.2;
   
   return (
     <g className="wheel-segment">
@@ -90,18 +160,41 @@ export const Segment: React.FC<SegmentProps> = React.memo(({
         stroke="#ffffff"
         strokeWidth="2"
       />
-      <text
-        x={textX}
-        y={textY}
-        fill={segment.textColor || '#ffffff'}
-        fontSize={fontSize}
-        fontWeight="bold"
-        textAnchor="middle"
-        dominantBaseline="middle"
-        transform={`rotate(${textAngle}, ${textX}, ${textY})`}
-      >
-        {segment.label}
-      </text>
+      {textLines.length === 1 ? (
+        <text
+          x={textX}
+          y={textY}
+          fill={segment.textColor || '#ffffff'}
+          fontSize={fontSize}
+          fontWeight="bold"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          transform={`rotate(${textAngle}, ${textX}, ${textY})`}
+        >
+          {textLines[0]}
+        </text>
+      ) : (
+        <text
+          x={textX}
+          y={textY}
+          fill={segment.textColor || '#ffffff'}
+          fontSize={fontSize}
+          fontWeight="bold"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          transform={`rotate(${textAngle}, ${textX}, ${textY})`}
+        >
+          {textLines.map((line, lineIndex) => (
+            <tspan
+              key={lineIndex}
+              x={textX}
+              dy={lineIndex === 0 ? -lineHeight / 2 : lineHeight}
+            >
+              {line}
+            </tspan>
+          ))}
+        </text>
+      )}
     </g>
   );
 });
