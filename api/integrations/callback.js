@@ -4,13 +4,14 @@ const { createClient } = require('@supabase/supabase-js');
 // Initialize Supabase client
 function getSupabaseClient() {
   const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  const supabaseServiceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseServiceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
   
   if (!supabaseUrl || !supabaseServiceKey) {
     console.error('Supabase configuration check failed:', {
       hasUrl: !!supabaseUrl,
       hasServiceKey: !!supabaseServiceKey,
-      envKeys: Object.keys(process.env).filter(k => k.includes('SUPABASE') || k.includes('SERVICE'))
+      VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL ? 'set' : 'missing',
+      VITE_SUPABASE_SERVICE_ROLE_KEY: process.env.VITE_SUPABASE_SERVICE_ROLE_KEY ? 'set' : 'missing'
     });
     throw new Error('Supabase configuration missing');
   }

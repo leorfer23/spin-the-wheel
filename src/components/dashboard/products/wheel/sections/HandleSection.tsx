@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, HelpCircle } from "lucide-react";
+import { HelpCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { SaveStatusIndicator } from "../components/SaveStatusIndicator";
 import { useAutoSave } from "@/hooks/useAutoSave";
@@ -70,9 +70,10 @@ export const HandleSection: React.FC<HandleSectionProps> = ({
             </h3>
             <SaveStatusIndicator status={saveStatus} />
           </div>
-          <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl shadow-xl p-2 border border-gray-200" style={{ width: '240px', height: '100px' }}>
+          {/* Preview temporarily disabled - LiveHandlePreview component not available */}
+          {/* <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl shadow-xl p-2 border border-gray-200" style={{ width: '240px', height: '100px' }}>
             <LiveHandlePreview config={widgetConfig} />
-          </div>
+          </div> */}
         </div>
         
         {/* Scrollable content */}
@@ -90,33 +91,49 @@ export const HandleSection: React.FC<HandleSectionProps> = ({
               </TooltipContent>
             </Tooltip>
           </div>
+          {/* Handle type selection temporarily disabled - HandleTypeCard component not available */}
           <div className="grid grid-cols-3 gap-3 px-2">
-            <HandleTypeCard
-              type="floating"
-              title="Botón Flotante"
-              description="Se desliza desde el lateral"
-              isSelected={widgetConfig.handleType === 'floating'}
+            <button
               onClick={() => updateConfig({ handleType: 'floating' })}
-              config={widgetConfig}
-            />
+              className={`p-4 rounded-lg border-2 transition-all ${
+                widgetConfig.handleType === 'floating' 
+                  ? 'border-purple-500 bg-purple-50' 
+                  : 'border-gray-200 hover:border-purple-300'
+              }`}
+            >
+              <div className="text-center">
+                <p className="font-medium">Botón Flotante</p>
+                <p className="text-sm text-gray-600">Se desliza desde el lateral</p>
+              </div>
+            </button>
             
-            <HandleTypeCard
-              type="tab"
-              title="Pestaña Lateral"
-              description="Pestaña vertical en el lateral"
-              isSelected={widgetConfig.handleType === 'tab'}
+            <button
               onClick={() => updateConfig({ handleType: 'tab' })}
-              config={widgetConfig}
-            />
+              className={`p-4 rounded-lg border-2 transition-all ${
+                widgetConfig.handleType === 'tab' 
+                  ? 'border-purple-500 bg-purple-50' 
+                  : 'border-gray-200 hover:border-purple-300'
+              }`}
+            >
+              <div className="text-center">
+                <p className="font-medium">Pestaña Lateral</p>
+                <p className="text-sm text-gray-600">Pestaña vertical en el lateral</p>
+              </div>
+            </button>
             
-            <HandleTypeCard
-              type="bubble"
-              title="Botón Burbuja"
-              description="Botón de acción flotante"
-              isSelected={widgetConfig.handleType === 'bubble'}
+            <button
               onClick={() => updateConfig({ handleType: 'bubble' })}
-              config={widgetConfig}
-            />
+              className={`p-4 rounded-lg border-2 transition-all ${
+                widgetConfig.handleType === 'bubble' 
+                  ? 'border-purple-500 bg-purple-50' 
+                  : 'border-gray-200 hover:border-purple-300'
+              }`}
+            >
+              <div className="text-center">
+                <p className="font-medium">Botón Burbuja</p>
+                <p className="text-sm text-gray-600">Botón de acción flotante</p>
+              </div>
+            </button>
           </div>
         </div>
 

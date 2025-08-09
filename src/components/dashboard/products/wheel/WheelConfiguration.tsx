@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../ui/tooltip";
 import { useAutoSaveStore } from "@/stores/autoSaveStore";
-import { CouponDebugPanel } from "./components/CouponDebugPanel";
 import { TiendaNubeCouponsProvider } from "@/contexts/TiendaNubeCouponsContext";
 import { useStore } from "@/contexts/StoreContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -297,7 +296,6 @@ export function WheelConfiguration({
           />
         )}
       </AnimatePresence>
-      <CouponDebugPanel />
     </motion.div>
   );
 }
