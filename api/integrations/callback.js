@@ -36,6 +36,7 @@ module.exports = async (req, res) => {
     // Test Supabase connection
     console.log('Testing Supabase connection...');
     const { data: testData, error: testError } = await supabase
+      .schema('spinawheel')
       .from('stores')
       .select('count')
       .limit(1);
@@ -115,6 +116,7 @@ module.exports = async (req, res) => {
 
       // First, check if a store already exists for this user and store name
       const { data: existingStore } = await supabase
+        .schema('spinawheel')
         .from('stores')
         .select('*')
         .eq('user_id', userId)
@@ -127,6 +129,7 @@ module.exports = async (req, res) => {
         
         // Update the existing store with new information
         const { error: updateError } = await supabase
+          .schema('spinawheel')
           .from('stores')
           .update({
             platform: 'tienda_nube',
@@ -161,6 +164,7 @@ module.exports = async (req, res) => {
         });
         
         const { data: newStore, error: storeError } = await supabase
+          .schema('spinawheel')
           .from('stores')
           .insert(storeData)
           .select()
@@ -214,6 +218,7 @@ module.exports = async (req, res) => {
 
     // Use upsert to handle both create and update cases
     const { data: integration, error: integrationError } = await supabase
+      .schema('spinawheel')
       .from('store_integrations')
       .upsert(
         {
@@ -236,6 +241,7 @@ module.exports = async (req, res) => {
 
     // Update store with integration_id
     await supabase
+      .schema('spinawheel')
       .from('stores')
       .update({
         integration_id: integration.id,
