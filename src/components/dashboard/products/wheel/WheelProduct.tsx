@@ -152,39 +152,29 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
   };
 
   // Handle create wheel
-  const handleCreateWheel = async (name?: string) => {
+  const handleCreateWheel = (name?: string) => {
+    const wheelName = name || 'Nueva Campaña';
+    
     if (tiendanubeStoreId) {
-      const wheelName = name || 'Nueva Campaña';
       console.log('[WheelProduct] Creating wheel with tiendanubeStoreId:', tiendanubeStoreId, 'name:', wheelName);
-      await createWheel(tiendanubeStoreId, wheelName);
-      // Return a dummy WheelConfig since the actual creation is async
-      // The real wheel will be loaded after creation
-      return {
-        id: 'temp-' + Date.now(),
-        name: wheelName,
-        segments: [],
-        schedule: {
-          enabled: false,
-          timezone: 'America/Argentina/Buenos_Aires'
-        } as WheelScheduleConfig,
-        wheelDesign: {},
-        widgetConfig: {}
-      };
+      // Fire async creation but don't wait for it
+      createWheel(tiendanubeStoreId, wheelName);
     } else {
       console.error('[WheelProduct] No tiendanubeStoreId available. selectedStoreId:', selectedStoreId, 'selectedStore:', selectedStore);
-      // Return a dummy config if no store selected
-      return {
-        id: 'temp-' + Date.now(),
-        name: name || 'Nueva Campaña',
-        segments: [],
-        schedule: {
-          enabled: false,
-          timezone: 'America/Argentina/Buenos_Aires'
-        } as WheelScheduleConfig,
-        wheelDesign: {},
-        widgetConfig: {}
-      };
     }
+    
+    // Return a dummy WheelConfig immediately for the UI
+    return {
+      id: 'temp-' + Date.now(),
+      name: wheelName,
+      segments: [],
+      schedule: {
+        enabled: false,
+        timezone: 'America/Argentina/Buenos_Aires'
+      } as WheelScheduleConfig,
+      wheelDesign: {},
+      widgetConfig: {}
+    };
   };
 
   if (isLoading && wheels.length === 0) {
@@ -216,9 +206,9 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
       <div className="flex items-center justify-center h-full w-full p-8">
         <div
           className="relative group cursor-pointer w-full max-w-[600px] aspect-square flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-transform duration-300"
-          onClick={async () => {
+          onClick={() => {
             console.log('[WheelProduct] Creating wheel via click');
-            await handleCreateWheel();
+            handleCreateWheel();
           }}
         >
           {/* Purple glowing ring effect */}

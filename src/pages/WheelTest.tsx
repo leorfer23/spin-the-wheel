@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { FortuneWheel } from '@/components/wheel/FortuneWheel';
-import { WheelConfig, SpinResult } from '@/types/wheel.types';
+import type { WheelConfig, SpinResult } from '@/types/wheel.types';
 
 const WheelTest: React.FC = () => {
   const [selectedSegment, setSelectedSegment] = useState<number | null>(null);
@@ -35,11 +35,14 @@ const WheelTest: React.FC = () => {
     dimensions: {
       diameter: 400,
       innerRadius: 40,
+      pegRingWidth: 30,
+      pegSize: 10,
+      pegCount: 12,
     },
     style: {
       borderColor: '#333',
       borderWidth: 8,
-      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
+      shadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
     },
     spinConfig: {
       duration: 2,
@@ -53,7 +56,6 @@ const WheelTest: React.FC = () => {
       backgroundColor: '#333',
       textColor: '#fff',
       fontSize: 20,
-      fontWeight: 'bold',
     },
     pointer: {
       color: '#FF0000',
