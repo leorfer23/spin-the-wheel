@@ -237,6 +237,19 @@ export const Landing: React.FC = () => {
               </motion.div>
             </div>
             
+            {/* Login link for existing users */}
+            <div className="mt-4 text-center lg:text-left">
+              <p className="text-sm text-gray-600">
+                ¿Ya tienes una cuenta?{' '}
+                <button
+                  onClick={() => navigate('/login')}
+                  className="text-blue-600 hover:text-blue-700 font-medium underline"
+                >
+                  Inicia sesión aquí
+                </button>
+              </p>
+            </div>
+            
             {/* Trust Badges */}
             <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row items-center gap-4 sm:gap-8 justify-center lg:justify-start">
               <div className="flex -space-x-2">
