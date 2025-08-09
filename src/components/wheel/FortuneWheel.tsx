@@ -7,7 +7,7 @@ import { PegRing } from "./PegRing";
 import { Pointer } from "./Pointer";
 import { CenterCircle } from "./CenterCircle";
 
-// Configure GSAP
+// Configure GSAP for optimal performance
 gsap.config({
   nullTargetWarn: false,
   force3D: true
@@ -23,6 +23,17 @@ interface FortuneWheelProps {
   autoSpinDelay?: number;
 }
 
+/**
+ * FortuneWheel Component
+ * 
+ * A highly customizable spinning wheel component with physics-based animations.
+ * Supports weighted probability selection, drag-to-spin, and click-to-spin functionality.
+ * 
+ * The wheel uses a mathematical formula to ensure precise landing on selected segments:
+ * - Segments are drawn with centers offset by -segmentAngle/2 to align segment 0 at top
+ * - Rotation formula: targetRotation = 360 - segmentCenter + (fullRotations * 360) + randomOffset
+ * - This ensures the selected segment lands precisely at the pointer (top/0°)
+ */
 export const FortuneWheel: React.FC<FortuneWheelProps> = ({
   config,
   onSpinComplete,
@@ -42,8 +53,23 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({
   const lastTimeRef = useRef(0);
   const angleHistoryRef = useRef<Array<{angle: number, time: number}>>([]);
 
-  const selectRandomSegment = useCallback(() => {
-    // Select winner based on weights
+  /**
+   * Calculate segment geometry constants
+   * These values are used throughout the component for positioning calculations
+   */
+  const getSegmentGeometry = useCallback(() => {
+    const segmentAngle = 360 / config.segments.length;
+    // Offset by half a segment to center the first segment at top (0°)
+    const segmentOffset = -segmentAngle / 2;
+    return { segmentAngle, segmentOffset };
+  }, [config.segments.length]);
+
+  /**
+   * Select a random segment based on weighted probability
+   * Returns the selected segment data and the rotation needed to land on it
+   */
+  const selectWinningSegment = useCallback(() => {
+    // Calculate weighted random selection
     const totalWeight = config.segments.reduce((sum, seg) => sum + (seg.weight || 1), 0);
     let random = Math.random() * totalWeight;
     
@@ -56,477 +82,371 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({
       }
     }
 
-    const segmentAngle = 360 / config.segments.length;
+    return {
+      segment: config.segments[selectedIndex],
+      selectedIndex
+    };
+  }, [config.segments]);
+
+  /**
+   * Calculate the rotation needed to land on a specific segment
+   * 
+   * Formula explanation:
+   * 1. Each segment has a center position: index * segmentAngle + offset + segmentAngle/2
+   * 2. To bring a segment to the top (0°), we rotate: 360 - segmentCenter
+   * 3. Add full rotations for visual effect: + (rotations * 360)
+   * 4. Add small random offset for realism: + randomOffset
+   */
+  const calculateTargetRotation = useCallback((selectedIndex: number) => {
+    const { segmentAngle, segmentOffset } = getSegmentGeometry();
     
-    console.log('====== SIMPLE WHEEL SPIN ======');
-    console.log('Selected Winner:', config.segments[selectedIndex].label, '(Index:', selectedIndex, ')');
-    console.log('Segments:', config.segments.map((s, i) => `[${i}] ${s.label}`).join(', '));
+    // Calculate where this segment's center is initially positioned
+    const segmentCenter = selectedIndex * segmentAngle + segmentOffset + segmentAngle / 2;
     
-    // ROTATION CALCULATION:
-    // 1. Segments are drawn with -segmentAngle/2 offset (Segment.tsx line 32)
-    // 2. This means at rotation=0, segment 0 is already centered at top
-    // 3. To bring segment N to top, we rotate the wheel backwards by N segments
-    // 4. Positive rotation values rotate the wheel clockwise
-    // 5. When wheel rotates clockwise, segments move counter-clockwise relative to pointer
-    
+    // Calculate number of full rotations for visual effect
     const rotations = config.spinConfig.minRotations + 
       Math.random() * (config.spinConfig.maxRotations - config.spinConfig.minRotations);
     
-    // Add small random offset for realism (but keep within the segment)
+    // Add small random offset within the segment for realism
     const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.3;
     
-    // To align segment N with the pointer:
-    // - Start with multiple full rotations for visual effect
-    // - Add the angle needed to bring segment N to the top (rotate forward)
-    // - The offset is already handled by how segments are drawn
-    const targetRotation = (rotations * 360) + (selectedIndex * segmentAngle) + randomOffset;
+    // Calculate final rotation: forward rotation to bring segment to top
+    const targetRotation = 360 - segmentCenter + (rotations * 360) + randomOffset;
     
-    console.log('Target rotation:', targetRotation.toFixed(1), '°');
-    console.log('This will spin', rotations.toFixed(1), 'times and land on segment', selectedIndex);
-    console.log('================================');
+    return targetRotation;
+  }, [config.spinConfig, getSegmentGeometry]);
 
-    return { 
-      segment: config.segments[selectedIndex], 
-      selectedIndex,
-      targetRotation 
+  /**
+   * Reset wheel to initial position
+   * Used before each spin to ensure consistent behavior
+   */
+  const resetWheel = useCallback(() => {
+    if (!wheelRef.current) return;
+    
+    gsap.set(wheelRef.current, { 
+      rotation: 0,
+      transformOrigin: "center center"
+    });
+    rotationRef.current = 0;
+  }, []);
+
+  /**
+   * Animate pointer wobble effect
+   * Called during spin to simulate physical peg collision
+   */
+  const animatePointerWobble = useCallback(() => {
+    if (!pointerRef.current) return;
+    
+    const { segmentAngle } = getSegmentGeometry();
+    const currentAngle = rotationRef.current % segmentAngle;
+    const pegHit = currentAngle < 2 || currentAngle > (segmentAngle - 2);
+    
+    if (pegHit) {
+      gsap.to(pointerRef.current, {
+        rotation: -10,
+        duration: 0.05,
+        yoyo: true,
+        repeat: 1,
+        ease: "power2.inOut",
+        overwrite: true
+      });
+    }
+  }, [getSegmentGeometry]);
+
+  /**
+   * Handle spin completion
+   * Triggers callback and optionally resets wheel
+   */
+  const handleSpinComplete = useCallback((
+    segment: WheelConfig['segments'][0], 
+    targetRotation: number
+  ) => {
+    const result: SpinResult = {
+      segment,
+      rotation: targetRotation,
+      duration: config.spinConfig.duration
     };
-  }, [config.segments, config.spinConfig]);
+    
+    onSpinComplete?.(result);
+    
+    // Optionally reset wheel after showing result
+    if (config.spinConfig.autoReset !== false) {
+      setTimeout(() => {
+        if (wheelRef.current) {
+          gsap.to(wheelRef.current, {
+            rotation: 0,
+            duration: 1,
+            ease: 'power2.inOut',
+            transformOrigin: "center center",
+            onComplete: () => {
+              rotationRef.current = 0;
+            }
+          });
+        }
+      }, 3000);
+    }
+  }, [config.spinConfig.duration, config.spinConfig.autoReset, onSpinComplete]);
 
+  /**
+   * Main spin function
+   * Selects a winner, calculates rotation, and animates the wheel
+   */
   const spin = useCallback(() => {
     if (isSpinning || !wheelRef.current) return;
 
     setIsSpinning(true);
+    resetWheel();
     
-    // Always reset to 0 for consistent behavior
-    gsap.set(wheelRef.current, { rotation: 0 });
-    rotationRef.current = 0;
-    
-    const { segment, selectedIndex, targetRotation } = selectRandomSegment();
+    // Select winner and calculate rotation
+    const { segment, selectedIndex } = selectWinningSegment();
+    const targetRotation = calculateTargetRotation(selectedIndex);
 
-    // Create spin timeline
-    const tl = gsap.timeline({
-      onComplete: () => {
-        setIsSpinning(false);
-        rotationRef.current = targetRotation;
-        
-        // Let's debug what's actually happening
-        const finalRotation = targetRotation % 360;
-        const normalizedRotation = finalRotation < 0 ? finalRotation + 360 : finalRotation;
-        const segmentAngle = 360 / config.segments.length;
-        
-        console.log('====== SPIN COMPLETE DEBUG ======');
-        console.log('Intended Winner:', segment.label, '(Index:', selectedIndex, ')');
-        console.log('Final rotation:', targetRotation.toFixed(1), '°');
-        console.log('Normalized (0-360):', normalizedRotation.toFixed(1), '°');
-        
-        // Check each segment's angular position relative to top
-        console.log('--- Segment positions ---');
-        for (let i = 0; i < config.segments.length; i++) {
-          // Each segment starts at i * segmentAngle
-          // After rotation, its position is (starting position - rotation)
-          const startAngle = i * segmentAngle;
-          const currentAngle = (startAngle - normalizedRotation + 360) % 360;
-          const distanceFromTop = Math.min(currentAngle, 360 - currentAngle);
-          console.log(`[${i}] ${config.segments[i].label}: starts at ${startAngle}°, now at ${currentAngle.toFixed(1)}° (distance from top: ${distanceFromTop.toFixed(1)}°)`);
-        }
-        
-        // Find which segment is actually at top
-        let actualWinner = 0;
-        let minDistance = 360;
-        for (let i = 0; i < config.segments.length; i++) {
-          const startAngle = i * segmentAngle;
-          const currentAngle = (startAngle - normalizedRotation + 360) % 360;
-          const distanceFromTop = Math.min(currentAngle, 360 - currentAngle);
-          if (distanceFromTop < minDistance) {
-            minDistance = distanceFromTop;
-            actualWinner = i;
-          }
-        }
-        
-        console.log('Visual winner (closest to top):', config.segments[actualWinner].label, '(Index:', actualWinner, ')');
-        console.log('Match?', actualWinner === selectedIndex ? '✅ YES' : `❌ NO - Off by ${(actualWinner - selectedIndex + config.segments.length) % config.segments.length} segments clockwise`);
-        
-        // Let's try to understand the pattern
-        const offset = (actualWinner - selectedIndex + config.segments.length) % config.segments.length;
-        console.log('Pattern: When we want segment', selectedIndex, 'we get segment', actualWinner);
-        console.log('This is an offset of', offset, 'segments clockwise');
-        console.log('===========================');
-        
-        const result: SpinResult = {
-          segment,
-          rotation: targetRotation,
-          duration: config.spinConfig.duration
-        };
-        onSpinComplete?.(result);
-      }
-    });
-
-    // Main wheel spin animation with custom easing
-    const easingMap = {
+    // Map easing values to GSAP format
+    const easingMap: Record<string, string> = {
       'ease-out': 'power3.out',
       'ease-in-out': 'power3.inOut',
       'linear': 'none'
     };
 
-    tl.to(wheelRef.current, {
+    // Create spin animation
+    gsap.to(wheelRef.current, {
       rotation: targetRotation,
       duration: config.spinConfig.duration,
       ease: easingMap[config.spinConfig.easing] || 'power3.out',
-      svgOrigin: "0 0",
-      onUpdate: function() {
+      transformOrigin: "center center",
+      onUpdate: () => {
         rotationRef.current = gsap.getProperty(wheelRef.current!, "rotation") as number;
-        
-        // Trigger pointer wobble based on peg positions
-        if (pointerRef.current) {
-          const currentAngle = rotationRef.current % (360 / config.segments.length);
-          const pegHit = currentAngle < 2 || currentAngle > (360 / config.segments.length - 2);
-          
-          if (pegHit) {
-            gsap.to(pointerRef.current, {
-              rotation: -10,
-              duration: 0.05,
-              yoyo: true,
-              repeat: 1,
-              ease: "power2.inOut",
-              overwrite: true
-            });
-          }
-        }
+        animatePointerWobble();
+      },
+      onComplete: () => {
+        setIsSpinning(false);
+        rotationRef.current = targetRotation;
+        handleSpinComplete(segment, targetRotation);
       }
     });
-  }, [isSpinning, selectRandomSegment, config.spinConfig, config.segments.length, onSpinComplete]);
+  }, [
+    isSpinning, 
+    resetWheel, 
+    selectWinningSegment, 
+    calculateTargetRotation, 
+    config.spinConfig, 
+    animatePointerWobble, 
+    handleSpinComplete
+  ]);
 
-  // Manual drag implementation with velocity tracking
+  /**
+   * Calculate angle from mouse/touch position relative to wheel center
+   */
+  const getAngleFromEvent = useCallback((clientX: number, clientY: number) => {
+    if (!wheelRef.current) return 0;
+    
+    const rect = wheelRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    return Math.atan2(clientY - centerY, clientX - centerX) * (180 / Math.PI) + 90;
+  }, []);
+
+  /**
+   * Initialize drag operation
+   */
+  const initDrag = useCallback((clientX: number, clientY: number) => {
+    if (!config.spinConfig.allowDrag || isSpinning) return;
+    
+    setIsDragging(true);
+    const angle = getAngleFromEvent(clientX, clientY);
+    lastAngleRef.current = angle - rotationRef.current;
+    velocityRef.current = 0;
+    lastTimeRef.current = Date.now();
+    angleHistoryRef.current = [{angle: rotationRef.current, time: Date.now()}];
+  }, [config.spinConfig.allowDrag, isSpinning, getAngleFromEvent]);
+
+  /**
+   * Handle mouse down event
+   */
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (!config.spinConfig.allowDrag || isSpinning) return;
-    
-    setIsDragging(true);
-    const rect = wheelRef.current!.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    
-    const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI) + 90;
-    lastAngleRef.current = angle - rotationRef.current;
-    velocityRef.current = 0;
-    lastTimeRef.current = Date.now();
-    angleHistoryRef.current = [{angle: rotationRef.current, time: Date.now()}];
-  }, [config.spinConfig.allowDrag, isSpinning]);
+    initDrag(e.clientX, e.clientY);
+  }, [initDrag]);
 
-  // Touch event handlers for mobile
+  /**
+   * Handle touch start event
+   */
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (!config.spinConfig.allowDrag || isSpinning) return;
-    e.preventDefault(); // Prevent scrolling
-    
-    setIsDragging(true);
+    e.preventDefault();
     const touch = e.touches[0];
-    const rect = wheelRef.current!.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    
-    const angle = Math.atan2(touch.clientY - centerY, touch.clientX - centerX) * (180 / Math.PI) + 90;
-    lastAngleRef.current = angle - rotationRef.current;
-    velocityRef.current = 0;
-    lastTimeRef.current = Date.now();
-    angleHistoryRef.current = [{angle: rotationRef.current, time: Date.now()}];
-  }, [config.spinConfig.allowDrag, isSpinning]);
+    initDrag(touch.clientX, touch.clientY);
+  }, [initDrag]);
 
+  /**
+   * Process drag movement and calculate velocity
+   */
+  const processDragMove = useCallback((clientX: number, clientY: number) => {
+    if (!isDragging || !wheelRef.current) return;
+    
+    const angle = getAngleFromEvent(clientX, clientY);
+    const newRotation = angle - lastAngleRef.current;
+    
+    // Calculate velocity for momentum-based spinning
+    const currentTime = Date.now();
+    const deltaTime = currentTime - lastTimeRef.current;
+    
+    if (deltaTime > 0) {
+      const deltaRotation = newRotation - rotationRef.current;
+      velocityRef.current = deltaRotation / deltaTime * 16.67; // Normalize to 60fps
+      
+      // Maintain velocity history for smooth calculation
+      angleHistoryRef.current.push({angle: newRotation, time: currentTime});
+      if (angleHistoryRef.current.length > 5) {
+        angleHistoryRef.current.shift();
+      }
+      
+      lastTimeRef.current = currentTime;
+    }
+    
+    rotationRef.current = newRotation;
+    gsap.set(wheelRef.current, { rotation: newRotation, transformOrigin: "center center" });
+  }, [isDragging, getAngleFromEvent]);
+
+  /**
+   * Complete drag operation and potentially trigger spin
+   */
+  const completeDrag = useCallback(() => {
+    if (!isDragging || !wheelRef.current) return;
+    
+    setIsDragging(false);
+    
+    // Calculate average velocity from history
+    let avgVelocity = velocityRef.current;
+    if (angleHistoryRef.current.length > 2) {
+      const recent = angleHistoryRef.current[angleHistoryRef.current.length - 1];
+      const older = angleHistoryRef.current[0];
+      const totalDelta = recent.angle - older.angle;
+      const totalTime = recent.time - older.time;
+      if (totalTime > 0) {
+        avgVelocity = totalDelta / totalTime * 16.67;
+      }
+    }
+    
+    // Trigger spin if velocity exceeds threshold
+    const VELOCITY_THRESHOLD = 2;
+    if (Math.abs(avgVelocity) > VELOCITY_THRESHOLD) {
+      spin();
+    }
+  }, [isDragging, spin]);
+
+  // Set up global event listeners for drag functionality
   useEffect(() => {
     if (!config.spinConfig.allowDrag) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging || !wheelRef.current) return;
-      
-      const rect = wheelRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      
-      const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI) + 90;
-      const newRotation = angle - lastAngleRef.current;
-      
-      // Calculate time-based velocity
-      const currentTime = Date.now();
-      const deltaTime = currentTime - lastTimeRef.current;
-      
-      if (deltaTime > 0) {
-        const deltaRotation = newRotation - rotationRef.current;
-        velocityRef.current = deltaRotation / deltaTime * 16.67; // Normalize to ~60fps
-        
-        // Keep history of last few angles for smoother velocity calculation
-        angleHistoryRef.current.push({angle: newRotation, time: currentTime});
-        if (angleHistoryRef.current.length > 5) {
-          angleHistoryRef.current.shift();
-        }
-        
-        lastTimeRef.current = currentTime;
-      }
-      
-      rotationRef.current = newRotation;
-      gsap.set(wheelRef.current, { rotation: newRotation, svgOrigin: "0 0" });
+      processDragMove(e.clientX, e.clientY);
     };
 
     const handleMouseUp = () => {
-      if (!isDragging) return;
-      
-      setIsDragging(false);
-      
-      // Calculate average velocity from history for smoother results
-      let avgVelocity = velocityRef.current;
-      if (angleHistoryRef.current.length > 2) {
-        const recent = angleHistoryRef.current[angleHistoryRef.current.length - 1];
-        const older = angleHistoryRef.current[0];
-        const totalDelta = recent.angle - older.angle;
-        const totalTime = recent.time - older.time;
-        if (totalTime > 0) {
-          avgVelocity = totalDelta / totalTime * 16.67;
-        }
-      }
-      
-      // Lower threshold for easier spinning (was 5, now 2)
-      if (Math.abs(avgVelocity) > 2) {
-        // Reset to 0 for consistent behavior
-        gsap.set(wheelRef.current!, { rotation: 0 });
-        rotationRef.current = 0;
-        
-        // Select winner and calculate rotation
-        const { segment, selectedIndex, targetRotation } = selectRandomSegment();
-        
-        setIsSpinning(true);
-        
-        gsap.to(wheelRef.current!, {
-          rotation: targetRotation,
-          duration: config.spinConfig.duration,
-          ease: "power3.out",
-          svgOrigin: "0 0",
-          onUpdate: () => {
-            rotationRef.current = gsap.getProperty(wheelRef.current!, "rotation") as number;
-          },
-          onComplete: () => {
-            setIsSpinning(false);
-            rotationRef.current = targetRotation;
-            
-            console.log('[FortuneWheel Drag] Winner:', segment.label, '(Index:', selectedIndex, ')');
-            
-            const result: SpinResult = {
-              segment,
-              rotation: targetRotation,
-              duration: config.spinConfig.duration
-            };
-            onSpinComplete?.(result);
-          }
-        });
-      }
+      completeDrag();
     };
 
-    // Touch move handler
     const handleTouchMove = (e: TouchEvent) => {
-      if (!isDragging || !wheelRef.current) return;
-      e.preventDefault(); // Prevent scrolling
-      
+      e.preventDefault();
       const touch = e.touches[0];
-      const rect = wheelRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      
-      const angle = Math.atan2(touch.clientY - centerY, touch.clientX - centerX) * (180 / Math.PI) + 90;
-      const newRotation = angle - lastAngleRef.current;
-      
-      // Calculate time-based velocity
-      const currentTime = Date.now();
-      const deltaTime = currentTime - lastTimeRef.current;
-      
-      if (deltaTime > 0) {
-        const deltaRotation = newRotation - rotationRef.current;
-        velocityRef.current = deltaRotation / deltaTime * 16.67; // Normalize to ~60fps
-        
-        // Keep history of last few angles for smoother velocity calculation
-        angleHistoryRef.current.push({angle: newRotation, time: currentTime});
-        if (angleHistoryRef.current.length > 5) {
-          angleHistoryRef.current.shift();
-        }
-        
-        lastTimeRef.current = currentTime;
-      }
-      
-      rotationRef.current = newRotation;
-      gsap.set(wheelRef.current, { rotation: newRotation, svgOrigin: "0 0" });
+      processDragMove(touch.clientX, touch.clientY);
     };
 
-    // Touch end handler
     const handleTouchEnd = () => {
-      if (!isDragging) return;
-      
-      setIsDragging(false);
-      
-      // Calculate average velocity from history for smoother results
-      let avgVelocity = velocityRef.current;
-      if (angleHistoryRef.current.length > 2) {
-        const recent = angleHistoryRef.current[angleHistoryRef.current.length - 1];
-        const older = angleHistoryRef.current[0];
-        const totalDelta = recent.angle - older.angle;
-        const totalTime = recent.time - older.time;
-        if (totalTime > 0) {
-          avgVelocity = totalDelta / totalTime * 16.67;
-        }
-      }
-      
-      // Lower threshold for easier spinning
-      if (Math.abs(avgVelocity) > 2) {
-        // Reset to 0 for consistent behavior
-        gsap.set(wheelRef.current!, { rotation: 0 });
-        rotationRef.current = 0;
-        
-        // Select winner and calculate rotation
-        const { segment, selectedIndex, targetRotation } = selectRandomSegment();
-        
-        setIsSpinning(true);
-        
-        gsap.to(wheelRef.current!, {
-          rotation: targetRotation,
-          duration: config.spinConfig.duration,
-          ease: "power3.out",
-          svgOrigin: "0 0",
-          onUpdate: () => {
-            rotationRef.current = gsap.getProperty(wheelRef.current!, "rotation") as number;
-          },
-          onComplete: () => {
-            setIsSpinning(false);
-            rotationRef.current = targetRotation;
-            
-            console.log('[FortuneWheel Touch] Winner:', segment.label, '(Index:', selectedIndex, ')');
-            
-            const result: SpinResult = {
-              segment,
-              rotation: targetRotation,
-              duration: config.spinConfig.duration
-            };
-            onSpinComplete?.(result);
-          }
-        });
-      }
+      completeDrag();
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
-    window.addEventListener('touchend', handleTouchEnd);
-    
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener("touchmove", handleTouchMove, { passive: false });
+    document.addEventListener("touchend", handleTouchEnd);
+
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [isDragging, config.spinConfig, selectRandomSegment, onSpinComplete]);
+  }, [config.spinConfig.allowDrag, processDragMove, completeDrag]);
 
-  // Store spin function in a ref to avoid recreating it
-  const spinRef = useRef(spin);
-  spinRef.current = spin;
-
-  // Call onSpinReady when component mounts (only once)
+  // Expose spin function to parent component
   useEffect(() => {
-    if (onSpinReady) {
-      // Create a stable function that calls the current spin
-      const stableSpin = () => spinRef.current();
-      onSpinReady(stableSpin);
-    }
-  }, [onSpinReady]);
+    onSpinReady?.(spin);
+  }, [spin, onSpinReady]);
 
-  // Auto-spin functionality
+  // Handle auto-spin functionality
   useEffect(() => {
     if (autoSpin && !isSpinning) {
-      const timer = setTimeout(() => {
-        spin();
-      }, autoSpinDelay);
-      
+      const timer = setTimeout(spin, autoSpinDelay);
       return () => clearTimeout(timer);
     }
-  }, [autoSpin, autoSpinDelay]); // Don't include spin or isSpinning to avoid re-triggering
+  }, [autoSpin, autoSpinDelay, isSpinning, spin]);
+
+  // Calculate dimensions
+  const radius = config.dimensions.diameter / 2;
+  const viewBox = `${-radius} ${-radius} ${config.dimensions.diameter} ${config.dimensions.diameter}`;
 
   return (
-    <div className="relative inline-block">
-      <WheelContainer
-        dimensions={config.dimensions}
-        style={config.style}
-        className={className}
+    <WheelContainer
+      dimensions={config.dimensions}
+      style={config.style}
+      className={className}
+    >
+      <svg
+        width={config.dimensions.diameter}
+        height={config.dimensions.diameter}
+        viewBox={viewBox}
+        style={{ display: 'block', cursor: config.spinConfig.allowDrag || !isSpinning ? 'pointer' : 'default' }}
+        onClick={!config.spinConfig.allowDrag && !isSpinning ? spin : undefined}
+        onMouseDown={config.spinConfig.allowDrag ? handleMouseDown : undefined}
+        onTouchStart={config.spinConfig.allowDrag ? handleTouchStart : undefined}
       >
-        <svg
-          width={config.dimensions.diameter}
-          height={config.dimensions.diameter}
-          style={{ display: "block" }}
-        >
-          <g
-            transform={`translate(${config.dimensions.diameter / 2}, ${
-              config.dimensions.diameter / 2
-            })`}
-          >
-            <g
-              ref={wheelRef}
-              style={{
-                cursor:
-                  config.spinConfig.allowDrag && !isSpinning
-                    ? isDragging ? "grabbing" : "grab"
-                    : "default",
-              }}
-              onMouseDown={handleMouseDown}
-              onTouchStart={handleTouchStart}
-            >
-              {config.segments.map((segment, index) => (
-                <Segment
-                  key={segment.id}
-                  segment={segment}
-                  dimensions={config.dimensions}
-                  index={index}
-                  totalSegments={config.segments.length}
-                />
-              ))}
-
-              <PegRing
-                dimensions={config.dimensions}
-                segmentCount={config.segments.length}
-                pegColor={config.pegConfig?.color}
-                pegStyle={config.pegConfig?.style}
-              />
-            </g>
-            
-            <CenterCircle
-              config={config.centerCircle}
+        {/* Render wheel segments */}
+        <g ref={wheelRef} style={{ transformOrigin: 'center center' }}>
+          {config.segments.map((segment, index) => (
+            <Segment
+              key={segment.id}
+              segment={segment}
               dimensions={config.dimensions}
-              onSpinClick={spin}
-              isSpinning={isSpinning}
+              index={index}
+              totalSegments={config.segments.length}
             />
-          </g>
-        </svg>
-      </WheelContainer>
+          ))}
+        </g>
 
-      {!hidePointer && (
-        <div
-          className="absolute pointer-events-none"
+        {/* Center circle with text/logo */}
+        <CenterCircle
+          dimensions={config.dimensions}
+          config={config.centerCircle}
+          onSpinClick={!config.spinConfig.allowDrag && !isSpinning ? spin : undefined}
+        />
+      </svg>
+
+      {/* Decorative peg ring */}
+      <PegRing
+        dimensions={config.dimensions}
+        segmentCount={config.segments.length}
+        pegColor={config.style?.borderColor}
+      />
+
+      {/* Pointer indicator */}
+      {!hidePointer && config.pointer && (
+        <div 
           style={{
-            top: "-20px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 10,
+            position: 'absolute',
+            top: -10,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 20
           }}
         >
-          <svg
-            width={config.pointer?.size || 45}
-            height={(config.pointer?.size || 45) * 2}
-            style={{
-              display: "block",
-              overflow: "visible",
-            }}
-          >
-            <g
-              ref={pointerRef}
-              transform={`translate(${(config.pointer?.size || 45) / 2}, ${
-                (config.pointer?.size || 45) * 1.5
-              })`}
-            >
+          <svg width="60" height="60" viewBox="0 0 60 60">
+            <g ref={pointerRef} style={{ transformOrigin: '30px 30px' }}>
               <Pointer config={config.pointer} isSpinning={isSpinning} />
             </g>
           </svg>
         </div>
       )}
-    </div>
+    </WheelContainer>
   );
 };

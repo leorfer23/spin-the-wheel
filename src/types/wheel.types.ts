@@ -113,6 +113,8 @@ export interface SpinConfig {
   maxRotations: number;
   /** Whether to allow drag-to-spin interaction */
   allowDrag?: boolean;
+  /** Whether to automatically reset the wheel to position 0 after spin completes */
+  autoReset?: boolean;
 }
 
 /**

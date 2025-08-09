@@ -13,7 +13,7 @@ describe('Wheel Rotation Calculations', () => {
   ): number => {
     const segmentAngle = 360 / totalSegments;
     // This is the fixed formula from FortuneWheel.tsx line 82
-    return (rotations * 360) + (selectedIndex * segmentAngle) + randomOffset;
+    return (rotations * 360) - (selectedIndex * segmentAngle) + randomOffset;
   };
 
   const getSegmentAtTop = (rotation: number, totalSegments: number): number => {
@@ -29,10 +29,10 @@ describe('Wheel Rotation Calculations', () => {
     let segmentAtTop = 0;
     
     for (let i = 0; i < totalSegments; i++) {
-      // Each segment starts at this angle (with the offset applied)
+      // Each segment starts at this angle (with the offset applied) - matches Segment.tsx
       const startAngle = i * segmentAngle + segmentOffset;
       // After rotation, the segment's position relative to top
-      const currentAngle = (startAngle - normalizedRotation + 360 + segmentAngle/2) % 360;
+      const currentAngle = (startAngle + normalizedRotation + 360) % 360;
       // Distance from the top (0 degrees)
       const distanceFromTop = Math.min(currentAngle, 360 - currentAngle);
       

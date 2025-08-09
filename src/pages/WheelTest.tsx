@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { FortuneWheel } from '@/components/wheel/FortuneWheel';
+import { FortuneWheelDebug } from '@/components/wheel/FortuneWheelDebug';
 import type { WheelConfig, SpinResult } from '@/types/wheel.types';
 
 const WheelTest: React.FC = () => {
@@ -13,7 +14,9 @@ const WheelTest: React.FC = () => {
   }>>([]);
   const [autoTestRunning, setAutoTestRunning] = useState(false);
   const [segmentCount, setSegmentCount] = useState(6);
+  const [consoleLogs, setConsoleLogs] = useState<string[]>([]);
   const spinCountRef = useRef(0);
+  const consoleRef = useRef<HTMLDivElement>(null);
 
   const generateSegments = (count: number) => {
     const colors = [
@@ -94,6 +97,29 @@ const WheelTest: React.FC = () => {
     }
   };
 
+  // Intercept console.log to capture logs
+  React.useEffect(() => {
+    const originalLog = console.log;
+    console.log = (...args) => {
+      const message = args.map(arg => 
+        typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+      ).join(' ');
+      setConsoleLogs(prev => [...prev, message].slice(-100)); // Keep last 100 logs
+      originalLog(...args);
+    };
+    
+    return () => {
+      console.log = originalLog;
+    };
+  }, []);
+  
+  // Auto scroll console to bottom
+  React.useEffect(() => {
+    if (consoleRef.current) {
+      consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
+    }
+  }, [consoleLogs]);
+
   const handleSegmentCountChange = (count: number) => {
     setSegmentCount(count);
     setConfig(prev => ({
@@ -101,6 +127,7 @@ const WheelTest: React.FC = () => {
       segments: generateSegments(count)
     }));
     setTestResults([]);
+    setConsoleLogs([]); // Clear logs when changing segment count
   };
 
   const runAutoTest = () => {
@@ -121,6 +148,24 @@ const WheelTest: React.FC = () => {
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Wheel Rotation Test Suite</h1>
+        
+        {/* Debug Wheel Section - Even Segments */}
+        <div className="mb-8 bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold mb-4">Debug Wheel - {segmentCount} Segments (Even)</h2>
+          <FortuneWheelDebug segmentCount={segmentCount} />
+        </div>
+        
+        {/* Debug Wheel Section - Odd Segments */}
+        <div className="mb-8 bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold mb-4">Debug Wheel - {segmentCount - 1} Segments (Odd)</h2>
+          <FortuneWheelDebug segmentCount={segmentCount - 1} />
+        </div>
+        
+        {/* Debug Wheel Section - Different Odd Count */}
+        <div className="mb-8 bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold mb-4">Debug Wheel - 3 Segments</h2>
+          <FortuneWheelDebug segmentCount={3} />
+        </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column - Wheel and Controls */}
@@ -278,13 +323,58 @@ const WheelTest: React.FC = () => {
 
             {/* Formula Explanation */}
             <div className="bg-blue-50 rounded-lg p-6">
-              <h3 className="font-semibold mb-2">Rotation Formula</h3>
-              <code className="text-xs block bg-white p-3 rounded">
-                targetRotation = (rotations * 360) - (selectedIndex * segmentAngle) + randomOffset
+              <h3 className="font-semibold mb-2">Current Rotation Formula</h3>
+              <code className="text-xs block bg-white p-3 rounded font-mono">
+                const currentCenterOfWinner = (selectedIndex * segmentAngle + segmentOffset + segmentAngle / 2);
+                <br />
+                const targetRotation = (rotations * 360) - currentCenterOfWinner + randomOffset;
               </code>
               <p className="text-sm mt-3 text-gray-700">
-                This formula ensures the selected segment aligns with the pointer at the top (12 o'clock position).
+                Formula 3: Directly calculates based on the current center position of the winning segment.
               </p>
+            </div>
+            
+            {/* Console Output */}
+            <div className="bg-gray-900 rounded-lg p-6 text-white">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-semibold text-green-400">Console Output</h3>
+                <button
+                  onClick={() => setConsoleLogs([])}
+                  className="px-3 py-1 bg-gray-700 rounded text-xs hover:bg-gray-600"
+                >
+                  Clear
+                </button>
+              </div>
+              <div 
+                ref={consoleRef}
+                className="bg-black rounded p-4 h-96 overflow-y-auto font-mono text-xs whitespace-pre-wrap"
+                style={{ 
+                  fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                  lineHeight: '1.4'
+                }}
+              >
+                {consoleLogs.length === 0 ? (
+                  <div className="text-gray-500">Console output will appear here when you spin the wheel...</div>
+                ) : (
+                  consoleLogs.map((log, i) => (
+                    <div 
+                      key={i} 
+                      className={`mb-1 ${
+                        log.includes('✅') ? 'text-green-400' :
+                        log.includes('❌') ? 'text-red-400' :
+                        log.includes('🎯') ? 'text-yellow-400' :
+                        log.includes('📊') ? 'text-blue-400' :
+                        log.includes('📍') ? 'text-purple-400' :
+                        log.includes('🔄') ? 'text-orange-400' :
+                        log.includes('====') ? 'text-cyan-400 font-bold' :
+                        'text-gray-300'
+                      }`}
+                    >
+                      {log}
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>
