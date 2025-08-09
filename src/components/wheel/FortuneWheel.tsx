@@ -62,13 +62,12 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({
     console.log('Selected Winner:', config.segments[selectedIndex].label, '(Index:', selectedIndex, ')');
     console.log('Segments:', config.segments.map((s, i) => `[${i}] ${s.label}`).join(', '));
     
-    // SIMPLIFIED APPROACH:
-    // Segments are drawn with -segmentAngle/2 offset so segment 0 is centered at top
-    // When rotation = 0, segment 0 is at top
-    // When we rotate the wheel by X degrees clockwise:
-    // - The wheel visually moves clockwise
-    // - Segments appear to move counter-clockwise relative to the pointer
-    // So to bring segment N to the top, we need to account for the off-by-one issue
+    // ROTATION CALCULATION:
+    // 1. Segments are drawn with -segmentAngle/2 offset (Segment.tsx line 32)
+    // 2. This means at rotation=0, segment 0 is already centered at top
+    // 3. To bring segment N to top, we rotate the wheel backwards by N segments
+    // 4. Positive rotation values rotate the wheel clockwise
+    // 5. When wheel rotates clockwise, segments move counter-clockwise relative to pointer
     
     const rotations = config.spinConfig.minRotations + 
       Math.random() * (config.spinConfig.maxRotations - config.spinConfig.minRotations);
@@ -76,9 +75,11 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({
     // Add small random offset for realism (but keep within the segment)
     const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.3;
     
-    // FIX: We were off by one segment, so subtract an additional segment angle
-    // This accounts for the segment positioning offset in the rendering
-    const targetRotation = (rotations * 360) - ((selectedIndex + 1) * segmentAngle) + randomOffset;
+    // To align segment N with the pointer:
+    // - Start with multiple full rotations for visual effect
+    // - Add the angle needed to bring segment N to the top (rotate forward)
+    // - The offset is already handled by how segments are drawn
+    const targetRotation = (rotations * 360) + (selectedIndex * segmentAngle) + randomOffset;
     
     console.log('Target rotation:', targetRotation.toFixed(1), '°');
     console.log('This will spin', rotations.toFixed(1), 'times and land on segment', selectedIndex);

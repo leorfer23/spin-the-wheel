@@ -11,6 +11,7 @@ const Landing = lazy(() => import('./pages/Landing').then(module => ({ default: 
 const Auth = lazy(() => import('./pages/auth/Auth').then(module => ({ default: module.Auth })));
 const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword').then(module => ({ default: module.ForgotPassword })));
 const ModularDashboard = lazy(() => import('./pages/dashboard/ModularDashboard').then(module => ({ default: module.ModularDashboard })));
+const WheelTest = lazy(() => import('./pages/WheelTest'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -93,6 +94,9 @@ export const Router: React.FC = () => {
                   </ProtectedRoute>
                 }
               />
+              
+              {/* Test route for wheel rotation debugging */}
+              <Route path="/test" element={<WheelTest />} />
               
               {/* Catch all - redirect to home */}
               <Route path="*" element={<Navigate to="/" replace />} />
