@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
@@ -55,6 +55,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Este email ya está registrado');
       }
       throw new Error(error.message || 'Error al crear la cuenta');
+    }
+    // Supabase automatically signs in the user after successful signup
+    // The session will be handled by the onAuthStateChange listener
+    if (data.user) {
+      setUser(data.user);
     }
   };
 

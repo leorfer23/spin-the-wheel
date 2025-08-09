@@ -8,6 +8,8 @@ Fortune Wheel Platform - A comprehensive React-based spin wheel application plat
 
 PLEASE REMEMBER: NO TYPESCRIPT ERRORS SHOULD BE PRESENT IN THE CODEBASE. ALL CODE MUST PASS TYPE CHECKS.
 
+Always User Facing Text is in Spanish.
+
 USE CLEAN CODE PRINCIPLES: Write clear, maintainable, and well-structured code. Follow best practices for React and TypeScript development. NO FILES SHOULD HAVE UNNECESSARY COMPLEXITY OR BE OVERLY COMPLICATED.
 
 ALL FILES SMALLER THAN 300 LINES: Keep files concise and focused. Each file should ideally contain a single component or closely related functionality.
@@ -98,12 +100,14 @@ src/
 ### Path Aliases
 
 The project uses `@/` as an alias for `./src/` directory. This is configured in:
+
 - `tsconfig.json` for TypeScript
 - `vite.config.ts` for Vite bundling
 
 ### Environment Variables
 
 Required environment variables (set in `.env` file):
+
 - `VITE_SUPABASE_URL` - Supabase project URL
 - `VITE_SUPABASE_ANON_KEY` - Supabase anonymous key
 
@@ -112,6 +116,7 @@ The application gracefully handles missing Supabase configuration for developmen
 ### Widget Development
 
 The project includes an embeddable widget that can be integrated into external websites:
+
 - Built using separate Vite config (`vite.widget.config.ts`)
 - Outputs to `public/widget-bundle.iife.js` and `public/widget.css`
 - Includes widget API dev server plugin for testing
@@ -149,6 +154,7 @@ The project includes an embeddable widget that can be integrated into external w
 ### Database & Store Management
 
 **IMPORTANT**: When working with stores and wheels:
+
 - The `stores` table has both `id` (UUID) and `tiendanube_store_id` (TEXT)
 - The `wheels` table references stores using `tiendanube_store_id`, NOT the store's UUID `id`
 - Always use `tiendanube_store_id` when:
@@ -159,7 +165,8 @@ The project includes an embeddable widget that can be integrated into external w
 - This is a critical distinction that affects wheel loading and display
 
 # important-instruction-reminders
+
 Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.
 ALWAYS prefer editing an existing file to creating a new one.
-NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User.
