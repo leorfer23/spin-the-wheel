@@ -21,7 +21,6 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
   const [isWheelActivating, setIsWheelActivating] = useState(false);
   const [wheelPreviewRotation, setWheelPreviewRotation] = useState(0);
   const [timeLeft, setTimeLeft] = useState({ minutes: 15, seconds: 0 });
-  const [playersOnline] = useState(Math.floor(Math.random() * 50) + 127);
 
   // Add countdown timer for urgency
   useEffect(() => {
@@ -71,12 +70,7 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
     onSpinComplete?.(result);
   }, [onSpinComplete]);
 
-  // Calculate best prize for display
-  const bestPrize = config.segments?.reduce((best: any, current: any) => {
-    const currentValue = parseInt(current.text?.match(/\d+/)?.[0] || '0');
-    const bestValue = parseInt(best?.text?.match(/\d+/)?.[0] || '0');
-    return currentValue > bestValue ? current : best;
-  }, config.segments?.[0]);
+  // Removed best prize calculation for minimalistic design
 
   return (
     <>
@@ -91,33 +85,7 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
 
         {/* Desktop: Left side - Wheel with excitement elements */}
         <div className="flex-[1.2] flex flex-col items-center justify-center p-8 relative">
-          {/* Prize showcase at top */}
-          {!hasTicket && bestPrize && (
-            <motion.div 
-              className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2">
-                <motion.span 
-                  className="text-2xl"
-                  animate={{ rotate: [0, 20, -20, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  🎯
-                </motion.span>
-                <span className="font-bold text-lg">Premio Mayor: {bestPrize.text}</span>
-                <motion.span 
-                  className="text-2xl"
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 1, repeat: Infinity }}
-                >
-                  ⭐
-                </motion.span>
-              </div>
-            </motion.div>
-          )}
+          {/* Removed prize showcase for minimalistic design */}
 
           {/* Simple overlay when no ticket - just grayed out */}
           <AnimatePresence>
@@ -143,7 +111,7 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
                       animate={{ rotate: [0, 5, -5, 0] }}
                       transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
                     >
-                      <span className="text-6xl">🎰</span>
+                      <span className="text-5xl">🎁</span>
                     </motion.div>
                     <p className="text-white text-xl font-bold mt-4">¡Ingresa tu email para desbloquear!</p>
                     <p className="text-yellow-400 text-sm mt-2">Solo 1 intento por usuario</p>
@@ -235,21 +203,7 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
             </motion.div>
           </div>
 
-          {/* Live players indicator */}
-          <motion.div 
-            className="absolute bottom-8 left-8 bg-black/80 backdrop-blur-xl rounded-2xl px-4 py-3 shadow-xl border border-green-400/30"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-                <div className="absolute inset-0 w-3 h-3 bg-green-400 rounded-full animate-ping"></div>
-              </div>
-              <span className="text-white text-sm font-medium">{playersOnline} jugadores activos</span>
-            </div>
-          </motion.div>
+          {/* Removed live players indicator for minimalistic design */}
         </div>
 
         {/* Desktop: Right side - Conversion-optimized Email Capture */}
@@ -269,121 +223,59 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
                 transition={{ duration: 0.5 }}
                 className="space-y-6"
               >
-                {/* Countdown timer - URGENCY */}
+                {/* Minimalistic countdown timer */}
                 <motion.div 
-                  className="bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-2xl p-4 shadow-xl"
-                  animate={{ scale: [1, 1.02, 1] }}
+                  className="text-center"
+                  animate={{ opacity: [0.7, 1, 0.7] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">⏰</span>
-                      <span className="font-bold">¡OFERTA LIMITADA!</span>
-                    </div>
-                    <div className="text-2xl font-bold tabular-nums">
+                  <div className="inline-flex items-center gap-2 text-sm text-gray-600">
+                    <span>Oferta limitada:</span>
+                    <span className="font-mono font-medium text-red-600">
                       {String(timeLeft.minutes).padStart(2, '0')}:{String(timeLeft.seconds).padStart(2, '0')}
-                    </div>
+                    </span>
                   </div>
                 </motion.div>
 
-                {/* Value proposition */}
-                <div className="text-center space-y-3">
+                {/* Minimalistic value proposition */}
+                <div className="text-center space-y-2">
                   <motion.h2 
-                    className="text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600"
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 200 }}
+                    className="text-3xl font-bold text-gray-800"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5 }}
                   >
-                    ¡GIRA Y GANA!
+                    Gira y Gana
                   </motion.h2>
                   
-                  <div className="space-y-2">
-                    <p className="text-2xl font-bold text-gray-800">
-                      🎁 Premios GARANTIZADOS
-                    </p>
-                    <p className="text-lg text-gray-600">
-                      Todo el mundo gana algo - ¡Sin excepciones!
-                    </p>
-                  </div>
-
-                  {/* Trust badges */}
-                  <div className="flex justify-center gap-4 py-3">
-                    <div className="flex items-center gap-1 text-green-600">
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <span className="text-sm font-medium">Sin trucos</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-green-600">
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <span className="text-sm font-medium">100% Gratis</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-green-600">
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <span className="text-sm font-medium">Instantáneo</span>
-                    </div>
-                  </div>
+                  <p className="text-gray-600">
+                    Premios garantizados para todos
+                  </p>
                 </div>
 
-                {/* Email capture form with minimal friction */}
+                {/* Minimalistic email capture */}
                 <div className="relative">
-                  {/* Glow effect */}
-                  <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur-lg opacity-75 animate-pulse"></div>
+                  <EmailCapture
+                    onSubmit={handleEmailSubmit}
+                    imageUrl={config.captureImageUrl}
+                    title=""
+                    subtitle=""
+                    buttonText="→"
+                    privacyText=""
+                    primaryColor={config.primaryColor || "#8B5CF6"}
+                    format="instant"
+                    emailPlaceholder="Ingresa tu email"
+                    autoFocus={true}
+                    showConsent={false}
+                  />
                   
-                  <div className="relative bg-white rounded-2xl p-6 shadow-2xl">
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold px-4 py-1 rounded-full">
-                        SOLO 1 INTENTO POR EMAIL
-                      </span>
-                    </div>
-                    
-                    <EmailCapture
-                      onSubmit={handleEmailSubmit}
-                      imageUrl={config.captureImageUrl}
-                      title=""
-                      subtitle=""
-                      buttonText="🎰 GIRAR AHORA →"
-                      privacyText={config.capturePrivacyText || ""}
-                      primaryColor={config.primaryColor || "#8B5CF6"}
-                      format="instant"
-                    />
-                    
-                    {/* Security note */}
-                    <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-500">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                      <span>Tu información está 100% segura</span>
-                    </div>
-                  </div>
+                  {/* Small note */}
+                  <p className="text-xs text-gray-400 text-center mt-2">
+                    Presiona enter o → para continuar
+                  </p>
                 </div>
 
-                {/* Social proof */}
-                <motion.div 
-                  className="bg-purple-50 rounded-xl p-4"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1 }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex -space-x-2">
-                      {[...Array(4)].map((_, i) => (
-                        <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
-                          {String.fromCharCode(65 + i)}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-700">
-                        <span className="font-bold">María S.</span> ganó 20% OFF hace 2 min
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
+                {/* Removed social proof for minimalistic design */}
               </motion.div>
             ) : (
               <motion.div
@@ -399,12 +291,10 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
                   <span className="text-6xl">🎊</span>
                 </motion.div>
                 
-                <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl p-8 shadow-2xl relative overflow-hidden">
-                  <div className="absolute inset-0 bg-white/10 animate-shimmer"></div>
-                  
+                <div className="bg-white rounded-xl p-6 shadow-lg">
                   <motion.div
                     animate={{
-                      scale: [1, 1.05, 1],
+                      opacity: [0.7, 1, 0.7],
                     }}
                     transition={{
                       duration: 2,
@@ -412,26 +302,14 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
                       ease: "easeInOut"
                     }}
                   >
-                    <h3 className="text-3xl font-black mb-3">
-                      ¡TICKET ACTIVADO! 🎫
+                    <h3 className="text-lg font-medium text-green-600 mb-2">
+                      ✓ Ticket Activado
                     </h3>
-                    <p className="text-xl opacity-95 font-bold">
-                      ¡Haz clic en la ruleta para descubrir tu premio!
+                    <p className="text-gray-600">
+                      Haz clic o arrastra la ruleta
                     </p>
                   </motion.div>
                 </div>
-                
-                <motion.div 
-                  className="bg-yellow-100 border-2 border-yellow-400 rounded-xl p-4"
-                  animate={{ scale: [1, 1.02, 1] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  <p className="text-gray-800 font-medium flex items-center justify-center gap-2">
-                    <span className="text-2xl">👈</span>
-                    <span>Gira la ruleta AHORA</span>
-                    <span className="text-2xl">👈</span>
-                  </p>
-                </motion.div>
 
                 <div className="bg-white/80 backdrop-blur rounded-xl p-4 shadow-sm">
                   <p className="text-gray-600 text-sm">
@@ -477,28 +355,11 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
                 transition={{ duration: 0.5 }}
                 className="space-y-6 w-full max-w-md"
               >
-                {/* Prize preview */}
-                <motion.div 
-                  className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-2xl p-4 shadow-xl"
-                  animate={{ scale: [1, 1.02, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <div className="text-center">
-                    <span className="text-3xl">🎁</span>
-                    <p className="font-bold text-lg mt-2">Premios GARANTIZADOS</p>
-                    <p className="text-sm opacity-90">¡Todos ganan algo!</p>
-                  </div>
-                </motion.div>
-
-                {/* Title and subtitle */}
-                <div className="text-center space-y-3">
-                  <motion.h2 
-                    className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600"
-                    animate={{ scale: [1, 1.05, 1] }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                  >
-                    ¡GIRA Y GANA!
-                  </motion.h2>
+                {/* Simplified title */}
+                <div className="text-center">
+                  <h2 className="text-2xl font-semibold text-gray-800">
+                    Gira y Gana
+                  </h2>
                   
                   {config.captureSubtitle && (
                     <p className="text-lg text-gray-700 font-medium">{config.captureSubtitle}</p>
@@ -522,23 +383,15 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
                       imageUrl={config.captureImageUrl}
                       title=""
                       subtitle=""
-                      buttonText="🎰 GIRAR AHORA"
-                      privacyText={config.capturePrivacyText || ""}
+                      buttonText="→"
+                      privacyText=""
                       primaryColor={config.primaryColor || "#8B5CF6"}
                       format="instant"
                     />
                   </div>
                 </div>
 
-                {/* Live activity */}
-                <div className="bg-purple-50 rounded-xl p-3">
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span className="text-sm text-gray-700">
-                      <span className="font-bold">{playersOnline}</span> jugando ahora
-                    </span>
-                  </div>
-                </div>
+                {/* Removed live activity for minimalistic design */}
               </motion.div>
             </div>
           </motion.div>
@@ -550,24 +403,14 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {/* Success header */}
-            <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg">
+            {/* Minimalistic success header */}
+            <div className="text-center p-3 border-b border-gray-200">
               <motion.div
-                className="text-center p-4"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
-                <motion.div
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <span className="text-3xl">🎊</span>
-                </motion.div>
-                <h3 className="text-xl font-bold mt-2">
-                  ¡TICKET ACTIVADO!
-                </h3>
-                <p className="text-sm opacity-90">Gira para ganar tu premio</p>
+                <span className="text-sm text-green-600 font-medium">✓ Listo para girar</span>
               </motion.div>
             </div>
 
@@ -651,17 +494,24 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
                 />
               </motion.div>
 
-              {/* Tap indicator */}
+              {/* Subtle tap indicator with pulsing animation */}
               <motion.div 
                 className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 1, repeat: Infinity }}
+                animate={{ 
+                  y: [0, -5, 0],
+                  opacity: [0.6, 1, 0.6]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
               >
-                <div className="bg-white/90 backdrop-blur rounded-full px-6 py-3 shadow-xl">
-                  <span className="text-gray-800 font-bold flex items-center gap-2">
-                    <span className="text-2xl">👆</span>
-                    TAP PARA GIRAR
-                  </span>
+                <div className="text-center">
+                  <motion.div
+                    className="inline-block"
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    <span className="text-3xl">👆</span>
+                  </motion.div>
+                  <p className="text-xs text-gray-500 mt-1">Toca para girar</p>
                 </div>
               </motion.div>
             </div>

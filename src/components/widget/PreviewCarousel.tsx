@@ -220,7 +220,6 @@ export const PreviewCarousel: React.FC<PreviewCarouselProps> = ({
               backgroundColor='#FFFFFF'
               emailPlaceholder='Enter your email'
               titleColor='#111827'
-              subtitleColor='#4B5563'
               playerCount='2,847 people played today'
               popularPrize='25% OFF Everything!'
               autoFocus={true}

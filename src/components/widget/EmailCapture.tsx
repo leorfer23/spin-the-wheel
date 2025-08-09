@@ -13,7 +13,6 @@ interface EmailCaptureProps {
   format?: 'instant' | 'minimal' | 'social';
   emailPlaceholder?: string;
   titleColor?: string;
-  subtitleColor?: string;
   playerCount?: string;
   popularPrize?: string;
   autoFocus?: boolean;
@@ -32,7 +31,6 @@ export const EmailCapture: React.FC<EmailCaptureProps> = ({
   format = 'instant',
   emailPlaceholder = 'Ingresa tu email',
   titleColor = '#111827',
-  subtitleColor = '#4B5563',
   playerCount = '2,847 personas jugaron hoy',
   popularPrize = '¡25% de descuento en todo!',
   autoFocus = true,
@@ -63,33 +61,23 @@ export const EmailCapture: React.FC<EmailCaptureProps> = ({
     onSubmit(email, marketingConsent);
   };
 
-  // Format 1: Instant Play - Focuses on speed and excitement
+  // Format 1: Instant Play - Minimalistic design
   if (format === 'instant') {
     return (
       <motion.div 
-        className="max-w-md mx-auto p-8 rounded-2xl shadow-2xl"
+        className="max-w-md mx-auto p-6"
         style={{ backgroundColor }}
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3, type: "spring" }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
       >
-        <div className="text-center mb-6">
-          <motion.div 
-            className="text-6xl mb-4"
-            animate={{ rotate: [0, 10, -10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            🎯
-          </motion.div>
-          <h2 className="text-3xl font-extrabold mb-2" style={{ color: titleColor }}>
+        {title && (
+          <h2 className="text-xl font-medium mb-4 text-center" style={{ color: titleColor }}>
             {title}
           </h2>
-          <p className="text-lg" style={{ color: subtitleColor }}>
-            {subtitle || 'Just your email & GO! 🎉'}
-          </p>
-        </div>
+        )}
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div className="relative">
             <input
               type="email"
@@ -98,30 +86,40 @@ export const EmailCapture: React.FC<EmailCaptureProps> = ({
                 setEmail(e.target.value);
                 setError('');
               }}
-              placeholder={emailPlaceholder || "your@email.com"}
-              className="w-full px-6 py-4 text-lg rounded-full border-2 border-gray-200 focus:border-primary focus:outline-none transition-all pr-24"
+              placeholder={emailPlaceholder || "tu@email.com"}
+              className="w-full px-5 py-3.5 text-base rounded-xl border border-gray-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all pr-14 text-center"
               style={{ 
                 borderColor: error ? '#EF4444' : undefined,
                 '--tw-ring-color': primaryColor
               } as React.CSSProperties}
               autoFocus={autoFocus}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSubmit(e as any);
+                }
+              }}
             />
             <motion.button
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2 rounded-full font-bold text-white"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-lg flex items-center justify-center text-white"
               style={{ backgroundColor: primaryColor }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
             >
-              {buttonText || 'SPIN!'}
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
             </motion.button>
           </div>
           {error && (
-            <p className="text-red-500 text-sm text-center">{error}</p>
+            <p className="text-red-500 text-xs text-center">{error}</p>
           )}
-          <p className="text-xs text-gray-500 text-center">
-            {privacyText}
-          </p>
+          {privacyText && showConsent !== false && (
+            <p className="text-xs text-gray-400 text-center">
+              {privacyText}
+            </p>
+          )}
         </form>
       </motion.div>
     );

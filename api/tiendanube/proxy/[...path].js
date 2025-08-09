@@ -54,11 +54,21 @@ export default async function handler(req, res) {
 
     // Extract the authorization token from the request
     const authHeader = req.headers.authorization;
+    console.log('🔍 Proxy Auth Header received:', {
+      hasAuthHeader: !!authHeader,
+      headerValue: authHeader ? `${authHeader.substring(0, 30)}...` : 'none',
+      startsWithBearer: authHeader?.startsWith('Bearer ')
+    });
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ error: 'Missing authorization token' });
     }
 
     const token = authHeader.replace('Bearer ', '');
+    console.log('🔑 Token extracted:', {
+      tokenLength: token.length,
+      tokenPreview: `${token.substring(0, 20)}...${token.substring(token.length - 10)}`
+    });
 
     // The token passed from frontend is actually the access_token from the database
     // We use it directly to call TiendaNube API
@@ -71,7 +81,7 @@ export default async function handler(req, res) {
     const options = {
       method: req.method,
       headers: {
-        'Authentication': `bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
         'User-Agent': 'SpinWheel/1.0'
       }
@@ -92,8 +102,18 @@ export default async function handler(req, res) {
     console.log('TiendaNube response:', {
       status: tiendaNubeResponse.status,
       statusText: tiendaNubeResponse.statusText,
-      headers: Object.fromEntries(tiendaNubeResponse.headers.entries())
+      headers: Object.fromEntries(tiendaNubeResponse.headers.entries()),
+      responsePreview: responseText ? responseText.substring(0, 200) : 'empty'
     });
+    
+    // If it's a 401, log more details
+    if (tiendaNubeResponse.status === 401) {
+      console.error('❌ TiendaNube 401 Unauthorized:', {
+        responseText,
+        tokenUsed: `${token.substring(0, 20)}...`,
+        url: tiendaNubeUrl
+      });
+    }
 
     // Set the response status
     res.status(tiendaNubeResponse.status);

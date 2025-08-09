@@ -67,6 +67,14 @@ export class TiendaNubeApiService {
     try {
       const url = `/api/tiendanube/proxy/${path}`;
       
+      console.log('🔐 [makeRequest] Auth debug:', {
+        url,
+        path,
+        tokenLength: accessToken?.length,
+        tokenPreview: accessToken ? `${accessToken.substring(0, 20)}...${accessToken.substring(accessToken.length - 10)}` : 'NO TOKEN',
+        method
+      });
+      
       const options: RequestInit = {
         method,
         headers: {
@@ -130,12 +138,21 @@ export class TiendaNubeApiService {
    * Get all coupons for a store
    */
   async getCoupons(storeId: string, filters?: CouponFilters): Promise<ApiResponse<TiendaNubeCoupon[]>> {
+    console.log('🎯 [tiendaNubeApi.getCoupons] Starting with storeId:', storeId);
+    
     const integrationResult = await this.getIntegration(storeId);
+    console.log('🔌 [tiendaNubeApi.getCoupons] Integration result:', integrationResult);
+    
     if (!integrationResult.success) {
+      console.error('❌ [tiendaNubeApi.getCoupons] No integration found');
       return integrationResult;
     }
 
     const integration = integrationResult.data;
+    console.log('✅ [tiendaNubeApi.getCoupons] Integration found:', {
+      platform_store_id: integration.platform_store_id,
+      has_token: !!integration.access_token
+    });
     
     // Build query string from filters
     const queryParams = new URLSearchParams();

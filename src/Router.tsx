@@ -12,6 +12,7 @@ const Auth = lazy(() => import('./pages/auth/Auth').then(module => ({ default: m
 const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword').then(module => ({ default: module.ForgotPassword })));
 const ModularDashboard = lazy(() => import('./pages/dashboard/ModularDashboard').then(module => ({ default: module.ModularDashboard })));
 const WheelTest = lazy(() => import('./pages/WheelTest'));
+const CouponTest = lazy(() => import('./pages/test/CouponTest'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -95,8 +96,9 @@ export const Router: React.FC = () => {
                 }
               />
               
-              {/* Test route for wheel rotation debugging */}
+              {/* Test routes */}
               <Route path="/test" element={<WheelTest />} />
+              <Route path="/test/coupon" element={<CouponTest />} />
               
               {/* Catch all - redirect to home */}
               <Route path="*" element={<Navigate to="/" replace />} />
