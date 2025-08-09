@@ -41,10 +41,10 @@ interface DateRange {
 }
 
 const dateRanges: DateRange[] = [
-  { label: 'Last 7 days', value: 7, unit: 'days' },
-  { label: 'Last 30 days', value: 30, unit: 'days' },
-  { label: 'Last 3 months', value: 3, unit: 'months' },
-  { label: 'Last 6 months', value: 6, unit: 'months' },
+  { label: 'Últimos 7 días', value: 7, unit: 'days' },
+  { label: 'Últimos 30 días', value: 30, unit: 'days' },
+  { label: 'Últimos 3 meses', value: 3, unit: 'months' },
+  { label: 'Últimos 6 meses', value: 6, unit: 'months' },
 ];
 
 export const WheelReporting: React.FC<WheelReportingProps> = ({ wheelId, segments }) => {
@@ -172,9 +172,9 @@ export const WheelReporting: React.FC<WheelReportingProps> = ({ wheelId, segment
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Analytics Dashboard
+                Panel de Análisis
               </h2>
-              <p className="text-gray-500 mt-1">Track your wheel's performance and engagement</p>
+              <p className="text-gray-500 mt-1">Rastrea el rendimiento y participación de tu ruleta</p>
             </div>
             
             {/* Date Range Selector */}
@@ -182,7 +182,7 @@ export const WheelReporting: React.FC<WheelReportingProps> = ({ wheelId, segment
               <button
                 onClick={() => refetch()}
                 className="p-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 transition-all"
-                title="Refresh data"
+                title="Actualizar datos"
               >
                 <RefreshCw className="h-4 w-4 text-gray-600" />
               </button>
@@ -249,7 +249,7 @@ export const WheelReporting: React.FC<WheelReportingProps> = ({ wheelId, segment
             }`}
           >
             <TrendingUp className="h-4 w-4" />
-            Overview
+            Resumen
           </button>
           <button
             onClick={() => setActiveTab('analytics')}
@@ -260,7 +260,7 @@ export const WheelReporting: React.FC<WheelReportingProps> = ({ wheelId, segment
             }`}
           >
             <BarChart3 className="h-4 w-4" />
-            Detailed Analytics
+            Análisis Detallado
           </button>
           <button
             onClick={() => setActiveTab('emails')}
@@ -271,7 +271,7 @@ export const WheelReporting: React.FC<WheelReportingProps> = ({ wheelId, segment
             }`}
           >
             <Mail className="h-4 w-4" />
-            Email Captures
+            Emails Capturados
           </button>
         </div>
       </motion.div>
@@ -299,7 +299,7 @@ export const WheelReporting: React.FC<WheelReportingProps> = ({ wheelId, segment
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-500 mb-1">Total Impressions</p>
+                        <p className="text-sm font-medium text-gray-500 mb-1">Impresiones Totales</p>
                         <p className="text-3xl font-bold text-gray-900">
                           {summaryMetrics.totalImpressions.toLocaleString()}
                         </p>
@@ -312,7 +312,7 @@ export const WheelReporting: React.FC<WheelReportingProps> = ({ wheelId, segment
                           </p>
                         )}
                         {summaryMetrics.totalImpressions === 0 && (
-                          <p className="text-sm mt-2 text-gray-400">No data yet</p>
+                          <p className="text-sm mt-2 text-gray-400">Sin datos aún</p>
                         )}
                       </div>
                       <div className="p-3 bg-purple-50 rounded-xl">
@@ -330,7 +330,7 @@ export const WheelReporting: React.FC<WheelReportingProps> = ({ wheelId, segment
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-500 mb-1">Total Spins</p>
+                        <p className="text-sm font-medium text-gray-500 mb-1">Giros Totales</p>
                         <p className="text-3xl font-bold text-gray-900">
                           {summaryMetrics.totalSpins.toLocaleString()}
                         </p>
@@ -343,7 +343,7 @@ export const WheelReporting: React.FC<WheelReportingProps> = ({ wheelId, segment
                           </p>
                         )}
                         {summaryMetrics.totalSpins === 0 && (
-                          <p className="text-sm mt-2 text-gray-400">No data yet</p>
+                          <p className="text-sm mt-2 text-gray-400">Sin datos aún</p>
                         )}
                       </div>
                       <div className="p-3 bg-pink-50 rounded-xl">
@@ -361,12 +361,12 @@ export const WheelReporting: React.FC<WheelReportingProps> = ({ wheelId, segment
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-500 mb-1">Conversion Rate</p>
+                        <p className="text-sm font-medium text-gray-500 mb-1">Tasa de Conversión</p>
                         <p className="text-3xl font-bold text-gray-900">
                           {summaryMetrics.totalImpressions > 0 ? `${summaryMetrics.avgConversionRate.toFixed(1)}%` : '0%'}
                         </p>
                         <p className="text-sm text-gray-400 mt-2">
-                          {summaryMetrics.totalImpressions > 0 ? 'Impression to spin' : 'No data yet'}
+                          {summaryMetrics.totalImpressions > 0 ? 'Impresión a giro' : 'Sin datos aún'}
                         </p>
                       </div>
                       <div className="p-3 bg-green-50 rounded-xl">
@@ -384,7 +384,7 @@ export const WheelReporting: React.FC<WheelReportingProps> = ({ wheelId, segment
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-500 mb-1">Emails Captured</p>
+                        <p className="text-sm font-medium text-gray-500 mb-1">Emails Capturados</p>
                         <p className="text-3xl font-bold text-gray-900">
                           {summaryMetrics.totalEmails.toLocaleString()}
                         </p>
@@ -397,7 +397,7 @@ export const WheelReporting: React.FC<WheelReportingProps> = ({ wheelId, segment
                           </p>
                         )}
                         {summaryMetrics.totalEmails === 0 && (
-                          <p className="text-sm mt-2 text-gray-400">No data yet</p>
+                          <p className="text-sm mt-2 text-gray-400">Sin datos aún</p>
                         )}
                       </div>
                       <div className="p-3 bg-blue-50 rounded-xl">
@@ -416,18 +416,18 @@ export const WheelReporting: React.FC<WheelReportingProps> = ({ wheelId, segment
                     className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 shadow-lg border border-white/50"
                   >
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">Visitor Engagement</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">Participación de Visitantes</h3>
                       <Users className="h-5 w-5 text-gray-400" />
                     </div>
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Unique Visitors</span>
+                        <span className="text-sm text-gray-600">Visitantes Únicos</span>
                         <span className="text-lg font-semibold text-gray-900">
                           {summaryMetrics.uniqueVisitors.toLocaleString()}
                         </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Avg. Time on Widget</span>
+                        <span className="text-sm text-gray-600">Tiempo Promedio en Widget</span>
                         <span className="text-lg font-semibold text-gray-900">
                           {summaryMetrics.avgTimeOnWidget.toFixed(1)}s
                         </span>
@@ -442,7 +442,7 @@ export const WheelReporting: React.FC<WheelReportingProps> = ({ wheelId, segment
                     className="bg-white/60 backdrop-blur-xl rounded-3xl p-6 shadow-lg border border-white/50"
                   >
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-gray-900">Prize Distribution</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">Distribución de Premios</h3>
                       <BarChart3 className="h-5 w-5 text-gray-400" />
                     </div>
                     <div className="space-y-2">
@@ -474,9 +474,9 @@ export const WheelReporting: React.FC<WheelReportingProps> = ({ wheelId, segment
                     transition={{ delay: 0.7 }}
                     className="bg-white/60 backdrop-blur-xl rounded-3xl p-8 shadow-lg border border-white/50"
                   >
-                    <h3 className="text-lg font-semibold text-gray-900 mb-6">Performance Trends</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-6">Tendencias de Rendimiento</h3>
                     <div className="h-64 flex items-center justify-center text-gray-400">
-                      <p>Chart visualization will appear here</p>
+                      <p>La visualización del gráfico aparecerá aquí</p>
                     </div>
                   </motion.div>
                 ) : (
@@ -488,9 +488,9 @@ export const WheelReporting: React.FC<WheelReportingProps> = ({ wheelId, segment
                   >
                     <div className="text-center py-12">
                       <BarChart3 className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No Analytics Data Yet</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Aún No Hay Datos de Análisis</h3>
                       <p className="text-sm text-gray-500 max-w-md mx-auto">
-                        Performance trends will appear here once your wheel starts receiving visitors and generating spins.
+                        Las tendencias de rendimiento aparecerán aquí una vez que tu ruleta comience a recibir visitantes y generar giros.
                       </p>
                     </div>
                   </motion.div>

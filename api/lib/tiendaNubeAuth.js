@@ -8,12 +8,15 @@ class TiendaNubeAuthService {
   }
 
   getRedirectUri() {
-    // In production, use the actual domain
-    if (process.env.NODE_ENV === 'production' || process.env.VERCEL_URL) {
-      const baseUrl = process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}`
-        : 'https://www.rooleta.com';
-      return `${baseUrl}/api/integrations/callback`;
+    // Always use the configured redirect URI that matches TiendaNube app settings
+    // In production, this should match what's configured in TiendaNube
+    if (process.env.NODE_ENV === 'production') {
+      return 'https://www.rooleta.com/api/integrations/callback';
+    }
+    
+    // For Vercel preview deployments
+    if (process.env.VERCEL_URL && !process.env.VERCEL_URL.includes('localhost')) {
+      return `https://${process.env.VERCEL_URL}/api/integrations/callback`;
     }
     
     // In development
@@ -38,6 +41,14 @@ class TiendaNubeAuthService {
       response_type: 'code',
       redirect_uri: this.redirectUri,
       state: state,
+    });
+
+    // Log for debugging
+    console.log('OAuth URL generation:', {
+      clientId: this.clientId,
+      redirectUri: this.redirectUri,
+      NODE_ENV: process.env.NODE_ENV,
+      VERCEL_URL: process.env.VERCEL_URL
     });
 
     return `https://www.tiendanube.com/apps/${this.clientId}/authorize?${params.toString()}`;

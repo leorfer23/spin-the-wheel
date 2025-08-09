@@ -53,10 +53,38 @@ export const WheelEmailList: React.FC<WheelEmailListProps> = ({ wheelId }) => {
     const past = new Date(date);
     const diff = Math.floor((now.getTime() - past.getTime()) / 1000);
     
-    if (diff < 60) return `${diff}s ago`;
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
+    if (diff < 60) return `hace ${diff}s`;
+    if (diff < 3600) return `hace ${Math.floor(diff / 60)}m`;
+    if (diff < 86400) return `hace ${Math.floor(diff / 3600)}h`;
+    return `hace ${Math.floor(diff / 86400)}d`;
+  };
+
+  // Export emails to CSV
+  const exportToCSV = () => {
+    if (!emailList || emailList.length === 0) return;
+
+    const csvHeaders = ['Email', 'Premio', 'Fecha', 'Consentimiento de Marketing'];
+    const csvData = emailList.map(entry => [
+      entry.email,
+      entry.prize || 'N/A',
+      new Date(entry.created_at).toLocaleString('es-ES'),
+      entry.marketing_consent ? 'Sí' : 'No'
+    ]);
+
+    const csvContent = [
+      csvHeaders.join(','),
+      ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `emails_capturados_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -68,13 +96,16 @@ export const WheelEmailList: React.FC<WheelEmailListProps> = ({ wheelId }) => {
       >
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Email Captures</h3>
-            <p className="text-sm text-gray-500 mt-1">Emails collected from wheel spins</p>
+            <h3 className="text-lg font-semibold text-gray-900">Emails Capturados</h3>
+            <p className="text-sm text-gray-500 mt-1">Emails recolectados de los giros de la ruleta</p>
           </div>
           {totalEmails > 0 && (
-            <button className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all">
-              <Download className="h-4 w-4 text-gray-600" />
-              <span className="text-sm font-medium text-gray-700">Export</span>
+            <button 
+              onClick={exportToCSV}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 rounded-xl transition-all border border-purple-200/50"
+            >
+              <Download className="h-4 w-4 text-purple-600" />
+              <span className="text-sm font-medium text-purple-700">Exportar CSV</span>
             </button>
           )}
         </div>
@@ -98,7 +129,7 @@ export const WheelEmailList: React.FC<WheelEmailListProps> = ({ wheelId }) => {
                     <div className="flex items-center gap-3 mt-1">
                       {entry.prize && (
                         <>
-                          <span className="text-sm text-gray-600">Won: {entry.prize}</span>
+                          <span className="text-sm text-gray-600">Ganó: {entry.prize}</span>
                           <span className="text-sm text-gray-400">•</span>
                         </>
                       )}
@@ -106,7 +137,7 @@ export const WheelEmailList: React.FC<WheelEmailListProps> = ({ wheelId }) => {
                       {entry.marketing_consent && (
                         <>
                           <span className="text-sm text-gray-400">•</span>
-                          <span className="text-xs px-2 py-0.5 bg-green-50 text-green-600 rounded-full">Marketing consent</span>
+                          <span className="text-xs px-2 py-0.5 bg-green-50 text-green-600 rounded-full">Consentimiento de marketing</span>
                         </>
                       )}
                     </div>
@@ -117,7 +148,7 @@ export const WheelEmailList: React.FC<WheelEmailListProps> = ({ wheelId }) => {
             {emailList.length > 10 && (
               <div className="mt-6 pt-4 border-t border-gray-100">
                 <p className="text-sm text-gray-500 text-center">
-                  Showing 10 of {emailList.length} emails
+                  Mostrando 10 de {emailList.length} emails
                 </p>
               </div>
             )}
@@ -125,9 +156,9 @@ export const WheelEmailList: React.FC<WheelEmailListProps> = ({ wheelId }) => {
         ) : (
           <div className="text-center py-16">
             <Inbox className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h4 className="text-lg font-semibold text-gray-900 mb-2">No Emails Captured Yet</h4>
+            <h4 className="text-lg font-semibold text-gray-900 mb-2">Aún No Hay Emails Capturados</h4>
             <p className="text-sm text-gray-500 max-w-sm mx-auto">
-              Email addresses will appear here when visitors spin your wheel and provide their contact information.
+              Las direcciones de email aparecerán aquí cuando los visitantes giren tu ruleta y proporcionen su información de contacto.
             </p>
           </div>
         )}
@@ -142,10 +173,10 @@ export const WheelEmailList: React.FC<WheelEmailListProps> = ({ wheelId }) => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="text-sm font-medium text-gray-500 mb-2">Total Emails</h4>
+              <h4 className="text-sm font-medium text-gray-500 mb-2">Total de Emails</h4>
               <p className="text-3xl font-bold text-gray-900">{totalEmails}</p>
               {totalEmails === 0 && (
-                <p className="text-sm text-gray-400 mt-2">No data yet</p>
+                <p className="text-sm text-gray-400 mt-2">Sin datos aún</p>
               )}
             </div>
             <div className="p-3 bg-purple-50 rounded-xl">
@@ -161,10 +192,10 @@ export const WheelEmailList: React.FC<WheelEmailListProps> = ({ wheelId }) => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="text-sm font-medium text-gray-500 mb-2">Consent Rate</h4>
+              <h4 className="text-sm font-medium text-gray-500 mb-2">Tasa de Consentimiento</h4>
               <p className="text-3xl font-bold text-gray-900">{validEmailRate}%</p>
               <p className="text-sm text-gray-400 mt-2">
-                {totalEmails > 0 ? 'Marketing consent' : 'No data yet'}
+                {totalEmails > 0 ? 'Consentimiento de marketing' : 'Sin datos aún'}
               </p>
             </div>
             <div className="p-3 bg-green-50 rounded-xl">
