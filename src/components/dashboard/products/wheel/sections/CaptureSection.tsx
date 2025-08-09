@@ -12,15 +12,17 @@ interface CaptureSectionProps {
 
 export const CaptureSection: React.FC<CaptureSectionProps> = ({
   widgetConfig,
-  onUpdateWidgetConfig,
-  segments
+  onUpdateWidgetConfig
 }) => {
   const updateConfig = (updates: Partial<WidgetConfig>) => {
     onUpdateWidgetConfig(updates);
   };
 
   const handlePreview = () => {
-    const previewUrl = `/demo?widget=true&config=${encodeURIComponent(JSON.stringify({
+    // Preview functionality temporarily disabled - production mode
+    alert('La vista previa estará disponible próximamente');
+    return;
+    /* const previewUrl = `/preview?widget=true&config=${encodeURIComponent(JSON.stringify({
       segments,
       handlePosition: widgetConfig.handlePosition,
       handleText: widgetConfig.handleText,
@@ -33,7 +35,7 @@ export const CaptureSection: React.FC<CaptureSectionProps> = ({
       capturePrivacyText: widgetConfig.capturePrivacyText,
       captureFormat: widgetConfig.captureFormat
     }))}`;
-    window.open(previewUrl, 'widget-preview', 'width=1200,height=800');
+    window.open(previewUrl, 'widget-preview', 'width=1200,height=800'); */
   };
 
   return (

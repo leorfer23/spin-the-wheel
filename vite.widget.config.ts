@@ -5,6 +5,12 @@ import { resolve } from 'path';
 // Separate Vite config for building the widget bundle
 export default defineConfig({
   plugins: [react()],
+  publicDir: false, // Disable public directory for widget build
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, './src'),
+    },
+  },
   build: {
     lib: {
       entry: resolve(__dirname, 'src/widget/index.tsx'),
@@ -25,7 +31,7 @@ export default defineConfig({
         // CSS in separate file
         assetFileNames: (assetInfo) => {
           if (assetInfo.name === 'style.css') {
-            return 'widget.css';
+            return 'widget-bundle.css';
           }
           return assetInfo.name || '';
         }

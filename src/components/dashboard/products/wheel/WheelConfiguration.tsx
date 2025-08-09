@@ -1,11 +1,16 @@
-import { useState, useEffect, useCallback } from "react";
-import type { Segment } from "./types";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { WheelScheduleConfig } from "../../../../types/models";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../ui/tooltip";
+import { useAutoSaveStore } from "@/stores/autoSaveStore";
+import { CouponDebugPanel } from "./components/CouponDebugPanel";
+import { TiendaNubeCouponsProvider } from "@/contexts/TiendaNubeCouponsContext";
+import { useStore } from "@/contexts/StoreContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTiendaNubeIntegration } from "@/hooks/useTiendaNubeCoupons";
+import { toast } from "sonner";
 
 // Import types and constants
-import type { WheelConfigurationProps, WheelDesignConfig, WidgetConfig } from "./wheelConfigTypes";
+import type { WheelConfigurationProps } from "./wheelConfigTypes";
 import { tabs } from "./wheelConfigConstants";
 
 // Import section components
@@ -16,24 +21,10 @@ import { CaptureSection } from "./sections/CaptureSection";
 import { ScheduleSection } from "./sections/ScheduleSection";
 import { EmbedSection } from "./sections/EmbedSection";
 
-// Custom debounce implementation
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | undefined;
-  
-  return (...args: Parameters<T>) => {
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
-}
-
 export function WheelConfiguration({
   segments,
   onUpdateSegments,
   wheelId,
-  isUpdating = false,
   widgetConfig = {
     handlePosition: 'right',
     handleType: 'floating',
@@ -145,96 +136,51 @@ export function WheelConfiguration({
   const [activeSection, setActiveSection] = useState<"segments" | "appearance" | "handle" | "capture" | "schedule" | "embed">("segments");
   const [selectedStyle] = useState("modern");
   const [selectedColorTheme] = useState(0);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "pending" | "saving" | "saved" | "error">("idle");
-  const [localSegments, setLocalSegments] = useState(segments);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
-  const [wheelDesign, setWheelDesign] = useState<WheelDesignConfig>(wheelDesignConfig);
-  const [scheduleConfig2, setScheduleConfig] = useState<WheelScheduleConfig>(scheduleConfig);
-  const [localWidgetConfig, setLocalWidgetConfig] = useState<WidgetConfig>(widgetConfig);
-
-  // Debounced save functions
-  const debouncedSave = useCallback(
-    debounce((newSegments: Segment[]) => {
-      setSaveStatus("saving");
-      onUpdateSegments(newSegments);
-      
-      setTimeout(() => {
-        setSaveStatus("saved");
-        setHasUnsavedChanges(false);
-        setTimeout(() => setSaveStatus("idle"), 3000);
-      }, 500);
-    }, 1000),
-    [onUpdateSegments]
-  );
-
-  const debouncedSaveWheelDesign = useCallback(
-    debounce((newDesign: WheelDesignConfig) => {
-      setSaveStatus("saving");
-      onUpdateWheelDesign?.(newDesign);
-      
-      setTimeout(() => {
-        setSaveStatus("saved");
-        setHasUnsavedChanges(false);
-        setTimeout(() => setSaveStatus("idle"), 3000);
-      }, 500);
-    }, 1000),
-    [onUpdateWheelDesign]
-  );
-
-  const debouncedSaveScheduleConfig = useCallback(
-    debounce((newConfig: WheelScheduleConfig) => {
-      setSaveStatus("saving");
-      onUpdateScheduleConfig?.(newConfig);
-      
-      setTimeout(() => {
-        setSaveStatus("saved");
-        setHasUnsavedChanges(false);
-        setTimeout(() => setSaveStatus("idle"), 3000);
-      }, 500);
-    }, 1000),
-    [onUpdateScheduleConfig]
-  );
-
-  const debouncedSaveWidgetConfig = useCallback(
-    debounce((newConfig: WidgetConfig) => {
-      setSaveStatus("saving");
-      onUpdateWidgetConfig?.(newConfig);
-      
-      setTimeout(() => {
-        setSaveStatus("saved");
-        setHasUnsavedChanges(false);
-        setTimeout(() => setSaveStatus("idle"), 3000);
-      }, 500);
-    }, 300),
-    [onUpdateWidgetConfig]
-  );
-
-  // Update local segments when props change
-  useEffect(() => {
-    setLocalSegments(segments);
-  }, [segments]);
-
-  // Update wheel design when it changes
-  useEffect(() => {
-    if (hasUnsavedChanges && onUpdateWheelDesign) {
-      debouncedSaveWheelDesign(wheelDesign);
+  
+  // Clear all pending saves when switching wheels or unmounting
+  const { clearAllPending } = useAutoSaveStore();
+  
+  // Get store and auth context for TiendaNube integration
+  const { selectedStoreId } = useStore();
+  const { user } = useAuth();
+  
+  // Check integration status
+  const { isConnected } = useTiendaNubeIntegration(selectedStoreId || undefined);
+  
+  // Handle re-authorization
+  const handleReauthorize = async () => {
+    if (!selectedStoreId || !user) {
+      toast.error('No se pudo identificar la tienda o el usuario');
+      return;
     }
-  }, [wheelDesign, hasUnsavedChanges, debouncedSaveWheelDesign, onUpdateWheelDesign]);
 
-  // Update schedule config when it changes
-  useEffect(() => {
-    if (hasUnsavedChanges && onUpdateScheduleConfig) {
-      debouncedSaveScheduleConfig(scheduleConfig2);
-    }
-  }, [scheduleConfig2, hasUnsavedChanges, debouncedSaveScheduleConfig, onUpdateScheduleConfig]);
+    try {
+      const response = await fetch('/api/integrations/oauth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          platform: 'tiendanube',
+          storeId: selectedStoreId,
+          userId: user.id,
+        }),
+      });
 
-  // Update widget config when it changes
-  useEffect(() => {
-    if (hasUnsavedChanges && onUpdateWidgetConfig) {
-      debouncedSaveWidgetConfig(localWidgetConfig);
+      if (!response.ok) throw new Error('Failed to initiate OAuth');
+
+      const { authUrl } = await response.json();
+      toast.info('Redirigiendo a TiendaNube para autorización...');
+      window.location.href = authUrl;
+    } catch (err) {
+      toast.error('Error al iniciar re-autorización');
     }
-  }, [localWidgetConfig, hasUnsavedChanges, debouncedSaveWidgetConfig, onUpdateWidgetConfig]);
+  };
+
+  // Clear pending saves when switching wheels
+  useEffect(() => {
+    return () => {
+      clearAllPending();
+    };
+  }, [wheelId, clearAllPending]);
 
   // Notify parent of active section change
   useEffect(() => {
@@ -243,41 +189,6 @@ export function WheelConfiguration({
     }
   }, [activeSection, onActiveSectionChange]);
 
-  // Reset save status when updating
-  useEffect(() => {
-    if (isUpdating) {
-      setSaveStatus("saving");
-    }
-  }, [isUpdating, saveStatus]);
-
-  // Handle segment updates
-  const handleSegmentUpdate = (newSegments: Segment[]) => {
-    setLocalSegments(newSegments);
-    setSaveStatus("pending");
-    setHasUnsavedChanges(true);
-    debouncedSave(newSegments);
-  };
-
-  // Handle wheel design updates
-  const handleWheelDesignUpdate = (updates: Partial<WheelDesignConfig>) => {
-    setWheelDesign(prev => ({ ...prev, ...updates }));
-    setSaveStatus("pending");
-    setHasUnsavedChanges(true);
-  };
-
-  // Handle widget config updates
-  const handleWidgetConfigUpdate = (updates: Partial<WidgetConfig>) => {
-    setLocalWidgetConfig(prev => ({ ...prev, ...updates }));
-    setSaveStatus("pending");
-    setHasUnsavedChanges(true);
-  };
-
-  // Handle schedule config updates
-  const handleScheduleConfigUpdate = (newConfig: WheelScheduleConfig) => {
-    setScheduleConfig(newConfig);
-    setSaveStatus("pending");
-    setHasUnsavedChanges(true);
-  };
 
   return (
     <motion.div 
@@ -299,7 +210,7 @@ export function WheelConfiguration({
                 <TooltipTrigger asChild>
                   <motion.button
                     onClick={() => setActiveSection(tab.id as any)}
-                    className={`relative p-3 rounded-full transition-all duration-200 ${
+                    className={`relative p-3 rounded-full transition-all duration-200 cursor-pointer ${
                       activeSection === tab.id
                         ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg"
                         : "hover:bg-gray-100 text-gray-600 hover:text-gray-900"
@@ -333,53 +244,60 @@ export function WheelConfiguration({
       {/* Content Sections */}
       <AnimatePresence mode="wait">
         {activeSection === "segments" && (
+        <TiendaNubeCouponsProvider
+          storeId={selectedStoreId}
+          isConnected={isConnected}
+          onReauthRequired={handleReauthorize}
+        >
           <SegmentsSection
-            segments={localSegments}
-            onUpdateSegments={handleSegmentUpdate}
-            saveStatus={saveStatus}
+            segments={segments}
+            onUpdateSegments={onUpdateSegments}
+            saveStatus="idle"
             selectedColorTheme={selectedColorTheme}
           />
-        )}
+        </TiendaNubeCouponsProvider>
+      )}
 
         {activeSection === "appearance" && (
           <AppearanceSection
-            wheelDesign={wheelDesign}
-            onUpdateWheelDesign={handleWheelDesignUpdate}
-            saveStatus={saveStatus}
+            wheelDesign={wheelDesignConfig}
+            onUpdateWheelDesign={onUpdateWheelDesign || (() => {})}
+            saveStatus="idle"
           />
         )}
 
         {activeSection === "handle" && (
           <HandleSection
-            widgetConfig={localWidgetConfig}
-            onUpdateWidgetConfig={handleWidgetConfigUpdate}
+            widgetConfig={widgetConfig}
+            onUpdateWidgetConfig={onUpdateWidgetConfig || (() => {})}
           />
         )}
 
         {activeSection === "capture" && (
           <CaptureSection
-            widgetConfig={localWidgetConfig}
-            onUpdateWidgetConfig={handleWidgetConfigUpdate}
-            segments={localSegments}
+            widgetConfig={widgetConfig}
+            onUpdateWidgetConfig={onUpdateWidgetConfig || (() => {})}
+            segments={segments}
           />
         )}
 
         {activeSection === "schedule" && (
           <ScheduleSection
-            scheduleConfig={scheduleConfig2}
-            onUpdateScheduleConfig={handleScheduleConfigUpdate}
-            saveStatus={saveStatus}
+            scheduleConfig={scheduleConfig}
+            onUpdateScheduleConfig={onUpdateScheduleConfig || (() => {})}
+            saveStatus="idle"
           />
         )}
 
         {activeSection === "embed" && (
           <EmbedSection
             wheelId={wheelId}
-            widgetConfig={localWidgetConfig}
+            widgetConfig={widgetConfig}
             selectedStyle={selectedStyle}
           />
         )}
       </AnimatePresence>
+      <CouponDebugPanel />
     </motion.div>
   );
 }

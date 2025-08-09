@@ -1,24 +1,31 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { DashboardLayout } from '../../components/dashboard/layout/DashboardLayout';
 import { ProductSelector } from '../../components/dashboard/layout/ProductSelector';
 import type { ProductType } from '../../components/dashboard/layout/ProductSelector';
 import { ConfigurationPanel } from '../../components/dashboard/layout/ConfigurationPanel';
-import type { ConfigSection } from '../../components/dashboard/layout/ConfigurationPanel';
 import { WheelProduct } from '../../components/dashboard/products/wheel/WheelProduct';
+import { IntegrationNotification } from '../../components/dashboard/IntegrationNotification';
+import { useWheelStore } from '../../stores/wheelStore';
 
 export const ModularDashboard: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<ProductType>('wheel');
-  const [hasWheelSelected, setHasWheelSelected] = useState(false);
-  const configRenderRef = useRef<(section: ConfigSection) => React.ReactNode>(() => null);
-
-  const handleConfigRender = (renderFn: (section: ConfigSection) => React.ReactNode) => {
-    configRenderRef.current = renderFn;
-  };
+  
+  // Get wheel state from Zustand store
+  const { 
+    hasWheelSelected, 
+    wheelMode, 
+    selectedWheelId, 
+    selectedWheel,
+    setWheelMode 
+  } = useWheelStore();
 
   const renderProduct = () => {
     switch (selectedProduct) {
       case 'wheel':
-        return <WheelProduct onConfigRender={handleConfigRender} onWheelSelectionChange={setHasWheelSelected} />;
+        return <WheelProduct 
+          onModeChange={setWheelMode}
+          mode={wheelMode}
+        />;
       case 'lottery':
         return (
           <div className="text-center">
@@ -46,26 +53,31 @@ export const ModularDashboard: React.FC = () => {
   };
 
   return (
-    <DashboardLayout
-      leftContent={
-        <ProductSelector
-          selectedProduct={selectedProduct}
-          onProductChange={setSelectedProduct}
-        >
-          {renderProduct()}
-        </ProductSelector>
-      }
-      rightContent={
-        selectedProduct === 'wheel' && hasWheelSelected ? (
-          <ConfigurationPanel>
-            {(activeSection) => configRenderRef.current(activeSection)}
-          </ConfigurationPanel>
-        ) : selectedProduct !== 'wheel' ? (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-gray-500">Configuración próximamente</p>
-          </div>
-        ) : null
-      }
-    />
+    <>
+      <IntegrationNotification />
+      <DashboardLayout
+        leftContent={
+          <ProductSelector
+            selectedProduct={selectedProduct}
+            onProductChange={setSelectedProduct}
+          >
+            {renderProduct()}
+          </ProductSelector>
+        }
+        rightContent={
+          selectedProduct === 'wheel' && hasWheelSelected ? (
+            <ConfigurationPanel 
+              key={selectedWheelId}
+              mode={wheelMode}
+              wheelData={selectedWheel}
+            />
+          ) : selectedProduct !== 'wheel' ? (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-gray-500">Configuración próximamente</p>
+            </div>
+          ) : null
+        }
+      />
+    </>
   );
 };

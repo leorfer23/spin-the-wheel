@@ -13,7 +13,6 @@ export const WheelSchedulingDemo: React.FC = () => {
 
   const handleSave = () => {
     // In real app, this would save to database
-    console.log('Saving schedule config:', scheduleConfig);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };

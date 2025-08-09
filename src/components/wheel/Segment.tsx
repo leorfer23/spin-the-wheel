@@ -20,7 +20,7 @@ interface SegmentProps {
  * Handles the mathematical calculations for creating wedge shapes
  * and positioning text labels at the correct angle and location.
  */
-export const Segment: React.FC<SegmentProps> = ({
+export const Segment: React.FC<SegmentProps> = React.memo(({
   segment,
   dimensions,
   index,
@@ -67,6 +67,21 @@ export const Segment: React.FC<SegmentProps> = ({
   const textX = textRadius * Math.cos(textRad);
   const textY = textRadius * Math.sin(textRad);
   
+  // Calculate adaptive font size based on wheel diameter and number of segments
+  // Base font size is proportional to wheel diameter
+  const baseFontSize = dimensions.diameter * 0.035; // 3.5% of diameter
+  
+  // Adjust font size based on number of segments (more segments = smaller text)
+  const segmentFactor = Math.min(1, 8 / totalSegments); // Optimal for 8 segments or less
+  
+  // Adjust font size based on available segment arc length
+  const segmentArcLength = 2 * Math.PI * textRadius * (angle / 360);
+  const widthFactor = Math.min(1, segmentArcLength / (segment.label.length * 10));
+  
+  // Calculate final font size with min and max limits
+  const calculatedFontSize = baseFontSize * segmentFactor * widthFactor;
+  const fontSize = Math.max(10, Math.min(24, calculatedFontSize)); // Min 10px, Max 24px
+  
   return (
     <g className="wheel-segment">
       <path
@@ -79,7 +94,7 @@ export const Segment: React.FC<SegmentProps> = ({
         x={textX}
         y={textY}
         fill={segment.textColor || '#ffffff'}
-        fontSize="14"
+        fontSize={fontSize}
         fontWeight="bold"
         textAnchor="middle"
         dominantBaseline="middle"
@@ -89,4 +104,6 @@ export const Segment: React.FC<SegmentProps> = ({
       </text>
     </g>
   );
-};
+});
+
+Segment.displayName = 'Segment';

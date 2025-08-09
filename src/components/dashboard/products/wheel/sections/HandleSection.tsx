@@ -1,43 +1,91 @@
 import React from "react";
-import { Check } from "lucide-react";
+import { Check, HelpCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { SaveStatusIndicator } from "../components/SaveStatusIndicator";
+import { useAutoSave } from "@/hooks/useAutoSave";
 import type { WidgetConfig } from "../wheelConfigTypes";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface HandleSectionProps {
   widgetConfig: WidgetConfig;
   onUpdateWidgetConfig: (config: Partial<WidgetConfig>) => void;
+  saveStatus?: "idle" | "pending" | "saving" | "saved" | "error";
 }
 
 export const HandleSection: React.FC<HandleSectionProps> = ({
   widgetConfig,
-  onUpdateWidgetConfig
+  onUpdateWidgetConfig,
+  saveStatus: _saveStatus // Unused, keeping for backward compatibility
 }) => {
+  // Use centralized auto-save
+  const { save, saveStatus } = useAutoSave({
+    type: 'handle',
+    onSave: async (updates) => {
+      await onUpdateWidgetConfig(updates);
+    }
+  });
+
   const updateConfig = (updates: Partial<WidgetConfig>) => {
-    onUpdateWidgetConfig(updates);
+    save(updates);
   };
 
+  // Curated emojis perfect for Spin to Win wheels
+  const curatedEmojis = [
+    { emoji: '🎁', label: 'Gift' },
+    { emoji: '🎉', label: 'Party' },
+    { emoji: '🎯', label: 'Target' },
+    { emoji: '🎰', label: 'Slot Machine' },
+    { emoji: '💰', label: 'Money Bag' },
+    { emoji: '🏆', label: 'Trophy' },
+    { emoji: '⭐', label: 'Star' },
+    { emoji: '🎊', label: 'Confetti' },
+    { emoji: '🎈', label: 'Balloon' },
+    { emoji: '✨', label: 'Sparkles' }
+  ];
+
   return (
-    <motion.div
-      key="handle"
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl p-6 flex-1 flex flex-col overflow-hidden"
-    >
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-          Configuración del Botón Flotante
-        </h3>
-        <div className="relative bg-gray-100 rounded-xl shadow-inner" style={{ width: '200px', height: '80px' }}>
-          <LiveHandlePreview config={widgetConfig} />
+    <TooltipProvider>
+      <motion.div
+        key="handle"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 20 }}
+        className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl p-6 flex-1 flex flex-col overflow-hidden"
+      >
+        {/* Fixed header with title and preview */}
+        <div className="flex items-center justify-between mb-6 flex-shrink-0">
+          <div className="flex items-center gap-4">
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Configuración del Botón Flotante
+            </h3>
+            <SaveStatusIndicator status={saveStatus} />
+          </div>
+          <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl shadow-xl p-2 border border-gray-200" style={{ width: '240px', height: '100px' }}>
+            <LiveHandlePreview config={widgetConfig} />
+          </div>
         </div>
-      </div>
-      
-      <div className="space-y-6 flex-1 overflow-y-auto pr-2">
+        
+        {/* Scrollable content */}
+        <div className="space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar">
 
         <div className="space-y-4">
-          <h4 className="text-lg font-semibold text-gray-800">Selecciona el Tipo de Botón</h4>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="flex items-center gap-2">
+            <h4 className="text-lg font-semibold text-gray-800">Selecciona el Tipo de Botón</h4>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="w-4 h-4 text-gray-400 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>Elige cómo se mostrará el botón en tu tienda. Cada opción tiene un estilo único de presentación.</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <div className="grid grid-cols-3 gap-3 px-2">
             <HandleTypeCard
               type="floating"
               title="Botón Flotante"
@@ -68,9 +116,19 @@ export const HandleSection: React.FC<HandleSectionProps> = ({
         </div>
 
         <div className="space-y-6 bg-gray-50 rounded-2xl p-6">
-          <h4 className="text-lg font-semibold text-gray-800">
-            Configura tu Botón {widgetConfig.handleType === 'tab' ? 'Pestaña' : widgetConfig.handleType === 'bubble' ? 'Burbuja' : 'Flotante'}
-          </h4>
+          <div className="flex items-center gap-2">
+            <h4 className="text-lg font-semibold text-gray-800">
+              Configura tu Botón {widgetConfig.handleType === 'tab' ? 'Pestaña' : widgetConfig.handleType === 'bubble' ? 'Burbuja' : 'Flotante'}
+            </h4>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="w-4 h-4 text-gray-400 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>Personaliza el aspecto y comportamiento del botón. Los cambios se reflejarán en tiempo real en la vista previa.</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
         
           <div className="grid grid-cols-2 gap-6">
             <div>
@@ -113,13 +171,23 @@ export const HandleSection: React.FC<HandleSectionProps> = ({
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Icono (Emoji)</label>
-              <input
-                type="text"
-                value={widgetConfig.handleIcon}
-                onChange={(e) => updateConfig({ handleIcon: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="🎁"
-              />
+              <div className="grid grid-cols-5 gap-2">
+                {curatedEmojis.map((item) => (
+                  <button
+                    key={item.emoji}
+                    type="button"
+                    onClick={() => updateConfig({ handleIcon: item.emoji })}
+                    className={`p-3 rounded-lg border-2 transition-all hover:scale-105 ${
+                      widgetConfig.handleIcon === item.emoji
+                        ? 'border-purple-500 bg-purple-50 shadow-md'
+                        : 'border-gray-200 hover:border-purple-300'
+                    }`}
+                    title={item.label}
+                  >
+                    <span className="text-2xl">{item.emoji}</span>
+                  </button>
+                ))}
+              </div>
             </div>
             
             <div>
@@ -159,7 +227,17 @@ export const HandleSection: React.FC<HandleSectionProps> = ({
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Animación</label>
+              <div className="flex items-center gap-2 mb-2">
+                <label className="block text-sm font-medium text-gray-700">Animación</label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="w-3 h-3 text-gray-400 cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>Añade movimiento al botón para llamar la atención. Pulso: expande y contrae, Rebote: sube y baja, Rotación: gira ligeramente.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <select
                 value={widgetConfig.handleAnimation}
                 onChange={(e) => updateConfig({ handleAnimation: e.target.value as 'none' | 'pulse' | 'bounce' | 'rotate' })}
@@ -188,6 +266,7 @@ export const HandleSection: React.FC<HandleSectionProps> = ({
         </div>
       </div>
     </motion.div>
+    </TooltipProvider>
   );
 };
 
@@ -203,29 +282,29 @@ const HandleTypeCard: React.FC<{
     whileHover={{ scale: 1.02 }}
     whileTap={{ scale: 0.98 }}
     onClick={onClick}
-    className={`relative cursor-pointer rounded-2xl p-6 border-2 transition-all ${
+    className={`relative cursor-pointer rounded-xl p-4 border-2 transition-all ${
       isSelected 
         ? 'border-purple-500 bg-purple-50 shadow-lg' 
         : 'border-gray-200 bg-white hover:border-purple-300'
     }`}
   >
-    <div className="flex flex-col items-center space-y-4">
-      <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden">
+    <div className="flex flex-col items-center space-y-3">
+      <div className="relative w-full h-24 bg-gray-100 rounded-lg overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-gray-100">
-          <div className="mt-4 mx-4 space-y-2">
-            <div className="h-2 bg-gray-300 rounded w-3/4"></div>
-            <div className="h-2 bg-gray-300 rounded w-1/2"></div>
-            <div className="h-16 bg-gray-200 rounded mt-4"></div>
+          <div className="mt-2 mx-2 space-y-1">
+            <div className="h-1 bg-gray-300 rounded w-3/4"></div>
+            <div className="h-1 bg-gray-300 rounded w-1/2"></div>
+            <div className="h-12 bg-gray-200 rounded mt-2"></div>
           </div>
         </div>
         <HandlePreview type={type} config={config} />
       </div>
       <div className="text-center">
-        <h5 className="font-semibold text-gray-800">{title}</h5>
-        <p className="text-sm text-gray-600 mt-1">{description}</p>
+        <h5 className="font-semibold text-gray-800 text-sm">{title}</h5>
+        <p className="text-xs text-gray-600 mt-0.5">{description}</p>
       </div>
       {isSelected && (
-        <Check className="absolute top-2 right-2 w-5 h-5 text-purple-600" />
+        <Check className="absolute top-2 right-2 w-4 h-4 text-purple-600" />
       )}
     </div>
   </motion.div>
@@ -243,7 +322,7 @@ const HandlePreview: React.FC<{
         transition={{ repeat: Infinity, duration: 2 }}
       >
         <div 
-          className="px-4 py-3 rounded-l-full shadow-lg flex items-center gap-2"
+          className="px-2 py-1.5 shadow-md flex items-center gap-1"
           style={{ 
             backgroundColor: config.handleBackgroundColor,
             color: config.handleTextColor,
@@ -253,10 +332,11 @@ const HandlePreview: React.FC<{
             borderBottomRightRadius: config.handlePosition === 'right' ? '0' : '9999px',
             borderTopLeftRadius: config.handlePosition === 'left' ? '0' : '9999px',
             borderBottomLeftRadius: config.handlePosition === 'left' ? '0' : '9999px',
+            fontSize: '10px'
           }}
         >
-          <span className="text-sm">{config.handleIcon}</span>
-          <span className="text-xs font-medium">¡Gana!</span>
+          <span>{config.handleIcon}</span>
+          <span className="font-medium">Gana</span>
         </div>
       </motion.div>
     );
@@ -265,26 +345,27 @@ const HandlePreview: React.FC<{
   if (type === 'tab') {
     return (
       <motion.div 
-        className={`absolute ${config.handlePosition === 'right' ? 'right-0' : 'left-0'} bottom-8`}
-        animate={config.handleAnimation === 'bounce' ? { y: [0, -5, 0] } : {}}
+        className={`absolute ${config.handlePosition === 'right' ? 'right-0' : 'left-0'} bottom-4`}
+        animate={config.handleAnimation === 'bounce' ? { y: [0, -3, 0] } : {}}
         transition={{ repeat: Infinity, duration: 1.5 }}
       >
         <div 
-          className="px-3 py-2 shadow-lg"
+          className="px-2 py-1 shadow-md"
           style={{ 
             backgroundColor: config.handleBackgroundColor,
             color: config.handleTextColor,
-            borderTopLeftRadius: config.handlePosition === 'right' ? '8px' : '0',
-            borderBottomLeftRadius: config.handlePosition === 'right' ? '8px' : '0',
-            borderTopRightRadius: config.handlePosition === 'left' ? '8px' : '0',
-            borderBottomRightRadius: config.handlePosition === 'left' ? '8px' : '0',
+            borderTopLeftRadius: config.handlePosition === 'right' ? '6px' : '0',
+            borderBottomLeftRadius: config.handlePosition === 'right' ? '6px' : '0',
+            borderTopRightRadius: config.handlePosition === 'left' ? '6px' : '0',
+            borderBottomRightRadius: config.handlePosition === 'left' ? '6px' : '0',
             writingMode: 'vertical-rl',
-            textOrientation: 'mixed'
+            textOrientation: 'mixed',
+            fontSize: '10px'
           }}
         >
-          <div className="flex items-center gap-1">
-            <span className="text-sm">{config.handleIcon}</span>
-            <span className="text-xs font-medium">Girar</span>
+          <div className="flex items-center gap-0.5">
+            <span>{config.handleIcon}</span>
+            <span className="font-medium">Gira</span>
           </div>
         </div>
       </motion.div>
@@ -294,18 +375,19 @@ const HandlePreview: React.FC<{
   // bubble
   return (
     <motion.div 
-      className={`absolute ${config.handlePosition === 'right' ? 'right-4' : 'left-4'} bottom-4`}
+      className={`absolute ${config.handlePosition === 'right' ? 'right-2' : 'left-2'} top-1/2 -translate-y-1/2`}
       animate={config.handleAnimation === 'rotate' ? { rotate: [0, 10, -10, 0] } : {}}
       transition={{ repeat: Infinity, duration: 3 }}
     >
       <div 
-        className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center"
+        className="w-10 h-10 rounded-full shadow-md flex items-center justify-center"
         style={{ 
           backgroundColor: config.handleBackgroundColor,
           color: config.handleTextColor,
+          fontSize: '14px'
         }}
       >
-        <span className="text-lg">{config.handleIcon}</span>
+        <span>{config.handleIcon}</span>
       </div>
     </motion.div>
   );
@@ -415,7 +497,7 @@ const LiveHandlePreview: React.FC<{ config: WidgetConfig }> = ({ config }) => {
   // bubble
   return (
     <motion.div 
-      className={`absolute ${config.handlePosition === 'right' ? 'right-6' : 'left-6'} bottom-6 cursor-pointer`}
+      className={`absolute ${config.handlePosition === 'right' ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 cursor-pointer`}
       animate={getAnimationProps()}
       transition={{ repeat: Infinity, duration: 3 }}
       whileHover={{ scale: 1.1 }}
@@ -430,19 +512,6 @@ const LiveHandlePreview: React.FC<{ config: WidgetConfig }> = ({ config }) => {
       >
         <span>{config.handleIcon}</span>
       </div>
-      {config.handleText && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1 rounded-lg shadow-md text-sm font-medium whitespace-nowrap"
-          style={{ 
-            backgroundColor: config.handleBackgroundColor,
-            color: config.handleTextColor,
-          }}
-        >
-          {config.handleText}
-        </motion.div>
-      )}
     </motion.div>
   );
 };

@@ -1,9 +1,13 @@
-import React, { useState, useCallback } from "react";
-import { Plus, Trash2, Copy, Palette, Gift, GripVertical, Check, AlertCircle, Loader2 } from "lucide-react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import ReactDOM from "react-dom";
+import { Plus, Trash2, Copy, Palette, Gift, GripVertical, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Segment } from "../types";
 import { predefinedColors } from "../wheelConfigConstants";
-
+import { SimpleCouponSelector } from "../components/SimpleCouponSelector";
+import { SaveStatusIndicator } from "../components/SaveStatusIndicator";
+import { useAutoSave } from "@/hooks/useAutoSave";
+import type { TiendaNubeCoupon } from "@/types/tiendanube.types";
 interface SegmentsSectionProps {
   segments: Segment[];
   onUpdateSegments: (segments: Segment[]) => void;
@@ -11,37 +15,49 @@ interface SegmentsSectionProps {
   selectedColorTheme: number;
 }
 
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | undefined;
-  
-  return (...args: Parameters<T>) => {
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
-}
-
 export const SegmentsSection: React.FC<SegmentsSectionProps> = ({ 
   segments, 
   onUpdateSegments, 
-  saveStatus,
+  saveStatus: _saveStatus, // Unused, keeping for backward compatibility
   selectedColorTheme 
 }) => {
   const [localSegments, setLocalSegments] = useState(segments);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [colorPickerState, setColorPickerState] = useState<{
+    isOpen: boolean;
+    segmentId: string | null;
+    position: { x: number; y: number };
+  }>({ isOpen: false, segmentId: null, position: { x: 0, y: 0 } });
+  const colorPickerRef = useRef<HTMLDivElement>(null);
+  
+  // Use centralized auto-save
+  const { save, saveStatus } = useAutoSave({
+    type: 'segments',
+    onSave: async (segments) => {
+      await onUpdateSegments(segments);
+    }
+  });
+
+  // Update local segments when props change (when switching wheels)
+  React.useEffect(() => {
+    setLocalSegments(segments);
+  }, [segments]);
+
+  // Handle clicks outside color picker
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (colorPickerRef.current && !colorPickerRef.current.contains(event.target as Node)) {
+        setColorPickerState({ isOpen: false, segmentId: null, position: { x: 0, y: 0 } });
+      }
+    };
+
+    if (colorPickerState.isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [colorPickerState.isOpen]);
 
   const totalWeight = localSegments.reduce((sum, s) => sum + (s.weight || 10), 0);
-
-  const debouncedSave = useCallback(
-    debounce((newSegments: Segment[]) => {
-      onUpdateSegments(newSegments);
-      setHasUnsavedChanges(false);
-    }, 1000),
-    [onUpdateSegments]
-  );
 
   const addSegment = () => {
     const newId = Date.now().toString();
@@ -55,16 +71,14 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
     };
     const newSegments = [...localSegments, newSegment];
     setLocalSegments(newSegments);
-    setHasUnsavedChanges(true);
-    debouncedSave(newSegments);
+    save(newSegments);
   };
 
   const removeSegment = (id: string) => {
     if (localSegments.length > 2) {
       const newSegments = localSegments.filter((s) => s.id !== id);
       setLocalSegments(newSegments);
-      setHasUnsavedChanges(true);
-      debouncedSave(newSegments);
+      save(newSegments);
     }
   };
 
@@ -73,8 +87,7 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
       s.id === id ? { ...s, ...updates } : s
     );
     setLocalSegments(newSegments);
-    setHasUnsavedChanges(true);
-    debouncedSave(newSegments);
+    save(newSegments);
   };
 
   const duplicateSegment = (segment: Segment) => {
@@ -92,8 +105,7 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
       ...localSegments.slice(index + 1),
     ];
     setLocalSegments(newSegments);
-    setHasUnsavedChanges(true);
-    debouncedSave(newSegments);
+    save(newSegments);
   };
 
   const handleDragStart = (index: number) => {
@@ -110,15 +122,75 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
     newSegments.splice(index, 0, draggedSegment);
     setLocalSegments(newSegments);
     setDraggedIndex(index);
-    setHasUnsavedChanges(true);
   };
 
   const handleDragEnd = () => {
     setDraggedIndex(null);
-    if (hasUnsavedChanges) {
-      debouncedSave(localSegments);
+    // Save the new order after drag ends
+    save(localSegments);
+  };
+
+  const handleCouponValueChange = (segmentId: string, value: string, coupon?: TiendaNubeCoupon) => {
+    if (coupon) {
+      // If a coupon is selected, update the label to show coupon details
+      const couponLabel = `${coupon.code} - ${formatCouponValue(coupon)}`;
+      updateSegment(segmentId, { 
+        value,
+        coupon,
+        label: couponLabel
+      });
+    } else {
+      // If it's just text, update the value
+      updateSegment(segmentId, { 
+        value,
+        coupon: undefined
+      });
     }
   };
+
+  const formatCouponValue = (coupon: TiendaNubeCoupon): string => {
+    switch (coupon.type) {
+      case 'percentage':
+        return `${coupon.value}% de descuento`;
+      case 'absolute':
+        return `$${coupon.value} de descuento`;
+      case 'shipping':
+        return 'Envío Gratis';
+      default:
+        return coupon.value;
+    }
+  };
+
+  const handleColorPickerOpen = (segmentId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
+    
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.bottom + 8;
+    
+    setColorPickerState({
+      isOpen: true,
+      segmentId,
+      position: { x, y }
+    });
+  };
+
+  const handleColorChange = (color: string) => {
+    if (colorPickerState.segmentId) {
+      updateSegment(colorPickerState.segmentId, { color });
+    }
+  };
+
+  const applyTheme = useCallback((themeIndex: number) => {
+    const theme = predefinedColors[themeIndex];
+    const newSegments = localSegments.map((segment, index) => ({
+      ...segment,
+      color: theme.colors[index % theme.colors.length]
+    }));
+    setLocalSegments(newSegments);
+    save(newSegments);
+  }, [localSegments, save]);
 
   return (
     <motion.div
@@ -139,46 +211,7 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
             </h3>
             <p className="text-sm text-gray-500">Configura los premios y sus probabilidades</p>
           </div>
-          <AnimatePresence mode="wait">
-            {saveStatus !== "idle" && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  saveStatus === "pending" ? "bg-yellow-100 text-yellow-700" :
-                  saveStatus === "saving" ? "bg-blue-100 text-blue-700" :
-                  saveStatus === "saved" ? "bg-green-100 text-green-700" :
-                  "bg-red-100 text-red-700"
-                }`}
-              >
-                {saveStatus === "pending" && (
-                  <>
-                    <div className="w-1.5 h-1.5 bg-yellow-600 rounded-full animate-pulse" />
-                    Sin guardar
-                  </>
-                )}
-                {saveStatus === "saving" && (
-                  <>
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    Guardando
-                  </>
-                )}
-                {saveStatus === "saved" && (
-                  <>
-                    <Check className="w-3 h-3" />
-                    Guardado
-                  </>
-                )}
-                {saveStatus === "error" && (
-                  <>
-                    <AlertCircle className="w-3 h-3" />
-                    Error
-                  </>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <SaveStatusIndicator status={saveStatus} />
         </div>
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -209,6 +242,45 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
             <GripVertical className="w-3 h-3" />
             Arrastra para reordenar
           </p>
+        </div>
+        
+        {/* Theme Selector Row */}
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-sm">
+              <Sparkles className="w-4 h-4 text-purple-500" />
+              <span className="text-gray-600 font-medium">Temas:</span>
+            </div>
+            <div className="flex gap-2">
+              {predefinedColors.map((theme, index) => (
+                <motion.button
+                  key={theme.name}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => applyTheme(index)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                    selectedColorTheme === index 
+                      ? 'bg-purple-100 text-purple-700 ring-2 ring-purple-500' 
+                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  }`}
+                  title={`Aplicar tema ${theme.name}`}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <div className="flex -space-x-1">
+                      {theme.colors.slice(0, 3).map((color, colorIndex) => (
+                        <div
+                          key={colorIndex}
+                          className="w-3 h-3 rounded-full border border-white"
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                    <span>{theme.name}</span>
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -241,23 +313,17 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
                     <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
                   </div>
                 
-                  <div 
-                    className="relative group"
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onTouchStart={(e) => e.stopPropagation()}
-                  >
+                  <div className="relative group">
                     <div
-                      className="w-14 h-14 rounded-2xl shadow-md cursor-pointer transition-transform hover:scale-110"
+                      className="w-14 h-14 rounded-2xl shadow-md cursor-pointer transition-transform hover:scale-110 relative flex items-center justify-center"
                       style={{ backgroundColor: segment.color }}
-                      onClick={() => {
-                        const input = document.createElement('input');
-                        input.type = 'color';
-                        input.value = segment.color;
-                        input.onchange = (e) => updateSegment(segment.id, { color: (e.target as HTMLInputElement).value });
-                        input.click();
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleColorPickerOpen(segment.id, e);
                       }}
-                    />
-                    <Palette className="w-4 h-4 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    >
+                      <Palette className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                    </div>
                   </div>
 
                   <div 
@@ -274,13 +340,11 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
                       draggable={false}
                     />
                     <div className="flex items-center gap-3">
-                      <input
-                        type="text"
+                      <SimpleCouponSelector
                         value={segment.value}
-                        onChange={(e) => updateSegment(segment.id, { value: e.target.value })}
-                        className="flex-1 px-4 py-2 bg-white/60 backdrop-blur-sm border-0 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all"
-                        placeholder="Código del premio"
-                        draggable={false}
+                        onValueChange={(value, coupon) => handleCouponValueChange(segment.id, value, coupon)}
+                        placeholder="Código del premio o cupón"
+                        className="flex-1"
                       />
                       <div className="flex items-center gap-2 bg-white/80 px-4 py-2 rounded-xl">
                         <span className="text-xs font-medium text-gray-500">Probabilidad</span>
@@ -337,6 +401,48 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
           })}
         </AnimatePresence>
       </div>
+
+      {/* Color Picker Popover */}
+      {colorPickerState.isOpen && ReactDOM.createPortal(
+        <div
+          ref={colorPickerRef}
+          className="fixed z-[9999] bg-white rounded-xl shadow-2xl p-4 border border-gray-200"
+          style={{
+            left: `${colorPickerState.position.x}px`,
+            top: `${colorPickerState.position.y}px`,
+            transform: 'translateX(-50%)'
+          }}
+        >
+          <div className="grid grid-cols-5 gap-2 mb-3">
+            {predefinedColors[selectedColorTheme].colors.map((color, index) => (
+              <button
+                key={index}
+                className="w-8 h-8 rounded-lg border-2 border-gray-200 hover:scale-110 transition-transform cursor-pointer active:scale-95"
+                style={{ backgroundColor: color }}
+                onClick={() => {
+                  handleColorChange(color);
+                  setColorPickerState({ isOpen: false, segmentId: null, position: { x: 0, y: 0 } });
+                }}
+              />
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={localSegments.find(s => s.id === colorPickerState.segmentId)?.color || '#000000'}
+              onChange={(e) => handleColorChange(e.target.value)}
+              className="w-full h-10 rounded cursor-pointer"
+            />
+            <button
+              onClick={() => setColorPickerState({ isOpen: false, segmentId: null, position: { x: 0, y: 0 } })}
+              className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer hover:scale-105 active:scale-95"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
     </motion.div>
   );
 };

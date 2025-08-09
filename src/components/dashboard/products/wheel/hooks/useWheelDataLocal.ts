@@ -10,6 +10,24 @@ const defaultSegments: Segment[] = [
   { id: '5', label: 'REGALO EXTRA', value: 'REGALO', color: '#C7B3FF', weight: 10 },
 ];
 
+const defaultWidgetConfig = {
+  handlePosition: 'right' as const,
+  handleType: 'floating' as const,
+  handleText: '¡Gana Premios!',
+  handleBackgroundColor: '#8B5CF6',
+  handleTextColor: '#FFFFFF',
+  handleIcon: '🎁',
+  handleSize: 'medium' as const,
+  handleAnimation: 'pulse' as const,
+  handleBorderRadius: '12px',
+  captureImageUrl: '',
+  captureTitle: '',
+  captureSubtitle: '',
+  captureButtonText: '',
+  capturePrivacyText: '',
+  captureFormat: 'instant' as const
+};
+
 const initialWheelConfigs: WheelConfig[] = [
   {
     id: '1',
@@ -17,14 +35,22 @@ const initialWheelConfigs: WheelConfig[] = [
     segments: defaultSegments,
     schedule: {
       enabled: true,
-      days: ['Fri'],
-      startTime: '00:00',
-      endTime: '23:59',
-      startDate: '2025-11-29',
-      endDate: '2025-11-29',
+      timezone: 'America/Argentina/Buenos_Aires',
+      dateRange: {
+        startDate: '2025-11-29T00:00',
+        endDate: '2025-11-29T23:59',
+      },
+      weekDays: {
+        enabled: true,
+        days: [5] // Friday
+      },
+      timeSlots: {
+        enabled: false,
+        slots: []
+      }
     },
     wheelDesign: {},
-    widgetConfig: {}
+    widgetConfig: defaultWidgetConfig
   },
   {
     id: '2',
@@ -36,14 +62,22 @@ const initialWheelConfigs: WheelConfig[] = [
     ],
     schedule: {
       enabled: true,
-      days: ['Mon'],
-      startTime: '00:00',
-      endTime: '23:59',
-      startDate: '2025-12-02',
-      endDate: '2025-12-02',
+      timezone: 'America/Argentina/Buenos_Aires',
+      dateRange: {
+        startDate: '2025-12-02T00:00',
+        endDate: '2025-12-02T23:59',
+      },
+      weekDays: {
+        enabled: true,
+        days: [1] // Monday
+      },
+      timeSlots: {
+        enabled: false,
+        slots: []
+      }
     },
     wheelDesign: {},
-    widgetConfig: {}
+    widgetConfig: defaultWidgetConfig
   },
   {
     id: '3',
@@ -51,14 +85,26 @@ const initialWheelConfigs: WheelConfig[] = [
     segments: defaultSegments,
     schedule: {
       enabled: true,
-      days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-      startTime: '09:00',
-      endTime: '22:00',
-      startDate: '2025-12-15',
-      endDate: '2025-12-31',
+      timezone: 'America/Argentina/Buenos_Aires',
+      dateRange: {
+        startDate: '2025-12-15T00:00',
+        endDate: '2025-12-31T23:59',
+      },
+      weekDays: {
+        enabled: true,
+        days: [0, 1, 2, 3, 4, 5, 6] // All days
+      },
+      timeSlots: {
+        enabled: true,
+        slots: [{
+          startMinutes: 540, // 9:00
+          endMinutes: 1320, // 22:00
+          label: 'Horario Festivo'
+        }]
+      }
     },
     wheelDesign: {},
-    widgetConfig: {}
+    widgetConfig: defaultWidgetConfig
   },
   {
     id: '4',
@@ -66,14 +112,26 @@ const initialWheelConfigs: WheelConfig[] = [
     segments: defaultSegments,
     schedule: {
       enabled: true,
-      days: ['Sat', 'Sun'],
-      startTime: '10:00',
-      endTime: '20:00',
-      startDate: '',
-      endDate: '',
+      timezone: 'America/Argentina/Buenos_Aires',
+      dateRange: {
+        startDate: null,
+        endDate: null,
+      },
+      weekDays: {
+        enabled: true,
+        days: [0, 6] // Saturday and Sunday
+      },
+      timeSlots: {
+        enabled: true,
+        slots: [{
+          startMinutes: 600, // 10:00
+          endMinutes: 1200, // 20:00
+          label: 'Horario Fin de Semana'
+        }]
+      }
     },
     wheelDesign: {},
-    widgetConfig: {}
+    widgetConfig: defaultWidgetConfig
   },
 ];
 
@@ -91,9 +149,11 @@ export const useWheelData = () => {
   };
 
   const updateSchedule = (newSchedule: WheelScheduleConfig) => {
-    // For now, we don't save the schedule config in local mode
-    // This is just to satisfy the interface
-    console.log('Schedule update in local mode:', newSchedule);
+    console.log('[useWheelDataLocal] Updating schedule for wheel:', selectedWheelId, newSchedule);
+    const updatedWheels = wheels.map(w =>
+      w.id === selectedWheelId ? { ...w, schedule: newSchedule } : w
+    );
+    setWheels(updatedWheels);
   };
 
   const createNewWheel = (name?: string) => {
@@ -103,11 +163,19 @@ export const useWheelData = () => {
       segments: [...defaultSegments],
       schedule: {
         enabled: false,
-        days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        startTime: '09:00',
-        endTime: '18:00',
-        startDate: '',
-        endDate: '',
+        timezone: 'America/Argentina/Buenos_Aires',
+        dateRange: {
+          startDate: null,
+          endDate: null,
+        },
+        weekDays: {
+          enabled: false,
+          days: []
+        },
+        timeSlots: {
+          enabled: false,
+          slots: []
+        }
       },
       wheelDesign: {},
       widgetConfig: {}

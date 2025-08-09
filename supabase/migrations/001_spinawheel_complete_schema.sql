@@ -21,6 +21,7 @@ CREATE TABLE spinawheel.stores (
     plan_tier spinawheel.plan_tier DEFAULT 'free',
     timezone VARCHAR(50) DEFAULT 'UTC',
     created_at TIMESTAMPTZ DEFAULT NOW(),
+    tiendanube_store_id TEXT,
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     is_active BOOLEAN DEFAULT true,
     UNIQUE(user_id, store_name)
@@ -29,7 +30,7 @@ CREATE TABLE spinawheel.stores (
 -- Wheels table
 CREATE TABLE spinawheel.wheels (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    store_id UUID NOT NULL REFERENCES spinawheel.stores(id) ON DELETE CASCADE,
+    tiendanube_store_id TEXT NOT NULL REFERENCES spinawheel.stores(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
     config JSONB NOT NULL,
     theme_preset VARCHAR(50),

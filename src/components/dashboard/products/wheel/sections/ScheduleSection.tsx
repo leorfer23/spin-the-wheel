@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import { Loader2, Check, AlertCircle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { SimpleScheduleConfig } from "../../../../scheduling/SimpleScheduleConfig";
+import { SaveStatusIndicator } from "../components/SaveStatusIndicator";
+import { useAutoSave } from "@/hooks/useAutoSave";
 import type { WheelScheduleConfig } from "../../../../../types/models";
 
 interface ScheduleSectionProps {
@@ -13,23 +14,46 @@ interface ScheduleSectionProps {
 export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
   scheduleConfig,
   onUpdateScheduleConfig,
-  saveStatus
+  saveStatus: _saveStatus // Unused, keeping for backward compatibility
 }) => {
   const [localScheduleConfig, setLocalScheduleConfig] = useState<WheelScheduleConfig>(scheduleConfig);
+  
+  // Use centralized auto-save
+  const { save, saveStatus } = useAutoSave({
+    type: 'schedule',
+    onSave: async (config) => {
+      console.log('[ScheduleSection] Auto-saving schedule to database:', config);
+      await onUpdateScheduleConfig(config);
+    },
+    debounceDelay: 1500 // Slightly longer delay for schedule changes
+  });
+
+  // Update local state when prop changes (from database)
+  useEffect(() => {
+    console.log('[ScheduleSection] Schedule from database:', scheduleConfig);
+    console.log('[ScheduleSection] Schedule keys:', Object.keys(scheduleConfig || {}));
+    console.log('[ScheduleSection] Schedule enabled:', scheduleConfig?.enabled);
+    console.log('[ScheduleSection] Schedule weekDays:', scheduleConfig?.weekDays);
+    console.log('[ScheduleSection] Schedule dateRange:', scheduleConfig?.dateRange);
+    console.log('[ScheduleSection] Schedule timeSlots:', scheduleConfig?.timeSlots);
+    setLocalScheduleConfig(scheduleConfig);
+  }, [scheduleConfig]);
 
   const handleScheduleConfigChange = (newConfig: WheelScheduleConfig) => {
+    console.log('[ScheduleSection] Local config change:', newConfig);
     setLocalScheduleConfig(newConfig);
-    onUpdateScheduleConfig(newConfig);
+    save(newConfig);
   };
 
   const handleEnabledChange = (enabled: boolean) => {
+    console.log('[ScheduleSection] Enabled change:', enabled);
     const updatedConfig = { 
       ...localScheduleConfig, 
       enabled,
-      timezone: 'America/Argentina/Buenos_Aires'
+      timezone: localScheduleConfig.timezone || 'America/Argentina/Buenos_Aires'
     };
     setLocalScheduleConfig(updatedConfig);
-    onUpdateScheduleConfig(updatedConfig);
+    save(updatedConfig);
   };
 
   return (
@@ -41,49 +65,10 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
       className="flex-1 overflow-hidden"
     >
       <div className="h-full overflow-y-auto custom-scrollbar relative">
-        {/* Save Status - Floating at top */}
-        <AnimatePresence mode="wait">
-          {saveStatus !== "idle" && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="sticky top-0 z-10 flex justify-center mb-4"
-            >
-              <div className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-medium backdrop-blur-lg ${
-                saveStatus === "pending" ? "bg-yellow-100/90 text-yellow-700 border border-yellow-200" :
-                saveStatus === "saving" ? "bg-blue-100/90 text-blue-700 border border-blue-200" :
-                saveStatus === "saved" ? "bg-green-100/90 text-green-700 border border-green-200" :
-                "bg-red-100/90 text-red-700 border border-red-200"
-              }`}>
-                {saveStatus === "pending" && (
-                  <>
-                    <div className="w-2 h-2 bg-yellow-600 rounded-full animate-pulse" />
-                    Cambios sin guardar
-                  </>
-                )}
-                {saveStatus === "saving" && (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Guardando...
-                  </>
-                )}
-                {saveStatus === "saved" && (
-                  <>
-                    <Check className="w-4 h-4" />
-                    Guardado
-                  </>
-                )}
-                {saveStatus === "error" && (
-                  <>
-                    <AlertCircle className="w-4 h-4" />
-                    Error al guardar
-                  </>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Save Status - Fixed position at top */}
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50">
+          <SaveStatusIndicator status={saveStatus} />
+        </div>
         
         <SimpleScheduleConfig
           config={localScheduleConfig}

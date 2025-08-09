@@ -16,6 +16,7 @@ export interface WheelConfiguration {
   segments: WheelSegment[];
   style: WheelStyle;
   physics: WheelPhysics;
+  promotionalMessage?: string;
 }
 
 export interface WheelSegment {
@@ -42,6 +43,18 @@ export interface WheelStyle {
   pointerStyle: 'arrow' | 'triangle' | 'custom';
   fontFamily: string;
   fontSize: number;
+  // Additional style properties from database
+  pegColor?: string;
+  pegSize?: number;
+  shadowBlur?: number;
+  shadowColor?: string;
+  glowEffect?: boolean;
+  sparkleEffect?: boolean;
+  centerButtonLogo?: string;
+  centerButtonTextColor?: string;
+  centerButtonBorderColor?: string;
+  centerButtonBorderWidth?: number;
+  wheelBackgroundColor?: string;
 }
 
 export interface WheelPhysics {
@@ -58,6 +71,7 @@ export interface HandleConfiguration {
   text?: string;
   icon?: string;
   animation?: HandleAnimation;
+  size?: 'small' | 'medium' | 'large';
 }
 
 export interface HandleStyle {

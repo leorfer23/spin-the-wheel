@@ -16,7 +16,7 @@ export const EmbedSection: React.FC<EmbedSectionProps> = ({
 }) => {
   const embedCode = `<!-- SpinWheel Widget -->
 <div id="spinwheel-widget" data-wheel-id="${wheelId}"></div>
-<script src="https://wheelstudio.com/widget.js"></script>
+<script src="\${window.location.origin}/widget.js"></script>
 <script>
   SpinWheel.init({
     wheelId: '${wheelId}',

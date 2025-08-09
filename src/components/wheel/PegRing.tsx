@@ -8,7 +8,7 @@ interface PegRingProps {
   pegStyle?: 'dots' | 'stars' | 'diamonds' | 'sticks' | 'none';
 }
 
-export const PegRing: React.FC<PegRingProps> = ({ 
+export const PegRing: React.FC<PegRingProps> = React.memo(({ 
   dimensions,
   segmentCount,
   pegColor = '#f5f5f5',
@@ -108,4 +108,6 @@ export const PegRing: React.FC<PegRingProps> = ({
       {pegs}
     </g>
   );
-};
+});
+
+PegRing.displayName = 'PegRing';

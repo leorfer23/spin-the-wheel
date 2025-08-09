@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, Trash2, Clock, Calendar as CalendarIcon, Check } from 'lucide-react';
 import type { WheelScheduleConfig } from '../../types/models';
 
 interface SimpleScheduleConfigProps {
@@ -10,65 +10,143 @@ interface SimpleScheduleConfigProps {
   onEnabledChange: (enabled: boolean) => void;
 }
 
+// Quick templates
+const scheduleTemplates = [
+  {
+    name: '🏢 Laboral',
+    description: 'L-V, 9-18h',
+    config: {
+      weekDays: { enabled: true, days: [1, 2, 3, 4, 5] },
+      timeSlots: { 
+        enabled: true, 
+        slots: [{ startMinutes: 540, endMinutes: 1080, label: 'Horario Laboral' }] 
+      }
+    }
+  },
+  {
+    name: '🍺 Happy',
+    description: 'Todos, 16-19h',
+    config: {
+      weekDays: { enabled: true, days: [0, 1, 2, 3, 4, 5, 6] },
+      timeSlots: { 
+        enabled: true, 
+        slots: [{ startMinutes: 960, endMinutes: 1140, label: 'Happy Hour' }] 
+      }
+    }
+  },
+  {
+    name: '🌟 Finde',
+    description: 'S-D, todo el día',
+    config: {
+      weekDays: { enabled: true, days: [0, 6] },
+      timeSlots: { enabled: false, slots: [] }
+    }
+  },
+  {
+    name: '🍕 Almuerzo',
+    description: 'Todos, 12-14h',
+    config: {
+      weekDays: { enabled: true, days: [0, 1, 2, 3, 4, 5, 6] },
+      timeSlots: { 
+        enabled: true, 
+        slots: [{ startMinutes: 720, endMinutes: 840, label: 'Almuerzo' }] 
+      }
+    }
+  }
+];
+
 export const SimpleScheduleConfig: React.FC<SimpleScheduleConfigProps> = ({
   config,
   onChange,
   enabled,
   onEnabledChange,
 }) => {
-  // Quick templates
-  const scheduleTemplates = [
-    {
-      name: '🏢 Horario Laboral',
-      description: 'Lunes a Viernes, 9:00 - 18:00',
-      config: {
-        weekDays: { enabled: true, days: [1, 2, 3, 4, 5] },
-        timeSlots: { 
-          enabled: true, 
-          slots: [{ startMinutes: 540, endMinutes: 1080, label: 'Horario Laboral' }] 
-        }
-      }
-    },
-    {
-      name: '🍺 Happy Hour',
-      description: 'Todos los días, 16:00 - 19:00',
-      config: {
-        weekDays: { enabled: true, days: [0, 1, 2, 3, 4, 5, 6] },
-        timeSlots: { 
-          enabled: true, 
-          slots: [{ startMinutes: 960, endMinutes: 1140, label: 'Happy Hour' }] 
-        }
-      }
-    },
-    {
-      name: '🌟 Fin de Semana',
-      description: 'Sábados y Domingos, todo el día',
-      config: {
-        weekDays: { enabled: true, days: [0, 6] },
-        timeSlots: { enabled: false, slots: [] }
-      }
-    },
-    {
-      name: '🍕 Almuerzo',
-      description: 'Todos los días, 12:00 - 14:00',
-      config: {
-        weekDays: { enabled: true, days: [0, 1, 2, 3, 4, 5, 6] },
-        timeSlots: { 
-          enabled: true, 
-          slots: [{ startMinutes: 720, endMinutes: 840, label: 'Almuerzo' }] 
+  // Debug logging
+  console.log('[SimpleScheduleConfig] Received config:', config);
+  console.log('[SimpleScheduleConfig] Config weekDays:', config?.weekDays);
+  console.log('[SimpleScheduleConfig] Config dateRange:', config?.dateRange);
+  console.log('[SimpleScheduleConfig] Config timeSlots:', config?.timeSlots);
+  console.log('[SimpleScheduleConfig] Enabled:', enabled);
+  // Track selected template for visual feedback
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  
+  // Check which template matches current config
+  const getMatchingTemplate = () => {
+    if (!config.weekDays?.enabled || !config.weekDays?.days) return null;
+    
+    for (const template of scheduleTemplates) {
+      const daysMatch = 
+        template.config.weekDays.enabled === config.weekDays.enabled &&
+        template.config.weekDays.days.length === config.weekDays.days.length &&
+        template.config.weekDays.days.every(day => config.weekDays?.days?.includes(day));
+      
+      const timeSlotsMatch = 
+        template.config.timeSlots.enabled === config.timeSlots?.enabled &&
+        template.config.timeSlots.slots.length === (config.timeSlots?.slots?.length || 0);
+      
+      if (daysMatch && timeSlotsMatch) {
+        // For templates with time slots, check if they match
+        if (template.config.timeSlots.enabled && template.config.timeSlots.slots.length > 0) {
+          const firstTemplateSlot = template.config.timeSlots.slots[0];
+          const firstConfigSlot = config.timeSlots?.slots?.[0];
+          if (firstConfigSlot && 
+              firstTemplateSlot.startMinutes === firstConfigSlot.startMinutes &&
+              firstTemplateSlot.endMinutes === firstConfigSlot.endMinutes) {
+            return template.name;
+          }
+        } else if (!template.config.timeSlots.enabled) {
+          // For templates without time slots, just check days match
+          return template.name;
         }
       }
     }
+    return null;
+  };
+  
+  const currentMatchingTemplate = getMatchingTemplate();
+  
+  // Set default dates if not provided - only run once on mount
+  useEffect(() => {
+    if (!config.dateRange?.startDate || !config.dateRange?.endDate) {
+      const today = new Date();
+      const weekLater = new Date(today);
+      weekLater.setDate(weekLater.getDate() + 7);
+      
+      const formatDate = (date: Date) => {
+        const offset = date.getTimezoneOffset();
+        const adjustedDate = new Date(date.getTime() - offset * 60 * 1000);
+        return adjustedDate.toISOString().slice(0, 16);
+      };
+      
+      console.log('[SimpleScheduleConfig] Setting default dates');
+      
+      onChange({
+        ...config,
+        dateRange: {
+          startDate: config.dateRange?.startDate || formatDate(today),
+          endDate: config.dateRange?.endDate || formatDate(weekLater)
+        }
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
+  
+  // Quick date range options
+  const dateRangeOptions = [
+    { label: '🚀 Flash', days: 3, description: '3 días' },
+    { label: '📅 Semana', days: 7, description: '1 semana' },
+    { label: '🎯 Promo', days: 14, description: '2 semanas' },
+    { label: '🗓️ Mes', days: 30, description: '1 mes' }
   ];
 
   const weekDays = [
-    { value: 0, label: 'Dom', full: 'Domingo' },
     { value: 1, label: 'Lun', full: 'Lunes' },
     { value: 2, label: 'Mar', full: 'Martes' },
     { value: 3, label: 'Mié', full: 'Miércoles' },
     { value: 4, label: 'Jue', full: 'Jueves' },
     { value: 5, label: 'Vie', full: 'Viernes' },
-    { value: 6, label: 'Sáb', full: 'Sábado' }
+    { value: 6, label: 'Sáb', full: 'Sábado' },
+    { value: 0, label: 'Dom', full: 'Domingo' }
   ];
 
   const minutesToTime = (minutes: number): string => {
@@ -83,28 +161,94 @@ export const SimpleScheduleConfig: React.FC<SimpleScheduleConfigProps> = ({
   };
 
   const applyTemplate = (template: typeof scheduleTemplates[0]) => {
+    console.log('[SimpleScheduleConfig] ========== APPLYING TEMPLATE ==========');
+    console.log('[SimpleScheduleConfig] Template:', template.name);
+    console.log('[SimpleScheduleConfig] Current config:', config);
+    console.log('[SimpleScheduleConfig] Template weekDays:', template.config.weekDays);
+    console.log('[SimpleScheduleConfig] Template timeSlots:', template.config.timeSlots);
+    
+    // Build new config with template's weekDays and timeSlots
+    const newConfig: WheelScheduleConfig = {
+      enabled: true,
+      timezone: config.timezone || 'America/Argentina/Buenos_Aires',
+      dateRange: config.dateRange || { startDate: null, endDate: null },
+      weekDays: {
+        enabled: true, // Always enable weekDays when applying a template
+        days: [...template.config.weekDays.days]
+      },
+      timeSlots: {
+        enabled: template.config.timeSlots.enabled,
+        slots: template.config.timeSlots.slots.map(slot => ({ ...slot }))
+      }
+    };
+    
+    console.log('[SimpleScheduleConfig] New config to be applied:', newConfig);
+    console.log('[SimpleScheduleConfig] New weekDays.enabled:', newConfig.weekDays?.enabled);
+    console.log('[SimpleScheduleConfig] New weekDays.days:', newConfig.weekDays?.days);
+    console.log('[SimpleScheduleConfig] New timeSlots.enabled:', newConfig.timeSlots?.enabled);
+    console.log('[SimpleScheduleConfig] New timeSlots.slots:', newConfig.timeSlots?.slots);
+    
+    // Set selected template for immediate visual feedback
+    setSelectedTemplate(template.name);
+    
+    // First enable the main schedule toggle if not already enabled
+    if (!enabled) {
+      console.log('[SimpleScheduleConfig] Enabling main schedule toggle');
+      onEnabledChange(true);
+    }
+    
+    // Update the config which will trigger auto-save to database
+    console.log('[SimpleScheduleConfig] Calling onChange with new config');
+    onChange(newConfig);
+    
+    // Clear selection after a brief delay to show feedback
+    setTimeout(() => {
+      console.log('[SimpleScheduleConfig] Clearing template selection');
+      setSelectedTemplate(null);
+    }, 2000);
+  };
+
+  const applyDateRange = (days: number) => {
+    const today = new Date();
+    const endDate = new Date(today);
+    endDate.setDate(endDate.getDate() + days);
+    
+    const formatDate = (date: Date) => {
+      const offset = date.getTimezoneOffset();
+      const adjustedDate = new Date(date.getTime() - offset * 60 * 1000);
+      return adjustedDate.toISOString().slice(0, 16);
+    };
+    
     onChange({
       ...config,
-      ...template.config,
-      enabled: true,
-      timezone: 'America/Argentina/Buenos_Aires'
+      dateRange: {
+        startDate: formatDate(today),
+        endDate: formatDate(endDate)
+      }
     });
-    onEnabledChange(true);
   };
 
   const toggleWeekDay = (day: number) => {
     const days = config.weekDays?.days || [];
+    console.log('[SimpleScheduleConfig] Current weekDays before toggle:', days);
+    console.log('[SimpleScheduleConfig] Toggling day:', day);
+    
     const newDays = days.includes(day) 
       ? days.filter(d => d !== day)
       : [...days, day].sort((a, b) => a - b);
     
-    onChange({
+    console.log('[SimpleScheduleConfig] New weekDays after toggle:', newDays);
+    
+    const newConfig = {
       ...config,
       weekDays: {
         enabled: true,
         days: newDays
       }
-    });
+    };
+    
+    console.log('[SimpleScheduleConfig] New config after toggle:', newConfig);
+    onChange(newConfig);
   };
 
   const updateTimeSlot = (index: number, field: 'startMinutes' | 'endMinutes' | 'label', value: string | number) => {
@@ -147,19 +291,19 @@ export const SimpleScheduleConfig: React.FC<SimpleScheduleConfigProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Main Toggle */}
+      {/* Main Toggle - Compact */}
       <motion.div 
-        className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl p-8"
+        className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl p-6"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
       >
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+            <h3 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               Horario de Activación
             </h3>
-            <p className="text-gray-600 text-sm">
-              {enabled ? 'Tu rueda solo funcionará en los horarios configurados' : 'Tu rueda está siempre activa'}
+            <p className="text-gray-600 text-xs mt-1">
+              {enabled ? 'Solo funciona en horarios configurados' : 'Siempre activa'}
             </p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
@@ -183,43 +327,126 @@ export const SimpleScheduleConfig: React.FC<SimpleScheduleConfigProps> = ({
             exit={{ opacity: 0, height: 0 }}
             className="space-y-4"
           >
-            {/* Quick Templates */}
+            {/* Compact Date Range with Quick Options */}
             <motion.div 
-              className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl p-8"
+              className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl p-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <h4 className="text-lg font-bold text-gray-800 mb-6">Plantillas Rápidas</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {scheduleTemplates.map((template, idx) => (
+              <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <CalendarIcon className="w-5 h-5" />
+                Período de Campaña
+              </h4>
+              
+              {/* Quick date options */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                {dateRangeOptions.map((option) => (
                   <motion.button
-                    key={idx}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => applyTemplate(template)}
-                    className="text-left p-6 bg-gradient-to-br from-gray-50 to-gray-100 hover:from-purple-50 hover:to-pink-50 rounded-2xl transition-all border-2 border-transparent hover:border-purple-200"
+                    key={option.label}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => applyDateRange(option.days)}
+                    className="px-3 py-1.5 bg-gray-100 hover:bg-purple-100 rounded-xl text-sm font-medium transition-all"
                   >
-                    <div className="text-2xl mb-2">{template.name}</div>
-                    <div className="text-sm text-gray-600">{template.description}</div>
+                    {option.label} <span className="text-xs opacity-75">{option.description}</span>
                   </motion.button>
                 ))}
               </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1">
+                  <input
+                    type="datetime-local"
+                    value={config.dateRange?.startDate || ''}
+                    onChange={(e) => onChange({
+                      ...config,
+                      dateRange: {
+                        startDate: e.target.value || null,
+                        endDate: config.dateRange?.endDate || null
+                      }
+                    })}
+                    className="w-full px-3 py-2 bg-white rounded-xl border-0 shadow-sm focus:ring-2 focus:ring-purple-500 transition-all text-sm"
+                  />
+                </div>
+                <div className="flex items-center justify-center text-gray-500 px-2">→</div>
+                <div className="flex-1">
+                  <input
+                    type="datetime-local"
+                    value={config.dateRange?.endDate || ''}
+                    onChange={(e) => onChange({
+                      ...config,
+                      dateRange: {
+                        startDate: config.dateRange?.startDate || null,
+                        endDate: e.target.value || null
+                      }
+                    })}
+                    className="w-full px-3 py-2 bg-white rounded-xl border-0 shadow-sm focus:ring-2 focus:ring-purple-500 transition-all text-sm"
+                  />
+                </div>
+              </div>
+              {config.dateRange?.startDate && config.dateRange?.endDate && (
+                <div className="mt-2 text-xs text-gray-600">
+                  Duración: {Math.ceil((new Date(config.dateRange.endDate).getTime() - new Date(config.dateRange.startDate).getTime()) / (1000 * 60 * 60 * 24))} días
+                </div>
+              )}
             </motion.div>
 
-            {/* Days Selection */}
+            {/* Quick Templates - Compact */}
             <motion.div 
-              className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl p-8"
+              className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl p-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <div className="flex items-center justify-between mb-6">
+              <h4 className="text-lg font-bold text-gray-800 mb-4">Plantillas Rápidas</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {scheduleTemplates.map((template, idx) => {
+                  // Check if this template is currently active (either just selected or matches config)
+                  const isSelected = selectedTemplate === template.name || 
+                                   (currentMatchingTemplate === template.name && !selectedTemplate);
+                  return (
+                    <motion.button
+                      key={idx}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => applyTemplate(template)}
+                      className={`relative text-center p-4 rounded-xl transition-all border ${
+                        isSelected 
+                          ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white border-purple-600 shadow-lg' 
+                          : 'bg-gradient-to-br from-gray-50 to-gray-100 hover:from-purple-50 hover:to-pink-50 border-gray-200 hover:border-purple-300'
+                      }`}
+                    >
+                      {isSelected && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="absolute top-2 right-2"
+                        >
+                          <Check className="w-4 h-4" />
+                        </motion.div>
+                      )}
+                      <div className={`text-xl mb-1 ${isSelected ? 'text-white' : ''}`}>{template.name}</div>
+                      <div className={`text-xs ${isSelected ? 'text-white/90' : 'text-gray-600'}`}>{template.description}</div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </motion.div>
+
+            {/* Days Selection - Compact */}
+            <motion.div 
+              className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="flex items-center justify-between mb-4">
                 <h4 className="text-lg font-bold text-gray-800">Días de la Semana</h4>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input 
                     type="checkbox" 
-                    checked={config.weekDays?.enabled || false}
+                    checked={config.weekDays?.enabled !== false}
                     onChange={(e) => onChange({
                       ...config,
                       weekDays: {
@@ -233,36 +460,39 @@ export const SimpleScheduleConfig: React.FC<SimpleScheduleConfigProps> = ({
                 </label>
               </div>
               
-              {config.weekDays?.enabled && (
-                <div className="grid grid-cols-7 gap-2">
-                  {weekDays.map(day => (
-                    <motion.button
+              {config.weekDays?.enabled !== false && (
+                <div className="grid grid-cols-7 gap-1.5">
+                  {weekDays.map(day => {
+                    const isSelected = config.weekDays?.days?.includes(day.value);
+                    console.log(`[SimpleScheduleConfig] Day ${day.label} (${day.value}): ${isSelected ? 'selected' : 'not selected'}`);
+                    return (
+                      <motion.button
                       key={day.value}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => toggleWeekDay(day.value)}
-                      className={`p-4 text-center rounded-2xl transition-all font-medium ${
-                        config.weekDays?.days.includes(day.value)
-                          ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg'
+                      className={`py-2 px-1 text-center rounded-xl transition-all font-medium ${
+                        config.weekDays?.days?.includes(day.value)
+                          ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-md'
                           : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                       }`}
                     >
-                      <div className="text-lg">{day.label}</div>
-                      <div className="text-xs opacity-75 hidden sm:block">{day.full}</div>
+                      <div className="text-sm">{day.label}</div>
                     </motion.button>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </motion.div>
 
-            {/* Time Range */}
+            {/* Time Range - Compact */}
             <motion.div 
-              className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl p-8"
+              className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl p-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.4 }}
             >
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-4">
                 <h4 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                   <Clock className="w-5 h-5" />
                   Horario
@@ -289,36 +519,31 @@ export const SimpleScheduleConfig: React.FC<SimpleScheduleConfigProps> = ({
               </div>
               
               {config.timeSlots?.enabled && (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {(config.timeSlots?.slots || []).map((slot, idx) => (
-                    <div key={idx} className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">
-                      <div className="flex-1 space-y-3">
-                        <input
-                          type="text"
-                          value={slot.label || ''}
-                          onChange={(e) => updateTimeSlot(idx, 'label', e.target.value)}
-                          placeholder="Nombre del horario"
-                          className="w-full px-4 py-3 bg-white rounded-xl border-0 shadow-sm focus:ring-2 focus:ring-purple-500 transition-all"
-                        />
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2 flex-1">
-                            <span className="text-sm text-gray-600">Desde</span>
-                            <input
-                              type="time"
-                              value={minutesToTime(slot.startMinutes)}
-                              onChange={(e) => updateTimeSlot(idx, 'startMinutes', timeToMinutes(e.target.value))}
-                              className="flex-1 px-4 py-3 bg-white rounded-xl border-0 shadow-sm focus:ring-2 focus:ring-purple-500 transition-all"
-                            />
-                          </div>
-                          <div className="flex items-center gap-2 flex-1">
-                            <span className="text-sm text-gray-600">Hasta</span>
-                            <input
-                              type="time"
-                              value={minutesToTime(slot.endMinutes)}
-                              onChange={(e) => updateTimeSlot(idx, 'endMinutes', timeToMinutes(e.target.value))}
-                              className="flex-1 px-4 py-3 bg-white rounded-xl border-0 shadow-sm focus:ring-2 focus:ring-purple-500 transition-all"
-                            />
-                          </div>
+                    <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={slot.label || ''}
+                            onChange={(e) => updateTimeSlot(idx, 'label', e.target.value)}
+                            placeholder="Nombre"
+                            className="flex-1 px-3 py-1.5 bg-white rounded-lg border-0 shadow-sm focus:ring-2 focus:ring-purple-500 transition-all text-sm"
+                          />
+                          <input
+                            type="time"
+                            value={minutesToTime(slot.startMinutes)}
+                            onChange={(e) => updateTimeSlot(idx, 'startMinutes', timeToMinutes(e.target.value))}
+                            className="px-3 py-1.5 bg-white rounded-lg border-0 shadow-sm focus:ring-2 focus:ring-purple-500 transition-all text-sm"
+                          />
+                          <span className="text-gray-500">→</span>
+                          <input
+                            type="time"
+                            value={minutesToTime(slot.endMinutes)}
+                            onChange={(e) => updateTimeSlot(idx, 'endMinutes', timeToMinutes(e.target.value))}
+                            className="px-3 py-1.5 bg-white rounded-lg border-0 shadow-sm focus:ring-2 focus:ring-purple-500 transition-all text-sm"
+                          />
                         </div>
                       </div>
                       {(config.timeSlots?.slots || []).length > 1 && (
@@ -326,9 +551,9 @@ export const SimpleScheduleConfig: React.FC<SimpleScheduleConfigProps> = ({
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                           onClick={() => removeTimeSlot(idx)}
-                          className="p-3 hover:bg-red-100 rounded-xl transition-all group"
+                          className="p-2 hover:bg-red-100 rounded-lg transition-all group"
                         >
-                          <Trash2 className="w-5 h-5 text-gray-400 group-hover:text-red-500" />
+                          <Trash2 className="w-4 h-4 text-gray-400 group-hover:text-red-500" />
                         </motion.button>
                       )}
                     </div>
@@ -338,58 +563,13 @@ export const SimpleScheduleConfig: React.FC<SimpleScheduleConfigProps> = ({
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={addTimeSlot}
-                    className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-medium shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                    className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm"
                   >
-                    <Plus className="w-5 h-5" />
+                    <Plus className="w-4 h-4" />
                     Agregar Horario
                   </motion.button>
                 </div>
               )}
-            </motion.div>
-
-            {/* Date Range */}
-            <motion.div 
-              className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl p-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              <h4 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <CalendarIcon className="w-5 h-5" />
-                Período de Campaña
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="text-sm font-medium text-gray-600 mb-2 block">Fecha de Inicio</label>
-                  <input
-                    type="datetime-local"
-                    value={config.dateRange?.startDate || ''}
-                    onChange={(e) => onChange({
-                      ...config,
-                      dateRange: {
-                        startDate: e.target.value || null,
-                        endDate: config.dateRange?.endDate || null
-                      }
-                    })}
-                    className="w-full px-4 py-3 bg-white rounded-xl border-0 shadow-sm focus:ring-2 focus:ring-purple-500 transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600 mb-2 block">Fecha de Fin</label>
-                  <input
-                    type="datetime-local"
-                    value={config.dateRange?.endDate || ''}
-                    onChange={(e) => onChange({
-                      ...config,
-                      dateRange: {
-                        startDate: config.dateRange?.startDate || null,
-                        endDate: e.target.value || null
-                      }
-                    })}
-                    className="w-full px-4 py-3 bg-white rounded-xl border-0 shadow-sm focus:ring-2 focus:ring-purple-500 transition-all"
-                  />
-                </div>
-              </div>
             </motion.div>
           </motion.div>
         )}

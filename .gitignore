@@ -55,3 +55,6 @@ Thumbs.db
 
 # Optional eslint cache
 .eslintcache
+
+# Serena cache (large files)
+.serena/

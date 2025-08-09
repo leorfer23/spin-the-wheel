@@ -207,7 +207,6 @@ export class IntegrationService {
         failed: emailCaptures.length - syncedIds.length
       };
     } catch (error) {
-      console.error('Sync error:', error);
       return { synced: 0, failed: emailCaptures.length };
     }
   }

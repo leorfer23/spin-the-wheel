@@ -1,4 +1,4 @@
-import { Star, Zap, Gift, Trophy, Palette, Eye, Calendar } from "lucide-react";
+import { Star, Zap, Gift, Trophy, Palette, Calendar } from "lucide-react";
 
 export const predefinedColors = [
   { name: "Ocean", colors: ["#0EA5E9", "#0284C7", "#0369A1", "#075985"] },
@@ -77,12 +77,6 @@ export const tabs = [
     label: "Programación", 
     icon: Calendar,
     description: "Programa cuando tu ruleta estará activa"
-  },
-  { 
-    id: "embed", 
-    label: "Integración", 
-    icon: Eye,
-    description: "Obtén el código para integrar la ruleta en tu sitio web"
   },
 ];
 

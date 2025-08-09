@@ -122,21 +122,28 @@ export const PreviewCarousel: React.FC<PreviewCarouselProps> = ({
       id: "wheel",
       title: "Wheel",
       content: (
-        <div 
-          className="w-full h-full flex items-center justify-center transition-colors duration-300"
-          style={{
-            background: wheelDesignConfig?.backgroundStyle === 'gradient' && wheelDesignConfig?.backgroundGradientFrom && wheelDesignConfig?.backgroundGradientTo
-              ? `linear-gradient(135deg, ${wheelDesignConfig.backgroundGradientFrom}, ${wheelDesignConfig.backgroundGradientTo})`
-              : wheelDesignConfig?.backgroundColor || '#FFFFFF',
-            backgroundImage: wheelDesignConfig?.backgroundImage ? `url(${wheelDesignConfig.backgroundImage})` : undefined,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            opacity: wheelDesignConfig?.backgroundOpacity || 1
-          }}
-        >
-          <div className="w-[500px] h-[500px]">
-            <FortuneWheel
+        <div className="w-full h-full flex items-center justify-center p-8">
+          <div 
+            className="relative rounded-3xl shadow-2xl transition-all duration-300"
+            style={{
+              width: '580px',
+              height: '580px',
+              padding: '40px',
+              background: wheelDesignConfig?.backgroundStyle === 'gradient' && wheelDesignConfig?.backgroundGradientFrom && wheelDesignConfig?.backgroundGradientTo
+                ? `linear-gradient(135deg, ${wheelDesignConfig.backgroundGradientFrom}, ${wheelDesignConfig.backgroundGradientTo})`
+                : wheelDesignConfig?.backgroundStyle === 'transparent'
+                ? 'transparent'
+                : wheelDesignConfig?.backgroundColor || '#FFFFFF',
+              backgroundImage: wheelDesignConfig?.backgroundImage ? `url(${wheelDesignConfig.backgroundImage})` : undefined,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              opacity: wheelDesignConfig?.backgroundOpacity || 1
+            }}
+          >
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="w-[500px] h-[500px]">
+                <FortuneWheel
               config={{
                 segments: segments.map((seg, idx) => ({
                   id: seg.id || `seg-${idx}`,
@@ -193,10 +200,12 @@ export const PreviewCarousel: React.FC<PreviewCarouselProps> = ({
                   allowDrag: true,
                 },
               }}
-              onSpinComplete={(result) => {
-                console.log("Wheel stopped on:", result.segment.label);
+              onSpinComplete={(_result) => {
+                // Handle spin completion
               }}
             />
+              </div>
+            </div>
           </div>
         </div>
       ),

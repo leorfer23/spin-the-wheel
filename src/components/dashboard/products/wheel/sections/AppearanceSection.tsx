@@ -1,6 +1,6 @@
 import React from "react";
-import { Palette, Zap, Sparkles, Loader2, Check, AlertCircle, Brush } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Palette, Zap, Sparkles, Brush } from "lucide-react";
+import { motion } from "framer-motion";
 import type { WheelDesignConfig } from "../wheelConfigTypes";
 import { 
   BackgroundSettings, 
@@ -11,6 +11,8 @@ import {
   WheelBorderSettings,
   SegmentStyleSettings
 } from "./appearance";
+import { SaveStatusIndicator } from "../components/SaveStatusIndicator";
+import { useAutoSave } from "@/hooks/useAutoSave";
 
 interface AppearanceSectionProps {
   wheelDesign: WheelDesignConfig;
@@ -21,10 +23,20 @@ interface AppearanceSectionProps {
 export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
   wheelDesign,
   onUpdateWheelDesign,
-  saveStatus
+  saveStatus: _saveStatus // Unused, keeping for backward compatibility
 }) => {
+  const [mode, setMode] = React.useState<'easy' | 'advanced'>('easy');
+  
+  // Use centralized auto-save
+  const { save, saveStatus } = useAutoSave({
+    type: 'appearance',
+    onSave: async (updates) => {
+      await onUpdateWheelDesign(updates);
+    }
+  });
+  
   const updateDesign = (updates: Partial<WheelDesignConfig>) => {
-    onUpdateWheelDesign(updates);
+    save(updates);
   };
 
   return (
@@ -36,6 +48,43 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
       className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl p-6 flex-1 overflow-hidden"
     >
       <div className="space-y-4 h-full overflow-y-auto pr-2 custom-scrollbar">
+        {/* Mode Toggle */}
+        <div className="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl">
+              <Sparkles className="w-5 h-5 text-purple-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-800">Modo de Configuración</h3>
+              <p className="text-xs text-gray-600">
+                {mode === 'easy' ? 'Configuración simplificada' : 'Todas las opciones disponibles'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 bg-white rounded-xl p-1">
+            <button
+              onClick={() => setMode('easy')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                mode === 'easy'
+                  ? 'bg-purple-500 text-white shadow-lg'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Fácil
+            </button>
+            <button
+              onClick={() => setMode('advanced')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                mode === 'advanced'
+                  ? 'bg-purple-500 text-white shadow-lg'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Avanzado
+            </button>
+          </div>
+        </div>
+
         {/* Design Theme Card */}
         <motion.div 
           className="bg-white/80 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/50 p-8"
@@ -52,7 +101,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                 Tema de Diseño
               </h3>
             </div>
-            <SaveStatusIndicator saveStatus={saveStatus} />
+            <SaveStatusIndicator status={saveStatus} />
           </div>
 
           <DesignThemeSelector 
@@ -77,7 +126,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                 Diseño Visual
               </h3>
             </div>
-            <SaveStatusIndicator saveStatus={saveStatus} />
+            <SaveStatusIndicator status={saveStatus} />
           </div>
 
           <div className="space-y-6">
@@ -86,19 +135,23 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
               onUpdateDesign={updateDesign} 
             />
             
-            <div className="border-t pt-6">
-              <WheelBorderSettings
-                wheelDesign={wheelDesign}
-                onUpdateDesign={updateDesign}
-              />
-            </div>
-            
-            <div className="border-t pt-6">
-              <ShadowSettings
-                wheelDesign={wheelDesign}
-                onUpdateDesign={updateDesign}
-              />
-            </div>
+            {mode === 'advanced' && (
+              <>
+                <div className="border-t pt-6">
+                  <WheelBorderSettings
+                    wheelDesign={wheelDesign}
+                    onUpdateDesign={updateDesign}
+                  />
+                </div>
+                
+                <div className="border-t pt-6">
+                  <ShadowSettings
+                    wheelDesign={wheelDesign}
+                    onUpdateDesign={updateDesign}
+                  />
+                </div>
+              </>
+            )}
           </div>
         </motion.div>
 
@@ -128,33 +181,37 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
               onUpdateDesign={updateDesign} 
             />
             
-            {/* Pointer Configuration */}
-            <PointerConfig 
-              wheelDesign={wheelDesign} 
-              onUpdateDesign={updateDesign} 
-            />
+            {/* Pointer Configuration - Advanced only */}
+            {mode === 'advanced' && (
+              <PointerConfig 
+                wheelDesign={wheelDesign} 
+                onUpdateDesign={updateDesign} 
+              />
+            )}
           </div>
         </motion.div>
 
-        {/* Segment Styling Card */}
-        <motion.div 
-          className="bg-white/80 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/50 p-8"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.25 }}
-        >
-          <div className="flex items-center gap-3 mb-8">
-            <div className="p-3 bg-gradient-to-br from-green-500/10 to-teal-500/10 rounded-2xl">
-              <Brush className="w-6 h-6 text-green-600" />
+        {/* Segment Styling Card - Advanced only */}
+        {mode === 'advanced' && (
+          <motion.div 
+            className="bg-white/80 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/50 p-8"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.25 }}
+          >
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-3 bg-gradient-to-br from-green-500/10 to-teal-500/10 rounded-2xl">
+                <Brush className="w-6 h-6 text-green-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800">Estilo de Segmentos</h3>
             </div>
-            <h3 className="text-xl font-bold text-gray-800">Estilo de Segmentos</h3>
-          </div>
 
-          <SegmentStyleSettings
-            wheelDesign={wheelDesign}
-            onUpdateDesign={updateDesign}
-          />
-        </motion.div>
+            <SegmentStyleSettings
+              wheelDesign={wheelDesign}
+              onUpdateDesign={updateDesign}
+            />
+          </motion.div>
+        )}
 
         {/* Effects & Animation Card */}
         <motion.div 
@@ -176,15 +233,19 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
               onUpdateDesign={updateDesign} 
             />
 
-            <AnimationSettings 
-              wheelDesign={wheelDesign} 
-              onUpdateDesign={updateDesign} 
-            />
+            {mode === 'advanced' && (
+              <>
+                <AnimationSettings 
+                  wheelDesign={wheelDesign} 
+                  onUpdateDesign={updateDesign} 
+                />
 
-            <EffectsSettings 
-              wheelDesign={wheelDesign} 
-              onUpdateDesign={updateDesign} 
-            />
+                <EffectsSettings 
+                  wheelDesign={wheelDesign} 
+                  onUpdateDesign={updateDesign} 
+                />
+              </>
+            )}
           </div>
         </motion.div>
 
@@ -194,49 +255,6 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     </motion.div>
   );
 };
-
-const SaveStatusIndicator: React.FC<{ saveStatus: string }> = ({ saveStatus }) => (
-  <AnimatePresence mode="wait">
-    {saveStatus !== "idle" && (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.8 }}
-        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-          saveStatus === "pending" ? "bg-yellow-100 text-yellow-700" :
-          saveStatus === "saving" ? "bg-blue-100 text-blue-700" :
-          saveStatus === "saved" ? "bg-green-100 text-green-700" :
-          "bg-red-100 text-red-700"
-        }`}
-      >
-        {saveStatus === "pending" && (
-          <>
-            <div className="w-2 h-2 bg-yellow-600 rounded-full animate-pulse" />
-            Cambios sin guardar
-          </>
-        )}
-        {saveStatus === "saving" && (
-          <>
-            <Loader2 className="w-4 h-4 animate-spin" />
-            Guardando...
-          </>
-        )}
-        {saveStatus === "saved" && (
-          <>
-            <Check className="w-4 h-4" />
-            Guardado
-          </>
-        )}
-        {saveStatus === "error" && (
-          <>
-            <AlertCircle className="w-4 h-4" />
-            Error
-          </>
-        )}
-      </motion.div>
-    )}
-  </AnimatePresence>
-);
 
 const CenterButtonConfig: React.FC<{
   wheelDesign: WheelDesignConfig;

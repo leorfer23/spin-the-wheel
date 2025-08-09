@@ -187,8 +187,8 @@
 
     // Get URL parameters
     const urlParams = new URLSearchParams(window.location.search);
-    const trigger = urlParams.get('trigger') || 'exit_intent';
-    const delay = urlParams.get('delay') || '0';
+    const trigger = urlParams.get('trigger') || 'delay';
+    const delay = urlParams.get('delay') || '5';
     const scrollPercentage = urlParams.get('scrollPercentage') || '50';
     const wheelId = urlParams.get('wheelId') || 'test-wheel-123';
 

@@ -49,6 +49,8 @@ export interface WheelStyle {
   borderWidth?: number;
   /** Background color behind the wheel */
   backgroundColor?: string;
+  /** Color of the decorative pegs around the wheel */
+  pegColor?: string;
 }
 
 /**
@@ -67,6 +69,10 @@ export interface CenterCircleConfig {
   fontSize?: number;
   /** Whether to make the center circle clickable as a spin button */
   showButton?: boolean;
+  /** Border color for the center circle */
+  borderColor?: string;
+  /** Border width for the center circle in pixels */
+  borderWidth?: number;
 }
 
 /**
@@ -121,6 +127,15 @@ export interface WheelConfig {
   style?: WheelStyle;
   /** Center circle configuration */
   centerCircle?: CenterCircleConfig;
+  /** Center button configuration (alternative to centerCircle) */
+  centerButton?: {
+    enabled?: boolean;
+    text?: string;
+    textColor?: string;
+    backgroundColor?: string;
+    fontSize?: string;
+    fontWeight?: string;
+  };
   /** Pointer/indicator configuration */
   pointer?: PointerConfig;
   /** Peg configuration */

@@ -26,6 +26,29 @@ export const ScheduleConfigurator: React.FC<ScheduleConfiguratorProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Set default dates if not provided
+  React.useEffect(() => {
+    if (!config.dateRange?.startDate || !config.dateRange?.endDate) {
+      const today = new Date();
+      const weekLater = new Date(today);
+      weekLater.setDate(weekLater.getDate() + 7);
+      
+      const formatDate = (date: Date) => {
+        const offset = date.getTimezoneOffset();
+        const adjustedDate = new Date(date.getTime() - offset * 60 * 1000);
+        return adjustedDate.toISOString().slice(0, 16);
+      };
+      
+      onChange({
+        ...config,
+        dateRange: {
+          startDate: config.dateRange?.startDate || formatDate(today),
+          endDate: config.dateRange?.endDate || formatDate(weekLater)
+        }
+      });
+    }
+  }, []);
+
   const weekDays = [
     { value: 0, label: 'Sunday', short: 'Sun' },
     { value: 1, label: 'Monday', short: 'Mon' },
@@ -165,8 +188,13 @@ export const ScheduleConfigurator: React.FC<ScheduleConfiguratorProps> = ({
     });
   };
 
+  const [newSpecialDate, setNewSpecialDate] = useState<{ blacklist: string; whitelist: string }>({
+    blacklist: '',
+    whitelist: ''
+  });
+
   const addSpecialDate = (type: 'blacklist' | 'whitelist') => {
-    const date = prompt('Enter date (YYYY-MM-DD):');
+    const date = newSpecialDate[type];
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
 
     const dates = type === 'blacklist' 
@@ -179,6 +207,8 @@ export const ScheduleConfigurator: React.FC<ScheduleConfiguratorProps> = ({
         whitelistDates: type === 'whitelist' ? dates : (config.specialDates?.whitelistDates || [])
       }
     });
+    
+    setNewSpecialDate(prev => ({ ...prev, [type]: '' }));
   };
 
   const removeSpecialDate = (type: 'blacklist' | 'whitelist', date: string) => {
@@ -195,12 +225,36 @@ export const ScheduleConfigurator: React.FC<ScheduleConfiguratorProps> = ({
   };
 
   const applyTemplate = (template: typeof scheduleTemplates[0]) => {
-    updateConfig({
+    const newConfig = {
       ...config,
-      ...template.config,
       enabled: true
-    });
-    setActiveTab('time');
+    };
+    
+    // Apply template configuration
+    if (template.config.weekDays) {
+      newConfig.weekDays = {
+        enabled: template.config.weekDays.enabled,
+        days: template.config.weekDays.days
+      };
+    }
+    
+    if (template.config.timeSlots) {
+      newConfig.timeSlots = {
+        enabled: template.config.timeSlots.enabled,
+        slots: template.config.timeSlots.slots
+      };
+    }
+    
+    onChange(newConfig);
+    
+    // Switch to appropriate tab based on what was configured
+    if (template.config.weekDays?.enabled && template.config.timeSlots?.enabled) {
+      setActiveTab('week');
+    } else if (template.config.timeSlots?.enabled) {
+      setActiveTab('time');
+    } else if (template.config.weekDays?.enabled) {
+      setActiveTab('week');
+    }
   };
 
   // Calculate if wheel is currently active
@@ -257,13 +311,50 @@ export const ScheduleConfigurator: React.FC<ScheduleConfiguratorProps> = ({
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="overview">Resumen</TabsTrigger>
-              <TabsTrigger value="date">Rango de Fechas</TabsTrigger>
+              <TabsTrigger value="date">Período de Campaña</TabsTrigger>
               <TabsTrigger value="week">Días de la Semana</TabsTrigger>
-              <TabsTrigger value="time">Franjas Horarias</TabsTrigger>
+              <TabsTrigger value="time">Horarios</TabsTrigger>
               <TabsTrigger value="special">Fechas Especiales</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-4">
+              {/* Campaign Period Card */}
+              <div className="p-4 border rounded-lg bg-purple-50 border-purple-200">
+                <h4 className="text-sm font-medium mb-3">Período de Campaña</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="overview-startDate" className="text-xs">Fecha de Inicio</Label>
+                    <Input
+                      id="overview-startDate"
+                      type="datetime-local"
+                      value={config.dateRange?.startDate || ''}
+                      onChange={(e) => updateConfig({
+                        dateRange: {
+                          startDate: e.target.value || null,
+                          endDate: config.dateRange?.endDate || null
+                        }
+                      })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="overview-endDate" className="text-xs">Fecha de Fin</Label>
+                    <Input
+                      id="overview-endDate"
+                      type="datetime-local"
+                      value={config.dateRange?.endDate || ''}
+                      onChange={(e) => updateConfig({
+                        dateRange: {
+                          startDate: config.dateRange?.startDate || null,
+                          endDate: e.target.value || null
+                        }
+                      })}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <Label>Zona Horaria</Label>
                 <select
@@ -295,35 +386,43 @@ export const ScheduleConfigurator: React.FC<ScheduleConfiguratorProps> = ({
             </TabsContent>
 
             <TabsContent value="date" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="startDate">Fecha de Inicio</Label>
-                  <Input
-                    id="startDate"
-                    type="datetime-local"
-                    value={config.dateRange?.startDate || ''}
-                    onChange={(e) => updateConfig({
-                      dateRange: {
-                        startDate: e.target.value || null,
-                        endDate: config.dateRange?.endDate || null
-                      }
-                    })}
-                  />
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <h4 className="text-sm font-medium mb-4">Configura el período durante el cual tu campaña estará activa</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="startDate">Fecha de Inicio</Label>
+                    <Input
+                      id="startDate"
+                      type="datetime-local"
+                      value={config.dateRange?.startDate || ''}
+                      onChange={(e) => updateConfig({
+                        dateRange: {
+                          startDate: e.target.value || null,
+                          endDate: config.dateRange?.endDate || null
+                        }
+                      })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="endDate">Fecha de Fin</Label>
+                    <Input
+                      id="endDate"
+                      type="datetime-local"
+                      value={config.dateRange?.endDate || ''}
+                      onChange={(e) => updateConfig({
+                        dateRange: {
+                          startDate: config.dateRange?.startDate || null,
+                          endDate: e.target.value || null
+                        }
+                      })}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="endDate">Fecha de Fin</Label>
-                  <Input
-                    id="endDate"
-                    type="datetime-local"
-                    value={config.dateRange?.endDate || ''}
-                    onChange={(e) => updateConfig({
-                      dateRange: {
-                        startDate: config.dateRange?.startDate || null,
-                        endDate: e.target.value || null
-                      }
-                    })}
-                  />
-                </div>
+                {config.dateRange?.startDate && config.dateRange?.endDate && (
+                  <div className="mt-4 text-sm text-gray-600">
+                    Duración: {Math.ceil((new Date(config.dateRange.endDate).getTime() - new Date(config.dateRange.startDate).getTime()) / (1000 * 60 * 60 * 24))} días
+                  </div>
+                )}
               </div>
             </TabsContent>
 
@@ -379,7 +478,7 @@ export const ScheduleConfigurator: React.FC<ScheduleConfiguratorProps> = ({
                 {config.timeSlots?.enabled && (
                   <Button size="sm" onClick={addTimeSlot}>
                     <Plus className="h-4 w-4 mr-1" />
-                    Add Time Slot
+                    Agregar Horario
                   </Button>
                 )}
               </div>
@@ -392,7 +491,7 @@ export const ScheduleConfigurator: React.FC<ScheduleConfiguratorProps> = ({
                         type="text"
                         value={slot.label || ''}
                         onChange={(e) => updateTimeSlot(idx, { ...slot, label: e.target.value })}
-                        placeholder="Label"
+                        placeholder="Nombre del horario"
                         className="flex-1"
                       />
                       <Input
@@ -404,7 +503,7 @@ export const ScheduleConfigurator: React.FC<ScheduleConfiguratorProps> = ({
                         })}
                         className="w-32"
                       />
-                      <span>to</span>
+                      <span>a</span>
                       <Input
                         type="time"
                         value={minutesToTime(slot.endMinutes)}
@@ -429,14 +528,22 @@ export const ScheduleConfigurator: React.FC<ScheduleConfiguratorProps> = ({
 
             <TabsContent value="special" className="space-y-4">
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="mb-2">
                   <Label className="flex items-center gap-2">
                     <CalendarX2 className="h-4 w-4" />
-                    Blacklist Dates (Wheel won't run)
+                    Fechas Excluidas (La ruleta no estará disponible)
                   </Label>
-                  <Button size="sm" onClick={() => addSpecialDate('blacklist')}>
+                </div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Input
+                    type="date"
+                    value={newSpecialDate.blacklist}
+                    onChange={(e) => setNewSpecialDate(prev => ({ ...prev, blacklist: e.target.value }))}
+                    className="flex-1"
+                  />
+                  <Button size="sm" onClick={() => addSpecialDate('blacklist')} disabled={!newSpecialDate.blacklist}>
                     <Plus className="h-4 w-4 mr-1" />
-                    Add Date
+                    Agregar
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -455,14 +562,22 @@ export const ScheduleConfigurator: React.FC<ScheduleConfiguratorProps> = ({
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="mb-2">
                   <Label className="flex items-center gap-2">
                     <CalendarCheck2 className="h-4 w-4" />
-                    Whitelist Dates (Wheel always runs)
+                    Fechas Incluidas (La ruleta siempre estará disponible)
                   </Label>
-                  <Button size="sm" onClick={() => addSpecialDate('whitelist')}>
+                </div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Input
+                    type="date"
+                    value={newSpecialDate.whitelist}
+                    onChange={(e) => setNewSpecialDate(prev => ({ ...prev, whitelist: e.target.value }))}
+                    className="flex-1"
+                  />
+                  <Button size="sm" onClick={() => addSpecialDate('whitelist')} disabled={!newSpecialDate.whitelist}>
                     <Plus className="h-4 w-4 mr-1" />
-                    Add Date
+                    Agregar
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-2">

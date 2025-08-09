@@ -4,6 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { WheelService } from '../../../../../services/wheelService';
 import { StoreService } from '../../../../../services/storeService';
 import { useAuth } from '../../../../../contexts/AuthContext';
+import { useStore } from '../../../../../contexts/StoreContext';
+import toast from 'react-hot-toast';
 import type { WheelScheduleConfig } from '../../../../../types/models';
 import type { Segment } from '../types';
 
@@ -34,23 +36,23 @@ export function useWheelDataSupabase() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { selectedStoreId } = useStore();
   
   // If not authenticated, use local implementation
   if (!user) {
     return useWheelDataLocal();
   }
   
-  // Fetch user's store to get tiendanube_store_id
-  const { data: storeResponse, isLoading: isLoadingStore } = useQuery({
-    queryKey: ['userStore'],
-    queryFn: () => StoreService.getUserStore(),
-    enabled: !!user
-  });
+  // Use the store ID from the selected store
+  const storeId = selectedStoreId;
   
-  const storeId = storeResponse?.data?.tiendanube_store_id;
-  
-  // State for selected wheel ID (from URL or first wheel)
+  // Get selected wheel ID from URL or null
   const [selectedWheelId, setSelectedWheelIdState] = useState<string | null>(wheelId || null);
+  
+  // Simply update when URL changes
+  useEffect(() => {
+    setSelectedWheelIdState(wheelId || null);
+  }, [wheelId]);
 
   // Fetch all wheels for the store
   const {
@@ -78,29 +80,64 @@ export function useWheelDataSupabase() {
 
   const selectedWheel = selectedWheelResponse?.data;
 
-  // Set initial selected wheel
-  useEffect(() => {
-    if (!selectedWheelId && wheels.length > 0) {
-      const firstWheel = wheels[0];
-      setSelectedWheelIdState(firstWheel.id);
-    }
-  }, [wheels, selectedWheelId]);
-
-  // Update URL when wheel selection changes
+  // Update URL when wheel selection changes  
   const setSelectedWheelId = (wheelId: string) => {
     setSelectedWheelIdState(wheelId);
+    // Navigate to the wheel URL
+    if (wheelId) {
+      navigate(`/dashboard/wheel/${wheelId}`);
+    }
   };
 
   // Create wheel mutation
   const createWheelMutation = useMutation({
     mutationFn: async (name: string) => {
-      if (!storeId) {
-        throw new Error('No store found for user. Please create a store first.');
+      console.log('=== CREATE WHEEL START ===');
+      console.log('Wheel name:', name);
+      console.log('Current storeId:', storeId);
+      console.log('User:', user?.id);
+      
+      let currentStoreId = storeId;
+      
+      // If no store exists, create one automatically
+      if (!currentStoreId) {
+        console.log('No store found, creating a new store...');
+        toast.loading('Creating your store...', { id: 'store-create' });
+        
+        try {
+          const storeData = {
+            tiendanube_store_id: `store-${Date.now()}`,
+            store_name: 'My Store',
+            platform: 'custom' as const,
+            store_url: 'https://example.com'
+          };
+          
+          console.log('Creating store with data:', storeData);
+          
+          const storeResponse = await StoreService.createStore(storeData);
+          
+          console.log('Store creation response:', storeResponse);
+          
+          if (!storeResponse.success || !storeResponse.data) {
+            toast.dismiss('store-create');
+            const errorMsg = 'Failed to create store: ' + (storeResponse.error || 'Unknown error');
+            console.error(errorMsg);
+            throw new Error(errorMsg);
+          }
+          
+          currentStoreId = storeResponse.data.id; // Use the store id field
+          console.log('Store created successfully with ID:', currentStoreId);
+          toast.success('Store created!', { id: 'store-create' });
+          
+          // Invalidate the store query to refresh the data
+          queryClient.invalidateQueries({ queryKey: ['userStore'] });
+        } catch (error) {
+          console.error('Store creation error:', error);
+          toast.dismiss('store-create');
+          throw error;
+        }
       }
       
-      console.log('Starting wheel creation process...');
-      console.log('Store ID:', storeId);
-      console.log('User:', user);
       
       const defaultSegments: Segment[] = [
         { id: '1', label: 'Premio Segmento 1', value: 'PREMIO1', color: '#FF6B6B', weight: 20 },
@@ -198,7 +235,10 @@ export function useWheelDataSupabase() {
         handleIcon: '🎁',
         handleSize: 'medium',
         handleAnimation: 'pulse',
-        handleBorderRadius: '9999px',
+        handleBorderRadius: '9999px'
+      };
+
+      const defaultEmailCaptureConfig = {
         captureImageUrl: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=600&h=400&fit=crop',
         captureTitle: '¡Gira y Gana Premios Increíbles!',
         captureSubtitle: 'Ingresa tu email para participar y ganar descuentos exclusivos',
@@ -211,6 +251,7 @@ export function useWheelDataSupabase() {
         segments: defaultSegments,
         style: defaultStyleConfig,
         wheelHandle: defaultWidgetConfig,
+        emailCapture: defaultEmailCaptureConfig,
         schedule: {
           enabled: false,
           days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -221,35 +262,48 @@ export function useWheelDataSupabase() {
         }
       };
 
-      console.log('Creating wheel with config:', config);
 
       try {
         // Generate wheel ID
         const wheelId = crypto.randomUUID();
         
-        const response = await WheelService.createWheel(storeId, {
+        console.log('Creating wheel with config...');
+        console.log('Wheel ID:', wheelId);
+        console.log('Store ID:', currentStoreId);
+        
+        toast.loading('Creating your wheel...', { id: 'wheel-create' });
+        
+        const response = await WheelService.createWheel(currentStoreId!, {
           id: wheelId,
-          store_id: storeId,
           name,
           config: config as any,
           is_active: true
         });
 
-        console.log('Create wheel response:', response);
+        console.log('Wheel creation response:', response);
 
         if (!response.success) {
-          console.error('Failed to create wheel:', response.error);
-          throw new Error(response.error || 'Failed to create wheel');
+          toast.dismiss('wheel-create');
+          const errorMsg = response.error || 'Failed to create wheel';
+          console.error('Wheel creation failed:', errorMsg);
+          toast.error(errorMsg);
+          throw new Error(errorMsg);
         }
 
+        toast.success('Wheel created successfully!', { id: 'wheel-create' });
+        console.log('=== CREATE WHEEL SUCCESS ===');
+        
         // Segments are now stored in the config, no need to create them separately
-        if (response.data) {
-          console.log('Wheel created successfully with segments in config');
-        }
 
         return response;
       } catch (error) {
-        console.error('Error in createWheelMutation:', error);
+        console.error('=== CREATE WHEEL ERROR ===', error);
+        toast.dismiss('wheel-create');
+        if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error('An unexpected error occurred');
+        }
         throw error;
       }
     },
@@ -322,17 +376,29 @@ export function useWheelDataSupabase() {
 
   // Update schedule mutation
   const updateScheduleMutation = useMutation({
-    mutationFn: (schedule: WheelScheduleConfig) => {
+    mutationFn: async (schedule: WheelScheduleConfig) => {
       if (!selectedWheelId) throw new Error('No wheel selected');
       
-      return WheelService.updateWheel(selectedWheelId, { 
+      console.log('[updateScheduleMutation] Sending to Supabase:', { 
+        wheelId: selectedWheelId,
+        schedule_config: schedule 
+      });
+      
+      const result = await WheelService.updateWheel(selectedWheelId, { 
         schedule_config: schedule as any
       });
+      
+      console.log('[updateScheduleMutation] Supabase response:', result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('[updateScheduleMutation] Success:', data);
       if (selectedWheelId) {
         queryClient.invalidateQueries({ queryKey: ['wheel', selectedWheelId] });
       }
+    },
+    onError: (error) => {
+      console.error('[updateScheduleMutation] Error:', error);
     }
   });
 
@@ -369,10 +435,19 @@ export function useWheelDataSupabase() {
       const currentWheel = selectedWheel;
       if (!currentWheel) throw new Error('No wheel data available');
       
-      // Update the config with new widget handle configuration
+      // Determine if this is handle config or email capture config
+      const isEmailCaptureConfig = 'captureFormat' in widgetConfig || 
+                                   'captureTitle' in widgetConfig || 
+                                   'captureSubtitle' in widgetConfig ||
+                                   'captureButtonText' in widgetConfig ||
+                                   'capturePrivacyText' in widgetConfig ||
+                                   'captureImageUrl' in widgetConfig;
+      
+      // Update the appropriate config section
       const updatedConfig = {
         ...(currentWheel.config as any || {}),
-        wheelHandle: widgetConfig
+        wheelHandle: isEmailCaptureConfig ? (currentWheel.config as any)?.wheelHandle : widgetConfig,
+        emailCapture: isEmailCaptureConfig ? widgetConfig : (currentWheel.config as any)?.emailCapture
       };
       
       return WheelService.updateWheel(selectedWheelId, { 
@@ -386,13 +461,8 @@ export function useWheelDataSupabase() {
 
   // Helper functions
   const createNewWheel = (name?: string) => {
-    console.log('createNewWheel called with name:', name);
     const wheelName = name || 'New Campaign';
-    createWheelMutation.mutate(wheelName, {
-      onError: (error) => {
-        console.error('Failed to create wheel:', error);
-      }
-    });
+    createWheelMutation.mutate(wheelName);
     // Return a dummy wheel object for compatibility with the existing interface
     return {
       id: Date.now().toString(),
@@ -405,6 +475,7 @@ export function useWheelDataSupabase() {
         endTime: '18:00',
         startDate: '',
         endDate: '',
+        timezone: 'America/Argentina/Buenos_Aires',
       }
     };
   };
@@ -424,6 +495,7 @@ export function useWheelDataSupabase() {
   };
 
   const updateSchedule = (newSchedule: WheelScheduleConfig) => {
+    console.log('[useWheelDataSupabase] Updating schedule for wheel:', selectedWheelId, newSchedule);
     updateScheduleMutation.mutate(newSchedule);
   };
 
@@ -441,26 +513,14 @@ export function useWheelDataSupabase() {
     name: wheel.name,
     // Extract segments from config.segments
     segments: (wheel.config as any)?.segments || [],
-    schedule: (wheel.config as any)?.schedule || {
-      enabled: false,
-      days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-      startTime: '09:00',
-      endTime: '18:00',
-      startDate: '',
-      endDate: '',
-    },
-    wheelDesign: (wheel.config as any)?.style || {},
-    widgetConfig: (wheel.config as any)?.wheelHandle || {}
-  }));
-
-  const formattedSelectedWheel = selectedWheel ? {
-    id: selectedWheel.id,
-    name: selectedWheel.name,
-    // Extract segments from config.segments instead of separate table
-    segments: (selectedWheel.config as any)?.segments || [],
-    wheelDesign: (selectedWheel.config as any)?.style || {},
-    widgetConfig: (selectedWheel.config as any)?.wheelHandle || {},
-    schedule: (selectedWheel.schedule_config as any) || {
+    // Clean and get schedule from schedule_config field
+    schedule: wheel.schedule_config ? {
+      enabled: (wheel.schedule_config as any).enabled || false,
+      timezone: (wheel.schedule_config as any).timezone || 'America/Argentina/Buenos_Aires',
+      weekDays: (wheel.schedule_config as any).weekDays || { enabled: false, days: [] },
+      dateRange: (wheel.schedule_config as any).dateRange || { startDate: null, endDate: null },
+      timeSlots: (wheel.schedule_config as any).timeSlots || { enabled: false, slots: [] }
+    } : {
       enabled: false,
       timezone: 'America/Argentina/Buenos_Aires',
       dateRange: {
@@ -473,19 +533,77 @@ export function useWheelDataSupabase() {
       },
       weekDays: {
         enabled: false,
-        days: [0, 1, 2, 3, 4, 5, 6]
+        days: []
+      }
+    },
+    wheelDesign: (wheel.config as any)?.style || {},
+    widgetConfig: {
+      ...(wheel.config as any)?.wheelHandle || {},
+      ...(wheel.config as any)?.emailCapture || {}
+    }
+  }));
+
+  // Debug logging for schedule data
+  if (selectedWheel) {
+    console.log('[useWheelDataSupabase] Raw selectedWheel from DB:', selectedWheel);
+    console.log('[useWheelDataSupabase] schedule_config from DB:', selectedWheel.schedule_config);
+    
+    // Clean up old format fields if they exist
+    if (selectedWheel.schedule_config) {
+      const cleanedSchedule = {
+        enabled: (selectedWheel.schedule_config as any).enabled || false,
+        timezone: (selectedWheel.schedule_config as any).timezone || 'America/Argentina/Buenos_Aires',
+        weekDays: (selectedWheel.schedule_config as any).weekDays || { enabled: false, days: [] },
+        dateRange: (selectedWheel.schedule_config as any).dateRange || { startDate: null, endDate: null },
+        timeSlots: (selectedWheel.schedule_config as any).timeSlots || { enabled: false, slots: [] }
+      };
+      console.log('[useWheelDataSupabase] Cleaned schedule:', cleanedSchedule);
+    }
+  }
+
+  const formattedSelectedWheel = selectedWheel ? {
+    id: selectedWheel.id,
+    name: selectedWheel.name,
+    // Extract segments from config.segments instead of separate table
+    segments: (selectedWheel.config as any)?.segments || [],
+    wheelDesign: (selectedWheel.config as any)?.style || {},
+    widgetConfig: {
+      ...(selectedWheel.config as any)?.wheelHandle || {},
+      ...(selectedWheel.config as any)?.emailCapture || {}
+    },
+    // Clean and get schedule from schedule_config field, removing old format fields
+    schedule: selectedWheel.schedule_config ? {
+      enabled: (selectedWheel.schedule_config as any).enabled || false,
+      timezone: (selectedWheel.schedule_config as any).timezone || 'America/Argentina/Buenos_Aires',
+      weekDays: (selectedWheel.schedule_config as any).weekDays || { enabled: false, days: [] },
+      dateRange: (selectedWheel.schedule_config as any).dateRange || { startDate: null, endDate: null },
+      timeSlots: (selectedWheel.schedule_config as any).timeSlots || { enabled: false, slots: [] }
+    } : {
+      enabled: false,
+      timezone: 'America/Argentina/Buenos_Aires',
+      dateRange: {
+        startDate: null,
+        endDate: null
       },
-      specialDates: {
-        blacklistDates: [],
-        whitelistDates: []
+      timeSlots: {
+        enabled: false,
+        slots: []
+      },
+      weekDays: {
+        enabled: false,
+        days: []
       }
     }
   } : formattedWheels[0] || null;
 
+  // Auto-select first wheel if none selected and wheels are available
+  const effectiveSelectedWheelId = selectedWheelId || formattedWheels[0]?.id || null;
+  const effectiveSelectedWheel = formattedSelectedWheel || formattedWheels[0] || null;
+
   return {
     wheels: formattedWheels,
-    selectedWheelId: selectedWheelId || formattedWheels[0]?.id,
-    selectedWheel: formattedSelectedWheel,
+    selectedWheelId: effectiveSelectedWheelId,
+    selectedWheel: effectiveSelectedWheel,
     setSelectedWheelId,
     updateSegments,
     updateSchedule,
@@ -494,7 +612,7 @@ export function useWheelDataSupabase() {
     createNewWheel,
     updateWheelName,
     deleteWheel,
-    isLoading: isLoadingStore || isLoadingWheels || isLoadingSelectedWheel,
+    isLoading: isLoadingWheels || isLoadingSelectedWheel,
     error: wheelsError || null,
     isCreating: createWheelMutation.isPending,
     isUpdating: updateWheelNameMutation.isPending || updateSegmentsMutation.isPending || updateScheduleMutation.isPending || updateWheelDesignMutation.isPending || updateWidgetConfigMutation.isPending,

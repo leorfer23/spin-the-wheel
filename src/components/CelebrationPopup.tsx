@@ -10,13 +10,15 @@ interface CelebrationPopupProps {
   result: SpinResult | null;
   /** Callback to close the popup */
   onClose: () => void;
+  /** Optional custom message to display */
+  customMessage?: string;
 }
 
 /**
  * CelebrationPopup displays a congratulatory modal when a user wins a prize.
  * Features animated confetti, prize display, and promo code with copy functionality.
  */
-export const CelebrationPopup: React.FC<CelebrationPopupProps> = ({ result, onClose }) => {
+export const CelebrationPopup: React.FC<CelebrationPopupProps> = ({ result, onClose, customMessage }) => {
   const [copied, setCopied] = useState(false);
 
   if (!result) return null;
@@ -119,7 +121,7 @@ export const CelebrationPopup: React.FC<CelebrationPopupProps> = ({ result, onCl
                   🎉 ¡Felicitaciones! 🎉
                 </motion.h2>
                 
-                <p className="text-gray-600 mb-6">¡Has ganado un premio increíble!</p>
+                <p className="text-gray-600 mb-6">{customMessage || '¡Has ganado un premio increíble!'}</p>
 
                 <motion.div
                   initial={{ scale: 0 }}

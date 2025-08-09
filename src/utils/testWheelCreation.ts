@@ -1,36 +1,29 @@
 import { supabase } from '../lib/supabase';
 
 export async function testWheelCreation() {
-  console.log('=== Testing Wheel Creation ===');
-  
   try {
     // 1. Test auth
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    console.log('1. Auth test:', { userId: user?.id, authError });
     
     if (!user) {
-      console.error('Not authenticated!');
-      return;
+      throw new Error('Not authenticated');
     }
     
     // 2. Test direct table access
-    console.log('2. Testing direct table access...');
     const { data: testSelect, error: selectError } = await supabase
       .from('spinawheel.wheels' as any)
       .select('id')
       .limit(1);
-    console.log('Direct select result:', { data: testSelect, error: selectError });
     
     // 3. Test store access
-    console.log('3. Testing store access...');
     const { data: stores, error: storesError } = await supabase
       .from('spinawheel.stores' as any)
       .select('*');
-    console.log('Stores:', { count: stores?.length, error: storesError });
+    
+    let storeList = stores || [];
     
     if (!stores || stores.length === 0) {
-      console.log('No stores found. Creating a test store...');
-      const { data: newStore, error: createStoreError } = await supabase
+      const { data: newStore } = await supabase
         .from('spinawheel.stores' as any)
         .insert({
           user_id: user.id,
@@ -42,17 +35,14 @@ export async function testWheelCreation() {
         .select()
         .single();
       
-      console.log('Store creation result:', { store: newStore, error: createStoreError });
-      
       if (newStore) {
-        stores?.push(newStore);
+        storeList = [newStore];
       }
     }
     
     // 4. Test wheel creation with a real store
-    if (stores && stores.length > 0) {
-      const storeId = stores[0].id;
-      console.log('4. Testing wheel creation with store:', storeId);
+    if (storeList.length > 0) {
+      const storeId = storeList[0].id;
       
       const wheelId = crypto.randomUUID();
       
@@ -81,11 +71,12 @@ export async function testWheelCreation() {
         .select()
         .single();
       
-      console.log('Wheel creation result:', { wheel, error: wheelError });
+      return { wheel, wheelError };
     }
     
+    return { testSelect, selectError, stores: storeList, storesError, authError };
   } catch (error) {
-    console.error('Test failed:', error);
+    throw error;
   }
 }
 

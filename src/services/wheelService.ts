@@ -3,13 +3,48 @@ import type { Wheel, WheelInput, WheelWithSegments, Segment, SegmentInput } from
 import type { ApiResponse } from '../types/models';
 
 export class WheelService {
-  static async createWheel(storeId: string, data: Omit<WheelInput, 'tiendanube_store_id'>): Promise<ApiResponse<Wheel>> {
+  static async getWheelCountsByStores(storeIds: string[]): Promise<ApiResponse<Record<string, number>>> {
     try {
-      console.log('Creating wheel with data:', { storeId, data });
+      if (storeIds.length === 0) {
+        return { data: {}, success: true };
+      }
+      
+      const { data, error } = await (supabase as any)
+        .schema('spinawheel')
+        .from('wheels')
+        .select('tiendanube_store_id')
+        .in('tiendanube_store_id', storeIds)
+        .eq('is_active', true);
+      
+      if (error) throw error;
+      
+      // Count wheels per store
+      const counts: Record<string, number> = {};
+      storeIds.forEach(storeId => {
+        counts[storeId] = 0;
+      });
+      
+      data?.forEach((wheel: any) => {
+        counts[wheel.tiendanube_store_id] = (counts[wheel.tiendanube_store_id] || 0) + 1;
+      });
+      
+      return { data: counts, success: true };
+    } catch (error) {
+      return { 
+        error: error instanceof Error ? error.message : 'Failed to fetch wheel counts', 
+        success: false 
+      };
+    }
+  }
+  
+  static async createWheel(storeId: string, data: any): Promise<ApiResponse<Wheel>> {
+    try {
+      console.log('[WheelService] Creating wheel for store:', storeId);
+      console.log('[WheelService] Input data:', data);
       
       // Check authentication
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      console.log('Current user:', user?.id, authError);
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('[WheelService] User authenticated:', user?.id);
       
       // Transform the data to match new schema structure
       const { config, schedule_config, ...restData } = data as any;
@@ -17,10 +52,11 @@ export class WheelService {
       // Extract segments from config if present
       const segments = config?.segments || [];
       
-      // Build the new structure
+      // Build the new structure - only include fields that exist in the schema
       const insertData = {
-        ...restData,
-        tiendanube_store_id: storeId,
+        id: restData.id, // UUID
+        tiendanube_store_id: storeId, // The store ID
+        name: restData.name || 'New Wheel',
         segments_config: segments,
         style_config: config?.style || {},
         wheel_handle_config: config?.wheelHandle || {},
@@ -32,36 +68,30 @@ export class WheelService {
           dateRange: { startDate: null, endDate: null },
           timeSlots: { enabled: false, slots: [] },
           specialDates: { blacklistDates: [], whitelistDates: [] }
-        }
+        },
+        is_active: restData.is_active !== undefined ? restData.is_active : true
       };
       
-      console.log('Insert data:', insertData);
+      console.log('[WheelService] Insert data prepared:', insertData);
       
-      // Log the actual request
-      console.log('Making request to wheels table...');
-      
-      const { data: wheel, error, status, statusText } = await (supabase as any)
+      const { data: wheel, error } = await (supabase as any)
         .schema('spinawheel')
         .from('wheels')
         .insert(insertData)
         .select()
         .single();
-      
-      console.log('Response status:', status, statusText);
+
+      console.log('[WheelService] Supabase response:', { wheel, error });
 
       if (error) {
-        console.error('Supabase error details:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
+        console.error('[WheelService] Supabase error:', error);
         throw error;
       }
 
+      console.log('[WheelService] Wheel created successfully:', wheel);
       return { data: wheel, success: true };
     } catch (error: any) {
-      console.error('Create wheel error:', error);
+      console.error('[WheelService] Create wheel error:', error);
       return { 
         error: error?.message || 'Failed to create wheel', 
         success: false 
@@ -83,7 +113,6 @@ export class WheelService {
       // Transform wheels to legacy format for compatibility
       const transformedWheels = wheels?.map((wheel: any) => ({
         ...wheel,
-        store_id: wheel.tiendanube_store_id,
         config: {
           segments: wheel.segments_config || [],
           style: wheel.style_config || {},

@@ -1,30 +1,68 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Eye, BarChart3 } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
 import { FortuneWheel } from "../../../wheel/FortuneWheel";
 import { WheelSelector } from "./WheelSelector";
-import { WheelConfiguration } from "./WheelConfiguration";
-import { WheelReporting } from "./WheelReporting";
 import { PreviewCarousel } from "../../../widget/PreviewCarousel";
 import { FullWidget } from "../../../widget/FullWidget";
-import type { ConfigSection } from "../../layout/ConfigurationPanel";
-import { useWheelData } from "./hooks/useWheelData";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../../ui/tooltip";
+import { useWheelStore } from "../../../../stores/wheelStore";
+import { useStore } from "../../../../contexts/StoreContext";
+import { useAuth } from "../../../../contexts/AuthContext";
+import type { WheelConfig } from "./types";
+import type { WheelScheduleConfig } from "../../../../types/models";
 
 interface WheelProductProps {
-  onConfigRender?: (
-    renderFn: (section: ConfigSection) => React.ReactNode
-  ) => void;
-  onWheelSelectionChange?: (hasWheel: boolean) => void;
   onModeChange?: (mode: 'edit' | 'report') => void;
+  mode?: 'edit' | 'report';
 }
 
 export const WheelProduct: React.FC<WheelProductProps> = ({
-  onConfigRender,
-  onWheelSelectionChange,
   onModeChange,
+  mode = 'edit',
 }) => {
+  const { wheelId } = useParams<{ wheelId?: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { selectedStoreId, stores } = useStore();
   const [showFullFlow, setShowFullFlow] = useState(false);
-  const [mode, setMode] = useState<'edit' | 'report'>('edit');
+  
+  // Get the tiendanube_store_id from the selected store
+  const selectedStore = stores.find(s => s.id === selectedStoreId);
+  const tiendanubeStoreId = selectedStore?.tiendanube_store_id;
+  
+  // Get everything from Zustand store - single source of truth
+  const {
+    wheels,
+    selectedWheelId,
+    selectedWheel,
+    isLoading,
+    error,
+    activeConfigSection,
+    loadWheels,
+    selectWheel,
+    createWheel,
+    updateWheelName,
+    deleteWheel,
+  } = useWheelStore();
+
+  // Load wheels when store is selected (only once per store change)
+  useEffect(() => {
+    if (tiendanubeStoreId && user) {
+      loadWheels(tiendanubeStoreId);
+    }
+  }, [tiendanubeStoreId, user]); // Using tiendanubeStoreId instead of selectedStoreId
+
+  // Handle URL wheel ID changes
+  useEffect(() => {
+    if (wheelId && wheelId !== selectedWheelId) {
+      selectWheel(wheelId);
+    } else if (!wheelId && selectedWheelId) {
+      // If no wheel in URL but one is selected, update URL
+      navigate(`/dashboard/wheel/${selectedWheelId}`);
+    }
+  }, [wheelId, selectedWheelId]); // Watch both wheelId and selectedWheelId
 
   const [wheelDesignConfig] = useState({
     // Theme
@@ -104,103 +142,45 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
     segmentTextBold: false,
     segmentTextShadow: false,
   });
+  
+  // Handle wheel selection changes
+  const handleSelectWheel = (wheelId: string) => {
+    selectWheel(wheelId);
+    navigate(`/dashboard/wheel/${wheelId}`);
+  };
 
-  const [activeConfigSection, setActiveConfigSection] = useState<string>('segments');
-
-  const {
-    wheels,
-    selectedWheelId,
-    selectedWheel,
-    setSelectedWheelId,
-    updateSegments,
-    updateSchedule,
-    updateWheelDesign,
-    updateWidgetConfig,
-    createNewWheel,
-    updateWheelName,
-    deleteWheel,
-    isLoading,
-    error,
-    isUpdating,
-  } = useWheelData();
-
-  const renderConfigSection = React.useCallback((section: ConfigSection) => {
-    if (section === "config" && selectedWheel) {
-      if (mode === 'report') {
-        return (
-          <WheelReporting
-            wheelId={selectedWheel.id}
-            segments={selectedWheel.segments || []}
-          />
-        );
-      }
-      return (
-        <WheelConfiguration
-          segments={selectedWheel.segments || []}
-          onUpdateSegments={updateSegments}
-          wheelId={selectedWheel.id}
-          isUpdating={isUpdating}
-          widgetConfig={selectedWheel?.widgetConfig || {
-            handlePosition: 'right',
-            handleType: 'floating',
-            handleText: '¡Gana Premios!',
-            handleBackgroundColor: '#8B5CF6',
-            handleTextColor: '#FFFFFF',
-            handleIcon: '🎁',
-            handleSize: 'medium',
-            handleAnimation: 'pulse',
-            handleBorderRadius: '9999px',
-            captureImageUrl: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=600&h=400&fit=crop',
-            captureTitle: '¡Gira y Gana Premios Increíbles!',
-            captureSubtitle: 'Ingresa tu email para participar y ganar descuentos exclusivos',
-            captureButtonText: '¡Quiero Participar!',
-            capturePrivacyText: 'Al participar, aceptas recibir emails promocionales. Puedes darte de baja en cualquier momento.',
-            captureFormat: 'instant'
-          }}
-          onUpdateWidgetConfig={updateWidgetConfig}
-          wheelDesignConfig={selectedWheel?.wheelDesign || wheelDesignConfig}
-          onUpdateWheelDesign={updateWheelDesign}
-          onActiveSectionChange={setActiveConfigSection}
-          scheduleConfig={selectedWheel.schedule || {
-            enabled: false,
-            timezone: 'UTC',
-            dateRange: {
-              startDate: null,
-              endDate: null
-            },
-            timeSlots: {
-              enabled: false,
-              slots: []
-            },
-            weekDays: {
-              enabled: false,
-              days: [0, 1, 2, 3, 4, 5, 6]
-            },
-            specialDates: {
-              blacklistDates: [],
-              whitelistDates: []
-            }
-          }}
-          onUpdateScheduleConfig={updateSchedule}
-        />
-      );
+  // Handle create wheel
+  const handleCreateWheel = (name?: string) => {
+    if (tiendanubeStoreId) {
+      const wheelName = name || 'New Campaign';
+      createWheel(tiendanubeStoreId, wheelName);
+      // Return a dummy WheelConfig since the actual creation is async
+      // The real wheel will be loaded after creation
+      return {
+        id: 'temp-' + Date.now(),
+        name: wheelName,
+        segments: [],
+        schedule: {
+          enabled: false,
+          timezone: 'America/Argentina/Buenos_Aires'
+        } as WheelScheduleConfig,
+        wheelDesign: {},
+        widgetConfig: {}
+      };
     }
-    return null;
-  }, [selectedWheel, updateSegments, updateSchedule, updateWheelDesign, updateWidgetConfig, isUpdating, wheelDesignConfig, mode, setActiveConfigSection]);
-
-  // Pass the render function to parent
-  React.useEffect(() => {
-    if (onConfigRender) {
-      onConfigRender(renderConfigSection);
-    }
-  }, [onConfigRender, renderConfigSection]);
-
-  // Notify parent about wheel selection state
-  React.useEffect(() => {
-    if (onWheelSelectionChange) {
-      onWheelSelectionChange(!!selectedWheel);
-    }
-  }, [selectedWheel, onWheelSelectionChange]);
+    // Return a dummy config if no store selected
+    return {
+      id: 'temp-' + Date.now(),
+      name: name || 'New Campaign',
+      segments: [],
+      schedule: {
+        enabled: false,
+        timezone: 'America/Argentina/Buenos_Aires'
+      } as WheelScheduleConfig,
+      wheelDesign: {},
+      widgetConfig: {}
+    };
+  };
 
   if (isLoading && wheels.length === 0) {
     return (
@@ -230,8 +210,8 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
     return (
       <div className="flex items-center justify-center h-full w-full p-8">
         <div
-          className="relative group cursor-pointer w-full max-w-[600px] aspect-square flex items-center justify-center"
-          onClick={() => createNewWheel()}
+          className="relative group cursor-pointer w-full max-w-[600px] aspect-square flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-transform duration-300"
+          onClick={() => handleCreateWheel()}
         >
           {/* Purple glowing ring effect */}
           <div className="absolute inset-0 flex items-center justify-center">
@@ -340,19 +320,20 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
   }
 
   return (
-    <div className="flex flex-col h-full w-full">
-      {/* Header Row Container */}
-      <div className="h-16 flex items-center justify-between px-4">
+    <TooltipProvider>
+      <div className="flex flex-col h-full w-full">
+        {/* Header Row Container */}
+        <div className="h-16 flex items-center justify-between px-4">
         {/* Empty space on left for balance */}
         <div className="w-48"></div>
 
         {/* Centered WheelSelector */}
         <div className="flex-1 flex justify-center">
           <WheelSelector
-            wheels={wheels}
-            selectedWheelId={selectedWheelId}
-            onSelectWheel={setSelectedWheelId}
-            onCreateWheel={createNewWheel}
+            wheels={wheels as WheelConfig[]}
+            selectedWheelId={selectedWheelId || ''}
+            onSelectWheel={handleSelectWheel}
+            onCreateWheel={handleCreateWheel}
             onUpdateWheelName={updateWheelName}
             onDeleteWheel={deleteWheel}
           />
@@ -360,46 +341,54 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
 
         {/* Action Buttons on the right */}
         <div className="w-48 flex justify-end gap-2">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              const newMode = mode === 'edit' ? 'report' : 'edit';
-              setMode(newMode);
-              onModeChange?.(newMode);
-            }}
-            className={`p-2.5 rounded-lg shadow-lg transition-all group relative ${
-              mode === 'report'
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
-            }`}
-            title={mode === 'edit' ? 'Ver Reportes' : 'Editar Configuración'}
-          >
-            <BarChart3 className="w-5 h-5" />
-            <span className="absolute -bottom-8 right-0 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  const newMode = mode === 'edit' ? 'report' : 'edit';
+                  onModeChange?.(newMode);
+                }}
+                className={`p-2.5 rounded-lg shadow-lg transition-all cursor-pointer ${
+                  mode === 'report'
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
+                    : 'bg-white text-gray-600 hover:bg-gray-50 hover:text-purple-600'
+                }`}
+              >
+                <BarChart3 className="w-5 h-5" />
+              </motion.button>
+            </TooltipTrigger>
+            <TooltipContent className="bg-gray-900 text-white">
               {mode === 'edit' ? 'Ver Reportes' : 'Editar Configuración'}
-            </span>
-          </motion.button>
+            </TooltipContent>
+          </Tooltip>
           
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowFullFlow(true)}
-            className="p-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-all group relative"
-            title="Preview Complete Flow"
-          >
-            <Eye className="w-5 h-5" />
-            <span className="absolute -bottom-8 right-0 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none">
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowFullFlow(true)}
+                className="p-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg shadow-lg hover:shadow-xl hover:from-purple-700 hover:to-pink-700 transition-all cursor-pointer"
+              >
+                <Eye className="w-5 h-5" />
+              </motion.button>
+            </TooltipTrigger>
+            <TooltipContent className="bg-gray-900 text-white">
               Vista Previa
-            </span>
-          </motion.button>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
       {/* Content Area - Carousel */}
       <div className="flex-1">
         <PreviewCarousel
-          segments={selectedWheel.segments || []}
+          segments={(selectedWheel.segments || []).map(s => ({
+            ...s,
+            weight: s.weight ?? 10
+          }))}
           widgetConfig={selectedWheel?.widgetConfig || {
             handlePosition: 'right',
             handleType: 'floating',
@@ -417,7 +406,7 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
             capturePrivacyText: 'Al participar, aceptas recibir emails promocionales. Puedes darte de baja en cualquier momento.',
             captureFormat: 'instant'
           }}
-          wheelDesignConfig={wheelDesignConfig}
+          wheelDesignConfig={selectedWheel?.wheelDesign || wheelDesignConfig}
           activeConfigSection={activeConfigSection}
         />
       </div>
@@ -432,11 +421,19 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
           <div className="relative bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
             <FullWidget
               config={{
-                segments: selectedWheel.segments || [],
+                segments: (selectedWheel.segments || []).map(s => ({
+                  ...s,
+                  weight: s.weight ?? 10
+                })),
+                handleType: selectedWheel?.widgetConfig?.handleType || 'floating',
                 handlePosition: selectedWheel?.widgetConfig?.handlePosition || 'right',
                 handleText: selectedWheel?.widgetConfig?.handleText || '¡Gana Premios!',
                 handleBackgroundColor: selectedWheel?.widgetConfig?.handleBackgroundColor || '#8B5CF6',
                 handleTextColor: selectedWheel?.widgetConfig?.handleTextColor || '#FFFFFF',
+                handleIcon: selectedWheel?.widgetConfig?.handleIcon || '🎁',
+                handleSize: selectedWheel?.widgetConfig?.handleSize || 'medium',
+                handleAnimation: selectedWheel?.widgetConfig?.handleAnimation || 'pulse',
+                handleBorderRadius: selectedWheel?.widgetConfig?.handleBorderRadius || '9999px',
                 captureImageUrl: selectedWheel?.widgetConfig?.captureImageUrl || 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=600&h=400&fit=crop',
                 captureTitle: selectedWheel?.widgetConfig?.captureTitle || '¡Gira y Gana Premios Increíbles!',
                 captureSubtitle: selectedWheel?.widgetConfig?.captureSubtitle || 'Ingresa tu email para participar y ganar descuentos exclusivos',
@@ -450,7 +447,7 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </TooltipProvider>
   );
 };
-

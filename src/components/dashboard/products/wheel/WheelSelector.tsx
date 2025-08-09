@@ -69,15 +69,23 @@ export const WheelSelector: React.FC<WheelSelectorProps> = ({
   };
 
   const handleCreateWheel = () => {
+    console.log('[WheelSelector] Starting wheel creation...');
     setIsCreatingNew(true);
-    setNewWheelName("New Campaign");
+    setNewWheelName("Nueva Campaña");
   };
 
   const saveNewWheel = () => {
+    console.log('[WheelSelector] Saving new wheel with name:', newWheelName);
     if (newWheelName.trim()) {
-      const newWheel = onCreateWheel(newWheelName.trim());
-      // Navigate to the new wheel
-      navigate(`/dashboard/wheel/${newWheel.id}`);
+      try {
+        const newWheel = onCreateWheel(newWheelName.trim());
+        console.log('[WheelSelector] Wheel creation initiated, returned:', newWheel);
+        // Note: Navigation happens in the mutation's onSuccess callback
+        // navigate(`/dashboard/wheel/${newWheel.id}`);
+      } catch (error) {
+        console.error('[WheelSelector] Error creating wheel:', error);
+        // The mutation will handle the actual error display via toast
+      }
     }
     setIsCreatingNew(false);
     setNewWheelName("");
@@ -106,24 +114,27 @@ export const WheelSelector: React.FC<WheelSelectorProps> = ({
 
     if (!wheel?.schedule?.enabled) return true;
 
-    // Check if today is in the scheduled days
-    if (wheel.schedule.days && !wheel.schedule.days.includes(today)) {
-      return false;
-    }
+    // Check if it's the old format (WheelSchedule)
+    if ('days' in wheel.schedule) {
+      // Check if today is in the scheduled days
+      if (wheel.schedule.days && !wheel.schedule.days.includes(today)) {
+        return false;
+      }
 
-    // Check time range
-    if (wheel.schedule.startTime && wheel.schedule.endTime) {
-      return (
-        currentTime >= wheel.schedule.startTime &&
-        currentTime <= wheel.schedule.endTime
-      );
-    }
+      // Check time range
+      if (wheel.schedule.startTime && wheel.schedule.endTime) {
+        return (
+          currentTime >= wheel.schedule.startTime &&
+          currentTime <= wheel.schedule.endTime
+        );
+      }
 
-    // Check date range
-    if (wheel.schedule.startDate && wheel.schedule.endDate) {
-      const startDate = new Date(wheel.schedule.startDate);
-      const endDate = new Date(wheel.schedule.endDate);
-      return now >= startDate && now <= endDate;
+      // Check date range
+      if (wheel.schedule.startDate && wheel.schedule.endDate) {
+        const startDate = new Date(wheel.schedule.startDate);
+        const endDate = new Date(wheel.schedule.endDate);
+        return now >= startDate && now <= endDate;
+      }
     }
 
     return true;
@@ -133,7 +144,7 @@ export const WheelSelector: React.FC<WheelSelectorProps> = ({
     <div className="relative z-50" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="px-5 py-3.5 bg-white/95 backdrop-blur-sm rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center gap-3 group border border-gray-100/50"
+        className="px-5 py-3.5 bg-white/95 backdrop-blur-sm rounded-2xl shadow-sm hover:shadow-md transition-all flex items-center gap-3 group border border-gray-100/50 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
       >
         {selectedWheel && isActive(selectedWheel) && (
           <motion.div
@@ -143,7 +154,7 @@ export const WheelSelector: React.FC<WheelSelectorProps> = ({
           />
         )}
         <span className="font-medium text-[15px] text-gray-900 group-hover:text-purple-700 transition-colors">
-          {selectedWheel?.name || 'Select a wheel'}
+          {selectedWheel?.name || 'Seleccionar una ruleta'}
         </span>
         <ChevronDown
           className={`h-4 w-4 text-gray-400 group-hover:text-purple-700 transition-all duration-300 ${
@@ -189,13 +200,13 @@ export const WheelSelector: React.FC<WheelSelectorProps> = ({
                         />
                         <button
                           onClick={saveEdit}
-                          className="p-1.5 hover:bg-white/80 rounded-lg transition-colors"
+                          className="p-1.5 hover:bg-white/80 rounded-lg transition-colors cursor-pointer hover:scale-110 active:scale-95"
                         >
                           <Check className="h-4 w-4 text-green-600" />
                         </button>
                         <button
                           onClick={cancelEdit}
-                          className="p-1.5 hover:bg-white/80 rounded-lg transition-colors"
+                          className="p-1.5 hover:bg-white/80 rounded-lg transition-colors cursor-pointer hover:scale-110 active:scale-95"
                         >
                           <X className="h-4 w-4 text-red-500" />
                         </button>
@@ -208,7 +219,7 @@ export const WheelSelector: React.FC<WheelSelectorProps> = ({
                             navigate(`/dashboard/wheel/${wheel.id}`);
                             setIsOpen(false);
                           }}
-                          className="flex-1 flex items-center gap-3"
+                          className="flex-1 flex items-center gap-3 cursor-pointer"
                         >
                           <div className="relative">
                             {active ? (
@@ -237,14 +248,14 @@ export const WheelSelector: React.FC<WheelSelectorProps> = ({
                               e.stopPropagation();
                               startEditing(wheel.id, wheel.name);
                             }}
-                            className="p-1.5 hover:bg-white/80 rounded-lg transition-colors"
+                            className="p-1.5 hover:bg-white/80 rounded-lg transition-colors cursor-pointer hover:scale-110 active:scale-95"
                           >
                             <Edit2 className="h-4 w-4 text-gray-500 hover:text-purple-700" />
                           </button>
                           {wheels.length > 1 && (
                             <button
                               onClick={(e) => handleDelete(wheel.id, e)}
-                              className="p-1.5 hover:bg-white/80 rounded-lg transition-colors"
+                              className="p-1.5 hover:bg-white/80 rounded-lg transition-colors cursor-pointer hover:scale-110 active:scale-95"
                             >
                               <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-500" />
                             </button>
@@ -275,13 +286,13 @@ export const WheelSelector: React.FC<WheelSelectorProps> = ({
                     />
                     <button
                       onClick={saveNewWheel}
-                      className="p-1.5 hover:bg-gray-50 rounded-lg transition-colors"
+                      className="p-1.5 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer hover:scale-110 active:scale-95"
                     >
                       <Check className="h-4 w-4 text-green-600" />
                     </button>
                     <button
                       onClick={cancelNewWheel}
-                      className="p-1.5 hover:bg-gray-50 rounded-lg transition-colors"
+                      className="p-1.5 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer hover:scale-110 active:scale-95"
                     >
                       <X className="h-4 w-4 text-red-500" />
                     </button>
@@ -290,7 +301,7 @@ export const WheelSelector: React.FC<WheelSelectorProps> = ({
               ) : (
                 <button
                   onClick={handleCreateWheel}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50/70 transition-colors rounded-xl group/create"
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50/70 transition-colors rounded-xl group/create cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
                 >
                   <p className="font-medium text-[15px] text-gray-600 group-hover/create:text-purple-700 flex items-center gap-2.5 transition-colors">
                     <Plus className="h-4 w-4" />

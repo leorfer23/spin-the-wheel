@@ -106,7 +106,7 @@ export interface WheelConfigurationProps {
   widgetConfig?: WidgetConfig;
   onUpdateWidgetConfig?: (config: any) => void;
   wheelDesignConfig?: WheelDesignConfig;
-  onUpdateWheelDesign?: (config: WheelDesignConfig) => void;
+  onUpdateWheelDesign?: (updates: Partial<WheelDesignConfig>) => void;
   onActiveSectionChange?: (section: string) => void;
   scheduleConfig?: WheelScheduleConfig;
   onUpdateScheduleConfig?: (config: WheelScheduleConfig) => void;

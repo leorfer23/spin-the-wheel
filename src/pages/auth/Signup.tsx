@@ -3,9 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { Label } from '../../components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../components/ui/card';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle, Sparkles, Zap } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const Signup: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -46,72 +45,238 @@ export const Signup: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl">Crear Cuenta</CardTitle>
-          <CardDescription>Comienza a crear increíbles ruedas giratorias</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            {error && (
-              <div className="bg-red-50 text-red-600 p-3 rounded-lg flex items-center gap-2">
-                <AlertCircle size={16} />
-                <span className="text-sm">{error}</span>
+    <div className="min-h-screen relative flex items-center justify-center overflow-hidden">
+      {/* Dynamic gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(59,130,246,0.3),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(147,51,234,0.2),transparent_50%)]" />
+      </div>
+
+      {/* Floating shapes animation */}
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          className="absolute w-64 h-64 rounded-full bg-gradient-to-r from-blue-400/20 to-purple-400/20 blur-3xl"
+          animate={{
+            x: [0, -80, 0],
+            y: [0, 60, 0],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            duration: 18,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          style={{ top: '20%', right: '15%' }}
+        />
+        <motion.div
+          className="absolute w-80 h-80 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-3xl"
+          animate={{
+            x: [0, 60, 0],
+            y: [0, -80, 0],
+            scale: [1, 0.9, 1],
+          }}
+          transition={{
+            duration: 22,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          style={{ bottom: '15%', left: '10%' }}
+        />
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="relative z-10 w-full max-w-md px-6"
+      >
+        {/* Main floating card */}
+        <div className="relative">
+          {/* Glassmorphism card */}
+          <div className="backdrop-blur-2xl bg-white/70 rounded-[2.5rem] shadow-[0_8px_40px_rgba(0,0,0,0.08)] border border-white/50 p-10">
+            
+            {/* Hero Image Placeholder */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.1, duration: 0.5 }}
+              className="mb-8 mx-auto w-full h-48 bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl flex items-center justify-center relative overflow-hidden"
+            >
+              {/* Placeholder for illustration */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10" />
+              <div className="text-center z-10">
+                <Zap className="w-12 h-12 text-orange-500 mx-auto mb-3" />
+                <p className="text-sm font-medium text-orange-600">
+                  {/* Image placeholder description */}
+                  Coloca una ilustración atractiva aquí:
+                  <br />
+                  <span className="text-xs opacity-75">
+                    Un personaje celebrando o explosión de confeti,
+                    <br />
+                    mostrando emoción por unirse
+                  </span>
+                </p>
               </div>
-            )}
-            {success && (
-              <div className="bg-green-50 text-green-600 p-3 rounded-lg flex items-center gap-2">
-                <CheckCircle size={16} />
-                <span className="text-sm">¡Cuenta creada! Redirigiendo...</span>
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Correo Electrónico</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="tu@ejemplo.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Al menos 6 caracteres"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-3">
-            <Button type="submit" className="w-full" disabled={loading || success}>
-              {loading ? 'Creando cuenta...' : 'Registrarse'}
-            </Button>
-            <p className="text-sm text-center text-gray-600">
+            </motion.div>
+
+            {/* Welcome text */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="text-center mb-8"
+            >
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Comienza a girar hoy
+              </h1>
+              <p className="text-gray-500 text-sm">
+                Crea ruletas atractivas para tu tienda
+              </p>
+            </motion.div>
+
+            {/* Success/Error messages */}
+            <AnimatePresence mode="wait">
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  className="mb-6 p-4 bg-red-50 text-red-600 rounded-2xl text-sm text-center"
+                >
+                  {error}
+                </motion.div>
+              )}
+              {success && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="mb-6 p-4 bg-green-50 text-green-600 rounded-2xl text-sm text-center flex items-center justify-center gap-2"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  ¡Éxito! Redirigiendo al panel...
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Email input */}
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+              >
+                <Input
+                  type="email"
+                  placeholder="Correo electrónico"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full h-14 px-5 text-base bg-gray-50/50 border-gray-200/50 rounded-2xl placeholder:text-gray-400 focus:bg-white focus:border-orange-400 transition-all"
+                  required
+                />
+              </motion.div>
+
+              {/* Password input */}
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.35, duration: 0.5 }}
+              >
+                <Input
+                  type="password"
+                  placeholder="Contraseña (mín 6 caracteres)"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full h-14 px-5 text-base bg-gray-50/50 border-gray-200/50 rounded-2xl placeholder:text-gray-400 focus:bg-white focus:border-orange-400 transition-all"
+                  required
+                />
+              </motion.div>
+
+              {/* Confirm Password input */}
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+              >
+                <Input
+                  type="password"
+                  placeholder="Confirmar contraseña"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full h-14 px-5 text-base bg-gray-50/50 border-gray-200/50 rounded-2xl placeholder:text-gray-400 focus:bg-white focus:border-orange-400 transition-all"
+                  required
+                />
+              </motion.div>
+
+              {/* Terms notice */}
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.42, duration: 0.5 }}
+                className="text-center"
+              >
+                <p className="text-xs text-gray-500">
+                  Al registrarte, aceptas nuestros{' '}
+                  <a href="#" className="text-purple-600 hover:text-purple-700">Términos</a> y{' '}
+                  <a href="#" className="text-purple-600 hover:text-purple-700">Privacidad</a>
+                </p>
+              </motion.div>
+
+              {/* Submit button */}
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.45, duration: 0.5 }}
+              >
+                <Button
+                  type="submit"
+                  disabled={loading || success}
+                  className="w-full h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium text-base rounded-2xl shadow-lg shadow-blue-600/20 transition-all duration-200 group"
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    {loading ? (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      >
+                        <Sparkles className="w-5 h-5" />
+                      </motion.div>
+                    ) : success ? (
+                      <>
+                        <CheckCircle className="w-5 h-5" />
+                        Cuenta creada
+                      </>
+                    ) : (
+                      <>
+                        Crear cuenta
+                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
+                  </span>
+                </Button>
+              </motion.div>
+            </form>
+          </div>
+
+          {/* Bottom card for login link */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="mt-6 backdrop-blur-xl bg-white/60 rounded-3xl p-6 text-center border border-white/50 shadow-lg"
+          >
+            <p className="text-gray-600">
               ¿Ya tienes una cuenta?{' '}
-              <Link to="/login" className="text-purple-600 hover:underline">
+              <Link 
+                to="/login" 
+                className="text-purple-600 hover:text-purple-700 font-medium transition-colors"
+              >
                 Iniciar sesión
               </Link>
             </p>
-          </CardFooter>
-        </form>
-      </Card>
+          </motion.div>
+        </div>
+      </motion.div>
     </div>
   );
 };

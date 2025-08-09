@@ -46,6 +46,44 @@ export const BackgroundSettings: React.FC<BackgroundSettingsProps> = ({
         </div>
       </div>
 
+      {/* Background Color Controls */}
+      {wheelDesign.backgroundStyle === 'solid' && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="overflow-hidden"
+        >
+          <ColorInput
+            label="Color de Fondo"
+            value={wheelDesign.backgroundColor}
+            onChange={(value) => onUpdateDesign({ backgroundColor: value })}
+          />
+        </motion.div>
+      )}
+
+      {wheelDesign.backgroundStyle === 'gradient' && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="space-y-4 overflow-hidden"
+        >
+          <div className="grid grid-cols-2 gap-4">
+            <ColorInput
+              label="Color Inicial"
+              value={wheelDesign.backgroundGradientFrom}
+              onChange={(value) => onUpdateDesign({ backgroundGradientFrom: value })}
+            />
+            <ColorInput
+              label="Color Final"
+              value={wheelDesign.backgroundGradientTo}
+              onChange={(value) => onUpdateDesign({ backgroundGradientTo: value })}
+            />
+          </div>
+        </motion.div>
+      )}
+
       <div className="grid grid-cols-2 gap-6">
         <ColorInput
           label="Color de Sombra"

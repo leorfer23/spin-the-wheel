@@ -50,7 +50,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email,
       password,
     });
-    if (error) throw error;
+    if (error) {
+      if (error.message.includes('already registered')) {
+        throw new Error('Este email ya está registrado');
+      }
+      throw new Error(error.message || 'Error al crear la cuenta');
+    }
   };
 
   const signIn = async (email: string, password: string) => {
@@ -58,7 +63,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email,
       password,
     });
-    if (error) throw error;
+    if (error) {
+      if (error.message.includes('Invalid login credentials')) {
+        throw new Error('Email o contraseña incorrectos');
+      }
+      throw new Error(error.message || 'Error al iniciar sesión');
+    }
   };
 
   const signOut = async () => {

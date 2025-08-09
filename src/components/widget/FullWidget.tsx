@@ -1,17 +1,21 @@
 import React, { useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FloatingHandle } from './FloatingHandle';
-import { EmailCapture } from './EmailCapture';
-import { FortuneWheel } from '../wheel/FortuneWheel';
+import { UnifiedWheelDialog } from './UnifiedWheelDialog';
 import { CelebrationPopup } from '../CelebrationPopup';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X } from 'lucide-react';
 
 export interface WidgetConfig {
   // Floating Handle
+  handleType?: 'floating' | 'tab' | 'bubble';
   handlePosition?: 'left' | 'right';
   handleText?: string;
   handleBackgroundColor?: string;
   handleTextColor?: string;
+  handleIcon?: string;
+  handleSize?: 'small' | 'medium' | 'large';
+  handleAnimation?: 'none' | 'pulse' | 'bounce' | 'rotate';
+  handleBorderRadius?: string;
   
   // Email Capture
   captureImageUrl?: string;
@@ -19,9 +23,10 @@ export interface WidgetConfig {
   captureSubtitle?: string;
   captureButtonText?: string;
   capturePrivacyText?: string;
+  captureFormat?: 'instant' | 'minimal' | 'detailed';
   
   // Wheel
-  segments: Array<{ label: string; value: string; color: string; weight: number }>;
+  segments: Array<{ id?: string; label: string; value: string; color: string; weight: number }>;
   spinDuration?: number;
   
   // General
@@ -36,7 +41,7 @@ interface FullWidgetProps {
   onSpinComplete?: (result: any) => void;
 }
 
-type WidgetStage = 'hidden' | 'email' | 'wheel' | 'celebration';
+type WidgetStage = 'hidden' | 'unified' | 'celebration';
 
 export const FullWidget: React.FC<FullWidgetProps> = ({
   config,
@@ -45,18 +50,22 @@ export const FullWidget: React.FC<FullWidgetProps> = ({
   onSpinComplete
 }) => {
   const [stage, setStage] = useState<WidgetStage>('hidden');
-  const [email, setEmail] = useState('');
   const [spinResult, setSpinResult] = useState<any>(null);
   const [showAttentionCue, setShowAttentionCue] = useState(true);
+  
+  console.log('[FullWidget] Rendering with config:', {
+    handleType: config.handleType,
+    handlePosition: config.handlePosition,
+    stage: stage
+  });
 
   const handleOpen = () => {
-    setStage('email');
+    setStage('unified');
   };
 
   const handleEmailSubmit = (email: string, marketingConsent: boolean) => {
-    setEmail(email);
     onEmailSubmit?.(email, marketingConsent);
-    setStage('wheel');
+    // Stay in unified stage - the wheel will unlock within the same dialog
   };
 
   const handleSpinComplete = useCallback((result: any) => {
@@ -75,7 +84,6 @@ export const FullWidget: React.FC<FullWidgetProps> = ({
     setStage('hidden');
     // Reset for next time
     setTimeout(() => {
-      setEmail('');
       setSpinResult(null);
     }, 300);
   };
@@ -86,70 +94,79 @@ export const FullWidget: React.FC<FullWidgetProps> = ({
         <>
           <FloatingHandle
             onClick={handleOpen}
+            type={config.handleType}
             position={config.handlePosition}
             text={config.handleText}
             backgroundColor={config.handleBackgroundColor}
             textColor={config.handleTextColor}
+            icon={config.handleIcon}
+            size={config.handleSize}
+            animation={config.handleAnimation}
+            borderRadius={config.handleBorderRadius}
           />
           
-          {/* Attention-grabbing arrows */}
+
+          
+          {/* Enhanced pulsing glow effect */}
           {showAttentionCue && (
-            <div className={`fixed top-1/2 -translate-y-1/2 z-40 ${
-              config.handlePosition === 'right' ? 'right-20' : 'left-20'
-            }`}>
+            <>
+              {/* Primary glow */}
               <motion.div
-                initial={{ opacity: 0, x: config.handlePosition === 'right' ? 20 : -20 }}
+                className={`fixed z-30 pointer-events-none ${
+                  config.handleType === 'bubble' 
+                    ? `bottom-8 ${config.handlePosition === 'right' ? 'right-8' : 'left-8'}`
+                    : `top-1/2 -translate-y-1/2 ${config.handlePosition === 'right' ? 'right-0' : 'left-0'}`
+                }`}
+                initial={{ opacity: 0 }}
                 animate={{ 
-                  opacity: [0, 1, 1, 0],
-                  x: config.handlePosition === 'right' ? [20, 0, 0, -10] : [-20, 0, 0, 10]
+                  opacity: [0, 0.5, 0],
+                  scale: [0.8, 1.2, 0.8]
                 }}
                 transition={{
                   duration: 2,
-                  times: [0, 0.2, 0.8, 1],
-                  repeat: 2,
-                  repeatDelay: 0.5
+                  repeat: 3,
+                  repeatType: "loop"
                 }}
                 onAnimationComplete={() => setShowAttentionCue(false)}
-                className="flex items-center gap-2"
               >
-                {config.handlePosition === 'right' ? (
-                  <>
-                    <span className="text-purple-600 font-semibold text-sm">Click here!</span>
-                    <ChevronRight className="w-5 h-5 text-purple-600" />
-                    <ChevronRight className="w-5 h-5 text-purple-600 -ml-3" />
-                    <ChevronRight className="w-5 h-5 text-purple-600 -ml-3" />
-                  </>
-                ) : (
-                  <>
-                    <ChevronLeft className="w-5 h-5 text-purple-600" />
-                    <ChevronLeft className="w-5 h-5 text-purple-600 -mr-3" />
-                    <ChevronLeft className="w-5 h-5 text-purple-600 -mr-3" />
-                    <span className="text-purple-600 font-semibold text-sm">Click here!</span>
-                  </>
-                )}
+                <div 
+                  className={`${
+                    config.handleType === 'bubble' ? 'w-24 h-24' : 'w-32 h-32'
+                  } rounded-full blur-2xl`}
+                  style={{ backgroundColor: config.handleBackgroundColor || '#4F46E5' }}
+                />
               </motion.div>
-            </div>
-          )}
-          
-          {/* Pulsing glow effect */}
-          {showAttentionCue && (
-            <motion.div
-              className={`fixed top-1/2 -translate-y-1/2 z-30 pointer-events-none ${
-                config.handlePosition === 'right' ? 'right-0' : 'left-0'
-              }`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0.3, 0] }}
-              transition={{
-                duration: 1.5,
-                repeat: 4,
-                repeatType: "loop"
-              }}
-            >
-              <div 
-                className="w-32 h-32 rounded-full blur-xl"
-                style={{ backgroundColor: config.handleBackgroundColor || '#4F46E5' }}
-              />
-            </motion.div>
+              
+              {/* Secondary ripple effect */}
+              <motion.div
+                className={`fixed z-29 pointer-events-none ${
+                  config.handleType === 'bubble' 
+                    ? `bottom-8 ${config.handlePosition === 'right' ? 'right-8' : 'left-8'}`
+                    : `top-1/2 -translate-y-1/2 ${config.handlePosition === 'right' ? 'right-0' : 'left-0'}`
+                }`}
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ 
+                  opacity: [0, 0.3, 0],
+                  scale: [0.5, 1.5, 1.5]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: 3,
+                  repeatType: "loop",
+                  delay: 0.5
+                }}
+              >
+                <div 
+                  className={`${
+                    config.handleType === 'bubble' ? 'w-24 h-24' : 'w-32 h-32'
+                  } rounded-full border-2`}
+                  style={{ 
+                    borderColor: config.handleBackgroundColor || '#4F46E5',
+                    opacity: 0.3
+                  }}
+                />
+              </motion.div>
+            </>
           )}
         </>
       )}
@@ -168,7 +185,7 @@ export const FullWidget: React.FC<FullWidgetProps> = ({
             />
             
             <motion.div
-              className="relative bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-auto"
+              className="relative bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-auto"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
@@ -181,51 +198,12 @@ export const FullWidget: React.FC<FullWidgetProps> = ({
                 <X className="w-5 h-5" />
               </button>
 
-              {stage === 'email' && (
-                <div className="p-8">
-                  <EmailCapture
-                    onSubmit={handleEmailSubmit}
-                    imageUrl={config.captureImageUrl}
-                    title={config.captureTitle}
-                    subtitle={config.captureSubtitle}
-                    buttonText={config.captureButtonText}
-                    privacyText={config.capturePrivacyText}
-                    primaryColor={config.primaryColor}
-                  />
-                </div>
-              )}
-
-              {stage === 'wheel' && (
-                <div className="p-8">
-                  <h2 className="text-2xl font-bold text-center mb-6">
-                    Spin the Wheel, {email.split('@')[0]}!
-                  </h2>
-                  <div className="mx-auto" style={{ maxWidth: '500px' }}>
-                    <FortuneWheel
-                      config={{
-                        segments: config.segments.map((seg, idx) => ({
-                          id: `seg-${idx}`,
-                          ...seg
-                        })),
-                        dimensions: {
-                          diameter: 400,
-                          innerRadius: 60,
-                          pegRingWidth: 30,
-                          pegSize: 8,
-                          pegCount: 24
-                        },
-                        spinConfig: {
-                          duration: (config.spinDuration || 5000) / 1000,
-                          easing: 'ease-out',
-                          minRotations: 3,
-                          maxRotations: 5,
-                          allowDrag: true
-                        }
-                      }}
-                      onSpinComplete={handleSpinComplete}
-                    />
-                  </div>
-                </div>
+              {stage === 'unified' && (
+                <UnifiedWheelDialog
+                  config={config}
+                  onEmailSubmit={handleEmailSubmit}
+                  onSpinComplete={handleSpinComplete}
+                />
               )}
 
               {stage === 'celebration' && spinResult && (

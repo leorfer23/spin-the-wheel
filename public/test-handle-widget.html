@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Floating Handle Widget</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 200vh; /* Make page scrollable for testing */
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        .test-config {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+        .demo-content {
+            margin: 40px 0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Floating Handle Widget Test</h1>
+        
+        <div class="section">
+            <h2>Test Configuration</h2>
+            <div class="test-config">
+                <strong>Mode:</strong> Handle (Floating Button)<br>
+                <strong>Trigger:</strong> Immediate<br>
+                <strong>Position:</strong> Right<br>
+                <strong>Type:</strong> Floating/Tab/Bubble
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Expected Behavior</h2>
+            <ul>
+                <li>✅ A floating handle should appear on the right side of the screen</li>
+                <li>✅ The handle should be visible immediately on page load</li>
+                <li>✅ Clicking the handle should open the wheel widget</li>
+                <li>✅ The handle should have a pulse animation</li>
+                <li>✅ The handle position should respect the configuration</li>
+            </ul>
+        </div>
+
+        <div class="demo-content">
+            <h2>Demo Content</h2>
+            <p>This is a demo page to test the floating handle functionality of the SpinWheel widget.</p>
+            <p>The widget should display a floating button on the side of the page that users can click to open the spin wheel.</p>
+            
+            <h3>Lorem Ipsum Content for Scrolling</h3>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+            <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+            <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+        </div>
+
+        <div class="section">
+            <h2>Widget Status</h2>
+            <div id="status">
+                <p>⏳ Loading widget...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SpinWheel Widget Script with Handle Mode -->
+    <script 
+        src="http://localhost:5173/widget.js" 
+        data-wheel-id="test-wheel-123"
+        data-trigger="immediate"
+        data-trigger-mode="handle"
+        data-position="right"
+        data-test="true">
+    </script>
+
+    <script>
+        // Monitor widget loading
+        setTimeout(() => {
+            const statusEl = document.getElementById('status');
+            if (window.CoolPopsWidget) {
+                statusEl.innerHTML = '<p style="color: green;">✅ Widget loaded successfully! Look for the floating handle on the right side.</p>';
+            } else {
+                statusEl.innerHTML = '<p style="color: red;">❌ Widget failed to load. Check console for errors.</p>';
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
