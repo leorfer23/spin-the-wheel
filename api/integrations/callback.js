@@ -33,6 +33,19 @@ module.exports = async (req, res) => {
     const tiendaNubeAuth = new TiendaNubeAuthService();
     const supabase = getSupabaseClient();
     
+    // Test Supabase connection
+    console.log('Testing Supabase connection...');
+    const { data: testData, error: testError } = await supabase
+      .from('stores')
+      .select('count')
+      .limit(1);
+    
+    if (testError) {
+      console.error('Supabase connection test failed:', testError);
+    } else {
+      console.log('Supabase connection successful');
+    }
+    
     const { code, state, error } = req.query;
 
     if (error) {
@@ -55,6 +68,13 @@ module.exports = async (req, res) => {
     }
 
     const { storeName, storeId, userId } = stateData;
+    
+    console.log('OAuth state data:', {
+      storeName,
+      storeId,
+      userId,
+      fullStateData: stateData
+    });
 
     // Exchange code for token
     console.log('Exchanging code for token...');
@@ -122,22 +142,48 @@ module.exports = async (req, res) => {
       } else {
         // Create new store
         console.log('Creating new store...');
+        
+        // Log the data we're trying to insert
+        const storeData = {
+          user_id: userId,
+          store_name: finalStoreName,
+          platform: 'tienda_nube',
+          store_url: storeInfo?.store_domain || '',
+          plan_tier: 'free',
+          is_active: true,
+        };
+        
+        console.log('Store data to insert:', {
+          ...storeData,
+          user_id_type: typeof userId,
+          user_id_value: userId,
+          has_user_id: !!userId
+        });
+        
         const { data: newStore, error: storeError } = await supabase
           .from('stores')
-          .insert({
-            user_id: userId,
-            store_name: finalStoreName,
-            platform: 'tienda_nube',
-            store_url: storeInfo?.store_domain || '',
-            plan_tier: 'free',
-            is_active: true,
-          })
+          .insert(storeData)
           .select()
           .single();
 
         if (storeError) {
-          console.error('Store creation error:', storeError);
-          throw new Error(`Failed to create store: ${storeError.message}`);
+          console.error('Store creation error details:', {
+            error: storeError,
+            message: storeError.message,
+            details: storeError.details,
+            hint: storeError.hint,
+            code: storeError.code,
+            stringified: JSON.stringify(storeError)
+          });
+          
+          // Try to extract meaningful error message
+          const errorMessage = storeError.message || 
+                              storeError.details || 
+                              storeError.hint || 
+                              JSON.stringify(storeError) || 
+                              'Unknown database error';
+          
+          throw new Error(`Failed to create store: ${errorMessage}`);
         }
 
         console.log('Store created successfully:', newStore);
