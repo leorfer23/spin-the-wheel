@@ -140,6 +140,7 @@ export const useWheelStore = create<WheelState>()(
       
       // Create a new wheel
       createWheel: async (storeId: string, name: string) => {
+        console.log('[wheelStore] createWheel called with storeId:', storeId, 'name:', name);
         set({ isLoading: true, error: null });
         
         const defaultSegments: Segment[] = [
@@ -151,22 +152,29 @@ export const useWheelStore = create<WheelState>()(
         ];
         
         try {
+          console.log('[wheelStore] Calling WheelService.createWheel');
           const response = await WheelService.createWheel(storeId, {
             name,
             config: { segments: defaultSegments } as any,
             is_active: true
           });
           
+          console.log('[wheelStore] WheelService.createWheel response:', response);
+          
           if (response.success && response.data) {
             toast.success('¡Ruleta creada exitosamente!');
             
             // Reload wheels and select the new one
+            console.log('[wheelStore] Reloading wheels after creation');
             await get().loadWheels(storeId);
             get().selectWheel(response.data.id);
+            set({ isLoading: false });
           } else {
+            console.error('[wheelStore] Creation failed, response:', response);
             throw new Error(response.error || 'Error al crear la ruleta');
           }
         } catch (error) {
+          console.error('[wheelStore] Create wheel error:', error);
           toast.error(error instanceof Error ? error.message : 'Error al crear la ruleta');
           set({ error: error as Error, isLoading: false });
         }

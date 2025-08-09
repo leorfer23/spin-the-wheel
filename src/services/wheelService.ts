@@ -54,9 +54,8 @@ export class WheelService {
       
       // Build the new structure - only include fields that exist in the schema
       const insertData = {
-        id: restData.id, // UUID
         tiendanube_store_id: storeId, // The store ID
-        name: restData.name || 'New Wheel',
+        name: restData.name || 'Nueva Ruleta',
         segments_config: segments,
         style_config: config?.style || {},
         wheel_handle_config: config?.wheelHandle || {},

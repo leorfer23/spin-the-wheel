@@ -49,7 +49,9 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
 
   // Load wheels when store is selected (only once per store change)
   useEffect(() => {
+    console.log('[WheelProduct] useEffect - tiendanubeStoreId:', tiendanubeStoreId, 'user:', user?.id);
     if (tiendanubeStoreId && user) {
+      console.log('[WheelProduct] Loading wheels for tiendanubeStoreId:', tiendanubeStoreId);
       loadWheels(tiendanubeStoreId);
     }
   }, [tiendanubeStoreId, user]); // Using tiendanubeStoreId instead of selectedStoreId
@@ -103,7 +105,7 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
     pegGlowColor: '#FFD700',
     
     // Center Button
-    centerButtonText: 'SPIN',
+    centerButtonText: 'GIRAR',
     centerButtonTextSize: 'medium',
     centerButtonBackgroundColor: '#8B5CF6',
     centerButtonTextColor: '#FFFFFF',
@@ -150,10 +152,11 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
   };
 
   // Handle create wheel
-  const handleCreateWheel = (name?: string) => {
+  const handleCreateWheel = async (name?: string) => {
     if (tiendanubeStoreId) {
-      const wheelName = name || 'New Campaign';
-      createWheel(tiendanubeStoreId, wheelName);
+      const wheelName = name || 'Nueva Campaña';
+      console.log('[WheelProduct] Creating wheel with tiendanubeStoreId:', tiendanubeStoreId, 'name:', wheelName);
+      await createWheel(tiendanubeStoreId, wheelName);
       // Return a dummy WheelConfig since the actual creation is async
       // The real wheel will be loaded after creation
       return {
@@ -167,19 +170,21 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
         wheelDesign: {},
         widgetConfig: {}
       };
+    } else {
+      console.error('[WheelProduct] No tiendanubeStoreId available. selectedStoreId:', selectedStoreId, 'selectedStore:', selectedStore);
+      // Return a dummy config if no store selected
+      return {
+        id: 'temp-' + Date.now(),
+        name: name || 'Nueva Campaña',
+        segments: [],
+        schedule: {
+          enabled: false,
+          timezone: 'America/Argentina/Buenos_Aires'
+        } as WheelScheduleConfig,
+        wheelDesign: {},
+        widgetConfig: {}
+      };
     }
-    // Return a dummy config if no store selected
-    return {
-      id: 'temp-' + Date.now(),
-      name: name || 'New Campaign',
-      segments: [],
-      schedule: {
-        enabled: false,
-        timezone: 'America/Argentina/Buenos_Aires'
-      } as WheelScheduleConfig,
-      wheelDesign: {},
-      widgetConfig: {}
-    };
   };
 
   if (isLoading && wheels.length === 0) {
@@ -187,7 +192,7 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-500">Loading wheels...</p>
+          <p className="text-gray-500">Cargando ruletas...</p>
         </div>
       </div>
     );
@@ -197,9 +202,9 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <p className="text-red-600 mb-4">Failed to load wheels</p>
+          <p className="text-red-600 mb-4">Error al cargar las ruletas</p>
           <p className="text-gray-500 text-sm">
-            {error?.message || "Please try again later"}
+            {error?.message || "Por favor, intenta nuevamente más tarde"}
           </p>
         </div>
       </div>
@@ -211,7 +216,10 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
       <div className="flex items-center justify-center h-full w-full p-8">
         <div
           className="relative group cursor-pointer w-full max-w-[600px] aspect-square flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-transform duration-300"
-          onClick={() => handleCreateWheel()}
+          onClick={async () => {
+            console.log('[WheelProduct] Creating wheel via click');
+            await handleCreateWheel();
+          }}
         >
           {/* Purple glowing ring effect */}
           <div className="absolute inset-0 flex items-center justify-center">
@@ -307,10 +315,10 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
             <div className="bg-gray-900/95 backdrop-blur text-white px-6 py-3 rounded-lg shadow-xl transform -translate-y-4 group-hover:translate-y-0 transition-transform duration-300 border border-purple-500/30">
               <p className="text-lg font-medium">
-                Click to create your first wheel
+                Haz clic para crear tu primera ruleta
               </p>
               <p className="text-sm text-gray-300 mt-1">
-                Start engaging your customers!
+                ¡Comienza a interactuar con tus clientes!
               </p>
             </div>
           </div>
