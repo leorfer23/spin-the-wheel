@@ -1,16 +1,11 @@
 {
   "functions": {
     "api/**/*.ts": {
-      "maxDuration": 10
+      "maxDuration": 10,
+      "runtime": "nodejs20.x"
     }
   },
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "framework": "vite",
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    }
-  ]
+  "framework": "vite"
 }

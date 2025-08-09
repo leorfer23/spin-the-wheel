@@ -1,5 +1,5 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { TiendaNubeAuthService } from '../../src/services/integrations/tiendaNubeAuth';
+import type { VercelRequest, VercelResponse } from '@vercel/node';  
+import { TiendaNubeAuthService } from '../../src/services/integrations/tiendanube/authService';
 import { createClient } from '@supabase/supabase-js';
 
 // Initialize Supabase client
@@ -19,7 +19,7 @@ function getSupabaseClient() {
   });
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+const handler = async (req: VercelRequest, res: VercelResponse) => {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -201,4 +201,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       error instanceof Error ? error.message : 'callback_failed'
     )}`);
   }
-}
+};
+
+export default handler;
