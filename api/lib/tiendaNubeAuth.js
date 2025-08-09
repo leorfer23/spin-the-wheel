@@ -2,7 +2,7 @@
 
 class TiendaNubeAuthService {
   constructor() {
-    this.clientId = process.env.VITE_TIENDANUBE_CLIENT_ID || '';
+    this.clientId = process.env.VITE_TIENDANUBE_APP_ID || process.env.VITE_TIENDANUBE_CLIENT_ID || '';
     this.clientSecret = process.env.VITE_TIENDANUBE_CLIENT_SECRET || '';
     this.redirectUri = this.getRedirectUri();
   }
@@ -22,7 +22,7 @@ class TiendaNubeAuthService {
 
   validateConfig() {
     if (!this.clientId) {
-      console.error('VITE_TIENDANUBE_CLIENT_ID is not set');
+      console.error('VITE_TIENDANUBE_APP_ID is not set');
       return false;
     }
     if (!this.clientSecret) {

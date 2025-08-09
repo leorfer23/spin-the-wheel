@@ -124,20 +124,12 @@ export const PreviewCarousel: React.FC<PreviewCarouselProps> = ({
       content: (
         <div className="w-full h-full flex items-center justify-center p-8">
           <div 
-            className="relative rounded-3xl shadow-2xl transition-all duration-300"
+            className="relative transition-all duration-300"
             style={{
               width: '580px',
               height: '580px',
               padding: '40px',
-              background: wheelDesignConfig?.backgroundStyle === 'gradient' && wheelDesignConfig?.backgroundGradientFrom && wheelDesignConfig?.backgroundGradientTo
-                ? `linear-gradient(135deg, ${wheelDesignConfig.backgroundGradientFrom}, ${wheelDesignConfig.backgroundGradientTo})`
-                : wheelDesignConfig?.backgroundStyle === 'transparent'
-                ? 'transparent'
-                : wheelDesignConfig?.backgroundColor || '#FFFFFF',
-              backgroundImage: wheelDesignConfig?.backgroundImage ? `url(${wheelDesignConfig.backgroundImage})` : undefined,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
+              background: 'transparent',
               opacity: wheelDesignConfig?.backgroundOpacity || 1
             }}
           >

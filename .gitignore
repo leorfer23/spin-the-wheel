@@ -58,3 +58,4 @@ Thumbs.db
 
 # Serena cache (large files)
 .serena/
+.vercel
