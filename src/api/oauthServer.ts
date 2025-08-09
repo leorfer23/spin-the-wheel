@@ -125,7 +125,12 @@ export function oauthAPIPlugin(): Plugin {
           req.method === "GET"
         ) {
           try {
-            const url = new URL(req.url, `http://localhost:5173`);
+            const baseUrl = process.env.VERCEL_URL 
+              ? `https://${process.env.VERCEL_URL}`
+              : process.env.NODE_ENV === 'production' 
+                ? 'https://www.rooleta.com' 
+                : 'http://localhost:5173';
+            const url = new URL(req.url, baseUrl);
             const code = url.searchParams.get("code");
             const state = url.searchParams.get("state");
             const error = url.searchParams.get("error");

@@ -25,8 +25,11 @@
 
   // Detect API URL from script source
   const scriptSrc = currentScript?.src || '';
-  const isLocalScript = scriptSrc.includes('localhost:5173');
-  const detectedApiUrl = isLocalScript ? 'http://localhost:5173' : 'https://app.coolpops.com';
+  const isLocalScript = scriptSrc.includes('localhost');
+  const isProduction = scriptSrc.includes('rooleta.com') || scriptSrc.includes('vercel.app');
+  const detectedApiUrl = isProduction ? 'https://www.rooleta.com' : 
+                         isLocalScript ? `${window.location.protocol}//${window.location.host}` : 
+                         'https://www.rooleta.com';
   
   // Configuration
   const config = {

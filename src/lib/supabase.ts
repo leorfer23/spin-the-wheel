@@ -54,6 +54,25 @@ export const supabase = new Proxy({} as SupabaseClient<Database>, {
           return mockQueryBuilder;
         };
       }
+      // Mock auth object for when Supabase is not configured
+      if (prop === 'auth') {
+        return {
+          getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+          onAuthStateChange: (callback: any) => {
+            // Call the callback immediately with null session
+            if (callback) {
+              callback('INITIAL_SESSION', null);
+            }
+            // Return unsubscribe function
+            return { data: { subscription: { unsubscribe: () => {} } } };
+          },
+          signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: new Error('Supabase not configured') }),
+          signUp: () => Promise.resolve({ data: { user: null, session: null }, error: new Error('Supabase not configured') }),
+          signOut: () => Promise.resolve({ error: null }),
+          resetPasswordForEmail: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+          updateUser: () => Promise.resolve({ data: { user: null }, error: new Error('Supabase not configured') }),
+        };
+      }
       return () => Promise.resolve({ data: null, error: null });
     }
     return client[prop as keyof SupabaseClient<Database>];

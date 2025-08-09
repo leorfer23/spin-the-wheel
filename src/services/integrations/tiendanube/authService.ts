@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+import { getOAuthRedirectUri } from '../../../utils/env';
 
 export interface AuthTokens {
   access_token: string;
@@ -26,7 +27,7 @@ export class TiendaNubeAuthService {
       this.config = {
         appId: process.env.VITE_TIENDANUBE_APP_ID || '19912',
         clientSecret: process.env.VITE_TIENDANUBE_CLIENT_SECRET || '',
-        redirectUri: process.env.VITE_REDIRECT_URI || 'http://localhost:5173/api/integrations/callback',
+        redirectUri: process.env.VITE_REDIRECT_URI || getOAuthRedirectUri(),
         authBaseUrl: 'https://www.tiendanube.com',
         apiBaseUrl: 'https://api.tiendanube.com/v1',
       };
@@ -35,7 +36,7 @@ export class TiendaNubeAuthService {
       this.config = {
         appId: (import.meta.env?.VITE_TIENDANUBE_APP_ID as string) || '19912',
         clientSecret: (import.meta.env?.VITE_TIENDANUBE_CLIENT_SECRET as string) || '',
-        redirectUri: (import.meta.env?.VITE_REDIRECT_URI as string) || 'http://localhost:5173/api/integrations/callback',
+        redirectUri: (import.meta.env?.VITE_REDIRECT_URI as string) || getOAuthRedirectUri(),
         authBaseUrl: 'https://www.tiendanube.com',
         apiBaseUrl: 'https://api.tiendanube.com/v1',
       };
@@ -170,7 +171,7 @@ export class TiendaNubeAuthService {
       console.log('Store info response:', {
         status: response.status,
         statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries())
+        headers: response.headers
       });
 
       if (!response.ok) {
