@@ -47,7 +47,175 @@ export function widgetAPIPlugin(): Plugin {
           return;
         }
         
-        // GET /api/widget/store/:storeId/active-wheel
+        // GET /api/widget/store/:storeId/active-wheels (plural - returns all active wheels)
+        if (req.url?.match(/^\/api\/widget\/store\/[^\/]+\/active-wheels/) && req.method === 'GET') {
+          const urlParts = req.url.split('?');
+          const matches = urlParts[0].match(/\/api\/widget\/store\/([^\/]+)\/active-wheels/);
+          const storeId = matches?.[1] || '';
+          
+          console.log('[DevServer] Active wheels endpoint called');
+          console.log('[DevServer] Store ID:', storeId);
+          
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+          res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Store-ID');
+          res.setHeader('Cache-Control', 'public, max-age=300');
+          
+          try {
+            // Query all active wheels for this store
+            const { data: wheels, error } = await getSupabaseClient()!
+              .from('wheels')
+              .select('*')
+              .eq('tiendanube_store_id', storeId)
+              .eq('is_active', true)
+              .order('created_at', { ascending: false });
+            
+            console.log('[DevServer] Found', wheels?.length || 0, 'active wheels');
+            
+            if (error || !wheels || wheels.length === 0) {
+              res.statusCode = 404;
+              res.end(JSON.stringify({ error: 'No active wheels found for this store' }));
+              return;
+            }
+            
+            // Transform all wheels to widget format
+            const widgetConfigs = wheels.map(wheel => {
+              const styleConfig = (wheel.style_config || {}) as any;
+              
+              return {
+                id: wheel.id,
+                name: wheel.name,
+                storeId: storeId,
+                priority: wheel.priority || 0,
+                created_at: wheel.created_at,
+                schedule_config: wheel.schedule_config || { enabled: false },
+                wheelData: {
+                  id: wheel.id,
+                  name: wheel.name,
+                  segments: wheel.segments_config || [],
+                  promotionalMessage: wheel.promotional_message || 'TODAY ONLY: Double rewards on all prizes!',
+                  style: {
+                    size: styleConfig.size || styleConfig.wheelSize || wheel.wheelSize || 400,
+                    backgroundColor: styleConfig.backgroundColor || '#F3F4F6',
+                    borderColor: styleConfig.borderColor || styleConfig.wheelBorderColor || '#E5E7EB',
+                    borderWidth: styleConfig.borderWidth || styleConfig.wheelBorderWidth || 8,
+                    centerCircleColor: styleConfig.centerCircleColor || styleConfig.centerButtonBackgroundColor || '#8B5CF6',
+                    centerCircleSize: styleConfig.centerCircleSize || styleConfig.centerButtonSize || 100,
+                    pointerColor: styleConfig.pointerColor || '#EF4444',
+                    pointerStyle: styleConfig.pointerStyle || 'triangle',
+                    fontFamily: styleConfig.fontFamily || 'Arial, sans-serif',
+                    fontSize: styleConfig.fontSize || 16,
+                    ...styleConfig,
+                    ...((!styleConfig.size && !styleConfig.wheelSize) ? { size: 400 } : {}),
+                    ...((!styleConfig.centerCircleSize && !styleConfig.centerButtonSize) ? { centerCircleSize: 100 } : {})
+                  },
+                  physics: wheel.physics || {
+                    spinDuration: 4000,
+                    spinEasing: 'ease-out',
+                    minSpins: 3,
+                    maxSpins: 5,
+                    slowdownRate: 0.98
+                  }
+                },
+                handleConfig: (() => {
+                  const handleConfig = (wheel.wheel_handle_config || wheel.handle_config || {}) as any;
+                  
+                  return {
+                    type: handleConfig.handleType || handleConfig.type || 'floating',
+                    style: {
+                      position: handleConfig.handlePosition || handleConfig.position || 'right',
+                      backgroundColor: handleConfig.handleBackgroundColor || handleConfig.backgroundColor || '#8B5CF6',
+                      textColor: handleConfig.handleTextColor || handleConfig.textColor || '#FFFFFF',
+                      borderRadius: handleConfig.handleBorderRadius || handleConfig.borderRadius || '9999px',
+                      padding: handleConfig.padding || '20px',
+                      fontSize: handleConfig.fontSize || 18,
+                      customCSS: handleConfig.customCSS || ''
+                    },
+                    text: handleConfig.handleText || handleConfig.text || '¡Gana Premios!',
+                    icon: handleConfig.handleIcon || handleConfig.icon || '🎁',
+                    size: handleConfig.handleSize || handleConfig.size || 'medium',
+                    animation: handleConfig.handleAnimation || {
+                      type: handleConfig.animationType || 'pulse',
+                      duration: handleConfig.animationDuration || 2000,
+                      delay: handleConfig.animationDelay || 0
+                    }
+                  };
+                })(),
+                emailCaptureConfig: (() => {
+                  const emailConfig = (wheel.email_capture_config || {}) as any;
+                  const isEnabled = emailConfig.captureFormat !== undefined && emailConfig.captureFormat !== 'none';
+                  
+                  return {
+                    enabled: isEnabled,
+                    required: emailConfig.required !== false,
+                    timing: emailConfig.timing || 'before_spin',
+                    formStyle: {
+                      backgroundColor: emailConfig.backgroundColor || '#FFFFFF',
+                      textColor: emailConfig.textColor || '#1F2937',
+                      inputBackgroundColor: emailConfig.inputBackgroundColor || '#F9FAFB',
+                      inputBorderColor: emailConfig.inputBorderColor || '#D1D5DB',
+                      buttonBackgroundColor: emailConfig.buttonBackgroundColor || '#8B5CF6',
+                      buttonTextColor: emailConfig.buttonTextColor || '#FFFFFF',
+                      borderRadius: emailConfig.borderRadius || 8,
+                      fontFamily: emailConfig.fontFamily || 'Arial, sans-serif'
+                    },
+                    fields: emailConfig.fields || [
+                      {
+                        name: 'email',
+                        label: emailConfig.captureTitle || 'Enter your email to spin!',
+                        type: 'email',
+                        required: true,
+                        placeholder: 'your@email.com'
+                      }
+                    ],
+                    consentText: emailConfig.consentText,
+                    privacyPolicyUrl: emailConfig.privacyPolicyUrl,
+                    successMessage: emailConfig.successMessage
+                  };
+                })(),
+                celebrationConfig: wheel.celebration_config || {
+                  type: 'confetti',
+                  duration: 3000,
+                  message: {
+                    winTitle: '🎉 Congratulations!',
+                    winDescription: 'You won {prize}!',
+                    loseTitle: 'Better Luck Next Time!',
+                    loseDescription: 'Thanks for playing!',
+                    claimButtonText: 'Claim Prize',
+                    dismissButtonText: 'Close'
+                  }
+                },
+                settings: wheel.settings || {
+                  trigger: 'delay',
+                  triggerDelay: 5,
+                  triggerScrollPercentage: 50,
+                  showOnlyOnce: true,
+                  sessionCooldown: 24,
+                  mobileEnabled: true,
+                  desktopEnabled: true,
+                  targetAudience: {
+                    newVisitorsOnly: false,
+                    returningVisitorsOnly: false
+                  }
+                }
+              };
+            });
+            
+            console.log('[DevServer] Returning', widgetConfigs.length, 'wheel configs');
+            res.statusCode = 200;
+            res.end(JSON.stringify(widgetConfigs));
+            
+          } catch (err) {
+            console.error('[DevServer] Error querying Supabase:', err);
+            res.statusCode = 500;
+            res.end(JSON.stringify({ error: 'Internal server error' }));
+          }
+          
+          return;
+        }
+        
+        // GET /api/widget/store/:storeId/active-wheel (singular - for backward compatibility)
         if (req.url?.match(/^\/api\/widget\/store\/[^\/]+\/active-wheel/) && req.method === 'GET') {
           const urlParts = req.url.split('?');
           const matches = urlParts[0].match(/\/api\/widget\/store\/([^\/]+)\/active-wheel/);

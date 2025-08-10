@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Widget en Producción - CoolPops</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .test-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #8B5CF6;
+            padding-bottom: 10px;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 600;
+        }
+        
+        .control-group input,
+        .control-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .control-group input:focus,
+        .control-group select:focus {
+            outline: none;
+            border-color: #8B5CF6;
+        }
+        
+        .btn {
+            background: #8B5CF6;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-right: 10px;
+        }
+        
+        .btn:hover {
+            background: #7C3AED;
+        }
+        
+        .btn-secondary {
+            background: #6B7280;
+        }
+        
+        .btn-secondary:hover {
+            background: #4B5563;
+        }
+        
+        .btn-danger {
+            background: #EF4444;
+        }
+        
+        .btn-danger:hover {
+            background: #DC2626;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .status.success {
+            background: #10B981;
+            color: white;
+        }
+        
+        .status.error {
+            background: #EF4444;
+            color: white;
+        }
+        
+        .status.info {
+            background: #3B82F6;
+            color: white;
+        }
+        
+        .code-block {
+            background: #1F2937;
+            color: #10B981;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+        
+        .environment-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .env-option {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .env-option.active {
+            border-color: #8B5CF6;
+            background: #F3E8FF;
+        }
+        
+        .env-option h3 {
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .env-option p {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .log-output {
+            background: #1F2937;
+            color: #10B981;
+            font-family: 'Courier New', monospace;
+            padding: 15px;
+            border-radius: 6px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.4;
+            margin-top: 20px;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+        }
+        
+        .log-entry.error {
+            color: #EF4444;
+        }
+        
+        .log-entry.info {
+            color: #3B82F6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎡 Test de Widget en Producción</h1>
+        
+        <div class="test-panel">
+            <div class="section">
+                <h2>🌍 Seleccionar Entorno</h2>
+                <div class="environment-selector">
+                    <div class="env-option" data-env="local">
+                        <h3>Local</h3>
+                        <p>http://localhost:3000</p>
+                    </div>
+                    <div class="env-option active" data-env="production">
+                        <h3>Producción</h3>
+                        <p>https://www.rooleta.com</p>
+                    </div>
+                    <div class="env-option" data-env="vercel">
+                        <h3>Vercel Preview</h3>
+                        <p>*.vercel.app</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>⚙️ Configuración</h2>
+                <div class="control-group">
+                    <label for="storeId">ID de Tienda</label>
+                    <input type="text" id="storeId" value="test-store-123" placeholder="Ingrese el ID de la tienda">
+                </div>
+                
+                <div class="control-group">
+                    <label for="apiUrl">URL de API</label>
+                    <input type="text" id="apiUrl" value="https://www.rooleta.com" placeholder="URL del servidor API">
+                </div>
+                
+                <div class="control-group">
+                    <label for="trigger">Trigger</label>
+                    <select id="trigger">
+                        <option value="immediate">Inmediato</option>
+                        <option value="delay">Con retraso</option>
+                        <option value="scroll">Al hacer scroll</option>
+                        <option value="exit_intent">Intención de salida</option>
+                        <option value="click">Al hacer click</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="delay">Retraso (segundos)</label>
+                    <input type="number" id="delay" value="3" min="1" max="60">
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>🚀 Acciones</h2>
+                <button class="btn" onclick="testAPI()">Probar API</button>
+                <button class="btn" onclick="loadWidget()">Cargar Widget</button>
+                <button class="btn btn-secondary" onclick="clearSession()">Limpiar Sesión</button>
+                <button class="btn btn-danger" onclick="removeWidget()">Remover Widget</button>
+                
+                <div id="status"></div>
+            </div>
+            
+            <div class="section">
+                <h2>📝 Código de Integración</h2>
+                <p>Copie este código para integrar el widget en su sitio:</p>
+                <div class="code-block" id="integrationCode">
+                    <!-- Code will be generated here -->
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>📊 Log de Consola</h2>
+                <div class="log-output" id="logOutput">
+                    <div class="log-entry info">Sistema iniciado...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Environment configuration
+        const environments = {
+            local: 'http://localhost:3000',
+            production: 'https://www.rooleta.com',
+            vercel: window.location.hostname.includes('vercel.app') ? 
+                    window.location.origin : 
+                    'https://spin-the-wheel-git-main-leonels-projects-d2e64df9.vercel.app'
+        };
+        
+        let currentEnv = 'production';
+        
+        // Custom console log capture
+        const originalLog = console.log;
+        const originalError = console.error;
+        const logOutput = document.getElementById('logOutput');
+        
+        function addLogEntry(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logOutput.appendChild(entry);
+            logOutput.scrollTop = logOutput.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addLogEntry(args.join(' '), 'info');
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addLogEntry(args.join(' '), 'error');
+        };
+        
+        // Environment selector
+        document.querySelectorAll('.env-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.env-option').forEach(o => o.classList.remove('active'));
+                this.classList.add('active');
+                currentEnv = this.dataset.env;
+                document.getElementById('apiUrl').value = environments[currentEnv];
+                updateIntegrationCode();
+                console.log('Entorno cambiado a:', currentEnv);
+            });
+        });
+        
+        // Update integration code
+        function updateIntegrationCode() {
+            const storeId = document.getElementById('storeId').value;
+            const apiUrl = document.getElementById('apiUrl').value;
+            const trigger = document.getElementById('trigger').value;
+            const delay = document.getElementById('delay').value;
+            
+            let code = `<script 
+  src="${apiUrl}/tiendanube-widget.js"
+  data-store-id="${storeId}"
+  data-trigger="${trigger}"`;
+            
+            if (trigger === 'delay') {
+                code += `\n  data-delay="${delay}"`;
+            }
+            
+            if (apiUrl !== 'https://www.rooleta.com') {
+                code += `\n  data-api-url="${apiUrl}"`;
+            }
+            
+            code += `>\n</script>`;
+            
+            document.getElementById('integrationCode').textContent = code;
+        }
+        
+        // Test API
+        async function testAPI() {
+            const storeId = document.getElementById('storeId').value;
+            const apiUrl = document.getElementById('apiUrl').value;
+            const statusDiv = document.getElementById('status');
+            
+            statusDiv.className = 'status info';
+            statusDiv.textContent = 'Probando API...';
+            
+            try {
+                console.log('Probando endpoint:', `${apiUrl}/api/widget/store/${storeId}/active-wheels`);
+                
+                const response = await fetch(`${apiUrl}/api/widget/store/${storeId}/active-wheels`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusDiv.className = 'status success';
+                    statusDiv.innerHTML = `
+                        ✅ API funcionando correctamente<br>
+                        Ruletas encontradas: ${Array.isArray(data) ? data.length : 1}<br>
+                        ${Array.isArray(data) && data.length > 0 ? 
+                            `Primera ruleta: ${data[0].name || data[0].id}` : 
+                            'ID: ' + (data.id || 'N/A')}
+                    `;
+                    console.log('Respuesta de API:', data);
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = `❌ Error: ${data.error || 'Error desconocido'}`;
+                    console.error('Error de API:', data);
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = `❌ Error de conexión: ${error.message}`;
+                console.error('Error de conexión:', error);
+            }
+        }
+        
+        // Load widget
+        function loadWidget() {
+            const storeId = document.getElementById('storeId').value;
+            const apiUrl = document.getElementById('apiUrl').value;
+            const trigger = document.getElementById('trigger').value;
+            const delay = document.getElementById('delay').value;
+            
+            // Remove existing widget
+            removeWidget();
+            
+            // Clear session storage
+            clearSession();
+            
+            // Load schedule validator first
+            const scheduleScript = document.createElement('script');
+            scheduleScript.src = `${apiUrl}/schedule-validator.js`;
+            document.head.appendChild(scheduleScript);
+            
+            // Then load widget
+            setTimeout(() => {
+                const script = document.createElement('script');
+                script.src = `${apiUrl}/tiendanube-widget.js`;
+                script.setAttribute('data-store-id', storeId);
+                script.setAttribute('data-trigger', trigger);
+                script.setAttribute('data-test', 'true');
+                
+                if (trigger === 'delay') {
+                    script.setAttribute('data-delay', delay);
+                }
+                
+                if (apiUrl !== 'https://www.rooleta.com') {
+                    script.setAttribute('data-api-url', apiUrl);
+                }
+                
+                document.body.appendChild(script);
+                
+                console.log('Widget cargado con configuración:', {
+                    storeId,
+                    apiUrl,
+                    trigger,
+                    delay
+                });
+                
+                document.getElementById('status').className = 'status success';
+                document.getElementById('status').textContent = '✅ Widget cargado';
+            }, 500);
+        }
+        
+        // Clear session
+        function clearSession() {
+            Object.keys(sessionStorage).filter(k => k.includes('coolpops')).forEach(k => {
+                sessionStorage.removeItem(k);
+                console.log('Removido de sesión:', k);
+            });
+            
+            Object.keys(localStorage).filter(k => k.includes('coolpops')).forEach(k => {
+                localStorage.removeItem(k);
+                console.log('Removido de localStorage:', k);
+            });
+            
+            console.log('Sesión limpiada');
+            
+            document.getElementById('status').className = 'status info';
+            document.getElementById('status').textContent = 'ℹ️ Sesión limpiada';
+        }
+        
+        // Remove widget
+        function removeWidget() {
+            // Remove widget container
+            const widgetContainer = document.getElementById('coolpops-widget-container');
+            if (widgetContainer) {
+                widgetContainer.remove();
+                console.log('Widget container removido');
+            }
+            
+            // Remove widget scripts
+            document.querySelectorAll('script[src*="widget"]').forEach(script => {
+                script.remove();
+                console.log('Script removido:', script.src);
+            });
+            
+            // Reset widget state
+            if (window.__coolPopsInitialized) {
+                delete window.__coolPopsInitialized;
+                console.log('Estado del widget reseteado');
+            }
+            
+            if (window.CoolPopsWidget) {
+                delete window.CoolPopsWidget;
+            }
+            
+            document.getElementById('status').className = 'status info';
+            document.getElementById('status').textContent = 'ℹ️ Widget removido';
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateIntegrationCode();
+            
+            // Auto-detect environment
+            if (window.location.hostname === 'localhost') {
+                currentEnv = 'local';
+                document.querySelector('[data-env="local"]').click();
+            } else if (window.location.hostname.includes('vercel.app')) {
+                currentEnv = 'vercel';
+                document.querySelector('[data-env="vercel"]').click();
+            }
+        });
+        
+        // Update code when inputs change
+        document.getElementById('storeId').addEventListener('input', updateIntegrationCode);
+        document.getElementById('trigger').addEventListener('change', updateIntegrationCode);
+        document.getElementById('delay').addEventListener('input', updateIntegrationCode);
+    </script>
+</body>
+</html>

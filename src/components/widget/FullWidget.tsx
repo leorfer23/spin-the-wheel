@@ -26,8 +26,26 @@ export interface WidgetConfig {
   captureFormat?: 'instant' | 'minimal' | 'detailed';
   
   // Wheel
-  segments: Array<{ id?: string; label: string; value: string; color: string; weight: number }>;
+  segments: Array<{ 
+    id?: string; 
+    label: string; 
+    value: string; 
+    color: string; 
+    weight: number;
+    textColor?: string;
+    fontSize?: number;
+    fontWeight?: string;
+    icon?: string | null;
+    image?: string | null;
+  }>;
   spinDuration?: number;
+  
+  // Wheel Design Configuration
+  wheelDesign?: any; // Complete wheel design from database
+  
+  // Effects
+  confettiEnabled?: boolean;
+  soundEnabled?: boolean;
   
   // General
   primaryColor?: string;

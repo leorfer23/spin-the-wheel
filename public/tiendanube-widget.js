@@ -12,6 +12,11 @@
   if (window.__coolPopsInitialized) return;
   window.__coolPopsInitialized = true;
 
+  // Load schedule validator
+  const scheduleScript = document.createElement('script');
+  scheduleScript.src = (document.currentScript?.src.includes('localhost') ? '' : 'https://www.rooleta.com/') + 'schedule-validator.js';
+  document.head.appendChild(scheduleScript);
+
   // Get current script reference - IMPORTANT: must be captured immediately
   const currentScript = document.currentScript || document.querySelector('script[src*="tiendanube-widget.js"]');
   const scriptStoreId = currentScript?.getAttribute('data-store-id');
@@ -307,7 +312,7 @@
 
     try {
 
-      // Fetch active wheel for this store
+      // Fetch all active wheels for this store
       const contextParams = new URLSearchParams({
         url: config.context.url,
         referrer: config.context.referrer,
@@ -316,8 +321,9 @@
         isMobile: config.context.isMobile.toString()
       });
 
-      const apiUrl = `${config.apiUrl}/api/widget/store/${config.storeId}/active-wheel?${contextParams}`;
-      console.log('[CoolPops Widget] Fetching active wheel from:', apiUrl);
+      // Fetch all active wheels (let client-side filter by schedule)
+      const apiUrl = `${config.apiUrl}/api/widget/store/${config.storeId}/active-wheels?${contextParams}`;
+      console.log('[CoolPops Widget] Fetching active wheels from:', apiUrl);
       
       const response = await fetch(apiUrl, {
         headers: {
@@ -335,11 +341,42 @@
       if (!response.ok) {
         const errorText = await response.text();
         console.error('[CoolPops Widget] API Error Response:', errorText);
-        throw new Error(`No active wheel found for this store (${response.status}: ${errorText})`);
+        throw new Error(`No active wheels found for this store (${response.status}: ${errorText})`);
       }
 
-      wheelConfig = await response.json();
-      console.log('[CoolPops Widget] Active wheel config:', wheelConfig);
+      const wheels = await response.json();
+      console.log('[CoolPops Widget] Found', wheels.length, 'active wheels');
+      
+      // Wait for schedule validator to load if not available yet
+      let attempts = 0;
+      while (!window.ScheduleValidator && attempts < 20) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
+      
+      if (!window.ScheduleValidator) {
+        console.error('[CoolPops Widget] Schedule validator not loaded, using first wheel');
+        wheelConfig = wheels[0];
+      } else {
+        // Use schedule validator to select the appropriate wheel
+        const validator = new window.ScheduleValidator();
+        if (config.isDevelopment || config.testMode) {
+          validator.setDebug(true);
+        }
+        
+        // Filter wheels by schedule
+        const currentDate = new Date();
+        console.log('[CoolPops Widget] Current date/time:', currentDate.toISOString());
+        
+        wheelConfig = validator.selectActiveWheel(wheels, currentDate);
+        
+        if (!wheelConfig) {
+          throw new Error('No wheels are active at this time based on schedule configuration');
+        }
+      }
+      
+      console.log('[CoolPops Widget] Selected wheel:', wheelConfig.id, wheelConfig.name);
+      console.log('[CoolPops Widget] Schedule config:', wheelConfig.schedule_config);
       console.log('[CoolPops Widget] Handle config:', wheelConfig.handleConfig);
       console.log('[CoolPops Widget] Wheel segments:', {
         count: wheelConfig.wheelData?.segments?.length,

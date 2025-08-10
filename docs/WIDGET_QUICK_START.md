@@ -15,7 +15,7 @@ Add this code before `</body>` in your theme:
 
 ```html
 <script 
-  src="https://app.coolpops.com/tiendanube-widget.js"
+  src="https://www.rooleta.com/tiendanube-widget.js"
   data-store-id="YOUR_STORE_ID"
   data-trigger="exit_intent">
 </script>
@@ -34,7 +34,7 @@ Add this code to your `theme.liquid`:
 
 ```html
 <script 
-  src="https://app.coolpops.com/widget.js"
+  src="https://www.rooleta.com/widget.js"
   data-store-id="YOUR_STORE_ID"
   data-trigger="exit_intent"
   data-shopify-shop="{{ shop.permanent_domain }}">
@@ -54,7 +54,7 @@ Add this code to your theme footer:
 
 ```html
 <script 
-  src="https://app.coolpops.com/widget.js"
+  src="https://www.rooleta.com/widget.js"
   data-store-id="YOUR_STORE_ID"
   data-trigger="exit_intent">
 </script>
@@ -73,7 +73,7 @@ Add this code before `</body>`:
 
 ```html
 <script 
-  src="https://app.coolpops.com/widget.js"
+  src="https://www.rooleta.com/widget.js"
   data-store-id="YOUR_STORE_ID"
   data-trigger="exit_intent">
 </script>
@@ -122,7 +122,7 @@ Add test mode to see the wheel multiple times:
 
 ```html
 <script 
-  src="https://app.coolpops.com/widget.js"
+  src="https://www.rooleta.com/widget.js"
   data-store-id="YOUR_STORE_ID"
   data-trigger="immediate"
   data-test="true">
@@ -135,7 +135,7 @@ Add test mode to see the wheel multiple times:
 ```html
 <script>
 if (window.innerWidth <= 768) {
-  document.write('<script src="https://app.coolpops.com/widget.js" data-store-id="YOUR_STORE_ID"><\/script>');
+  document.write('<script src="https://www.rooleta.com/widget.js" data-store-id="YOUR_STORE_ID"><\/script>');
 }
 </script>
 ```
@@ -155,7 +155,7 @@ if (window.innerWidth <= 768) {
 </button>
 
 <script 
-  src="https://app.coolpops.com/widget.js"
+  src="https://www.rooleta.com/widget.js"
   data-store-id="YOUR_STORE_ID"
   data-trigger="click">
 </script>
@@ -167,7 +167,7 @@ The widget automatically shows holiday campaigns based on your dashboard configu
 
 ```html
 <script 
-  src="https://app.coolpops.com/widget.js"
+  src="https://www.rooleta.com/widget.js"
   data-store-id="YOUR_STORE_ID">
 </script>
 ```
@@ -255,7 +255,7 @@ window.addEventListener('coolpops:spin', (e) => {
 // Widget auto-detects Spanish stores
 // Or force Spanish:
 <script 
-  src="https://app.coolpops.com/widget.js"
+  src="https://www.rooleta.com/widget.js"
   data-wheel-id="YOUR_WHEEL_ID"
   data-lang="es">
 </script>
@@ -264,7 +264,7 @@ window.addEventListener('coolpops:spin', (e) => {
 ### Portuguese
 ```javascript
 <script 
-  src="https://app.coolpops.com/widget.js"
+  src="https://www.rooleta.com/widget.js"
   data-wheel-id="YOUR_WHEEL_ID"
   data-lang="pt">
 </script>
@@ -292,8 +292,8 @@ Configure page-specific campaigns in your dashboard with URL targeting. The widg
 ## 🆘 Need Help?
 
 1. **Documentation**: Check `/docs` folder
-2. **Test Page**: `https://app.coolpops.com/test`
-3. **Support**: support@coolpops.com
+2. **Test Page**: `https://www.rooleta.com/test`
+3. **Support**: support@rooleta.com
 
 ## 🎉 You're Ready!
 

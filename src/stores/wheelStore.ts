@@ -4,6 +4,14 @@ import { WheelService } from '../services/wheelService';
 import toast from 'react-hot-toast';
 import type { WheelScheduleConfig } from '../types/models';
 import type { Segment } from '../components/dashboard/products/wheel/types';
+import {
+  DEFAULT_WHEEL_DESIGN,
+  DEFAULT_WIDGET_HANDLE_CONFIG,
+  DEFAULT_EMAIL_CAPTURE_CONFIG,
+  DEFAULT_SEGMENTS_SIMPLE,
+  DEFAULT_SCHEDULE_CONFIG,
+  mergeWithDefaults
+} from '../config/wheelDefaults';
 
 interface Wheel {
   id: string;
@@ -74,17 +82,21 @@ export const useWheelStore = create<WheelState>()(
           const response = await WheelService.getWheels(storeId);
           
           if (response.success && response.data) {
-            const formattedWheels = response.data.map(wheel => ({
-              id: wheel.id,
-              name: wheel.name,
-              segments: (wheel.config as any)?.segments || [],
-              schedule: wheel.schedule_config as unknown as WheelScheduleConfig,
-              wheelDesign: (wheel.config as any)?.style || {},
-              widgetConfig: {
-                ...(wheel.config as any)?.wheelHandle || {},
-                ...(wheel.config as any)?.emailCapture || {}
-              }
-            }));
+            const formattedWheels = response.data.map(wheel => {
+              const config = wheel.config as any || {};
+              return {
+                id: wheel.id,
+                name: wheel.name,
+                segments: config.segments || DEFAULT_SEGMENTS_SIMPLE,
+                schedule: mergeWithDefaults(DEFAULT_SCHEDULE_CONFIG, wheel.schedule_config as any),
+                wheelDesign: mergeWithDefaults(DEFAULT_WHEEL_DESIGN, config.style),
+                widgetConfig: {
+                  ...mergeWithDefaults(DEFAULT_WIDGET_HANDLE_CONFIG, config.wheelHandle),
+                  ...mergeWithDefaults(DEFAULT_EMAIL_CAPTURE_CONFIG, config.emailCapture)
+                },
+                is_active: wheel.is_active
+              };
+            });
             
             set({ wheels: formattedWheels, isLoading: false });
             
@@ -110,16 +122,18 @@ export const useWheelStore = create<WheelState>()(
           
           if (response.success && response.data) {
             const wheel = response.data;
+            const config = wheel.config as any || {};
             const formattedWheel: Wheel = {
               id: wheel.id,
               name: wheel.name,
-              segments: (wheel.config as any)?.segments || [],
-              schedule: wheel.schedule_config as unknown as WheelScheduleConfig,
-              wheelDesign: (wheel.config as any)?.style || {},
+              segments: config.segments || DEFAULT_SEGMENTS_SIMPLE,
+              schedule: mergeWithDefaults(DEFAULT_SCHEDULE_CONFIG, wheel.schedule_config as any),
+              wheelDesign: mergeWithDefaults(DEFAULT_WHEEL_DESIGN, config.style),
               widgetConfig: {
-                ...(wheel.config as any)?.wheelHandle || {},
-                ...(wheel.config as any)?.emailCapture || {}
-              }
+                ...mergeWithDefaults(DEFAULT_WIDGET_HANDLE_CONFIG, config.wheelHandle),
+                ...mergeWithDefaults(DEFAULT_EMAIL_CAPTURE_CONFIG, config.emailCapture)
+              },
+              is_active: wheel.is_active
             };
             
             
@@ -144,19 +158,17 @@ export const useWheelStore = create<WheelState>()(
         console.log('[wheelStore] createWheel called with storeId:', storeId, 'name:', name);
         set({ isLoading: true, error: null });
         
-        const defaultSegments: Segment[] = [
-          { id: '1', label: 'Premio 1', value: 'PREMIO1', color: '#FF6B6B', weight: 20 },
-          { id: '2', label: 'Premio 2', value: 'PREMIO2', color: '#4ECDC4', weight: 20 },
-          { id: '3', label: 'Premio 3', value: 'PREMIO3', color: '#FFE66D', weight: 20 },
-          { id: '4', label: 'Premio 4', value: 'PREMIO4', color: '#A8E6CF', weight: 20 },
-          { id: '5', label: 'Premio 5', value: 'PREMIO5', color: '#C7B3FF', weight: 20 },
-        ];
-        
         try {
           console.log('[wheelStore] Calling WheelService.createWheel');
           const response = await WheelService.createWheel(storeId, {
             name,
-            config: { segments: defaultSegments } as any,
+            config: { 
+              segments: DEFAULT_SEGMENTS_SIMPLE,
+              style: DEFAULT_WHEEL_DESIGN,
+              wheelHandle: DEFAULT_WIDGET_HANDLE_CONFIG,
+              emailCapture: DEFAULT_EMAIL_CAPTURE_CONFIG
+            } as any,
+            schedule_config: DEFAULT_SCHEDULE_CONFIG as any,
             is_active: true
           });
           
@@ -260,6 +272,23 @@ export const useWheelStore = create<WheelState>()(
           return;
         }
         
+        // Ensure each segment has all properties
+        const completeSegments = segments.map(segment => ({
+          id: segment.id,
+          label: segment.label,
+          value: segment.value,
+          color: segment.color,
+          weight: segment.weight || 20,
+          textColor: segment.textColor || '#FFFFFF',
+          fontSize: segment.fontSize || 14,
+          fontWeight: segment.fontWeight || 'normal',
+          icon: segment.icon || null,
+          image: segment.image || null,
+          description: segment.description || null,
+          terms: segment.terms || null,
+          isJackpot: segment.isJackpot || false,
+          soundEffect: segment.soundEffect || null,
+        }));
         
         try {
           // Get the full wheel data from the API first to preserve other config fields
@@ -271,7 +300,7 @@ export const useWheelStore = create<WheelState>()(
           const currentConfig = (wheelResponse.data.config as any) || {};
           const updatedConfig = {
             ...currentConfig,
-            segments
+            segments: completeSegments
           };
           
           const response = await WheelService.updateWheel(state.selectedWheelId, {
@@ -281,11 +310,11 @@ export const useWheelStore = create<WheelState>()(
           if (response.success) {
             set(state => ({
               selectedWheel: state.selectedWheel 
-                ? { ...state.selectedWheel, segments }
+                ? { ...state.selectedWheel, segments: completeSegments }
                 : null,
               wheels: state.wheels.map(w => 
                 w.id === state.selectedWheelId 
-                  ? { ...w, segments }
+                  ? { ...w, segments: completeSegments }
                   : w
               )
             }));
@@ -298,26 +327,32 @@ export const useWheelStore = create<WheelState>()(
       },
       
       // Update schedule
-      updateSchedule: async (schedule: WheelScheduleConfig) => {
+      updateSchedule: async (scheduleUpdates: Partial<WheelScheduleConfig>) => {
         const state = get();
-        if (!state.selectedWheelId) {
+        if (!state.selectedWheelId || !state.selectedWheel) {
           return;
         }
         
+        // Merge updates with current schedule to create complete object
+        const currentSchedule = state.selectedWheel.schedule || DEFAULT_SCHEDULE_CONFIG;
+        const completeSchedule = mergeWithDefaults(DEFAULT_SCHEDULE_CONFIG, {
+          ...currentSchedule,
+          ...scheduleUpdates
+        });
         
         try {
           const response = await WheelService.updateWheel(state.selectedWheelId, {
-            schedule_config: schedule as any
+            schedule_config: completeSchedule as any
           });
           
           if (response.success) {
             set(state => ({
               selectedWheel: state.selectedWheel 
-                ? { ...state.selectedWheel, schedule }
+                ? { ...state.selectedWheel, schedule: completeSchedule }
                 : null,
               wheels: state.wheels.map(w => 
                 w.id === state.selectedWheelId 
-                  ? { ...w, schedule }
+                  ? { ...w, schedule: completeSchedule }
                   : w
               )
             }));
@@ -330,12 +365,23 @@ export const useWheelStore = create<WheelState>()(
       },
       
       // Update wheel design
-      updateWheelDesign: async (design: any) => {
+      updateWheelDesign: async (designUpdates: any) => {
         const state = get();
         if (!state.selectedWheelId || !state.selectedWheel) {
           return;
         }
         
+        console.log('[wheelStore] updateWheelDesign called with updates:', designUpdates);
+        
+        // Merge updates with current wheel design to create complete object
+        const currentWheelDesign = state.selectedWheel.wheelDesign || DEFAULT_WHEEL_DESIGN;
+        const completeDesign = {
+          ...DEFAULT_WHEEL_DESIGN, // Start with defaults
+          ...currentWheelDesign,    // Apply current saved values
+          ...designUpdates          // Apply new updates
+        };
+        
+        console.log('[wheelStore] Complete design object:', completeDesign);
         
         try {
           // Get the full wheel data from the API first to preserve other config fields
@@ -347,21 +393,25 @@ export const useWheelStore = create<WheelState>()(
           const currentConfig = (wheelResponse.data.config as any) || {};
           const updatedConfig = {
             ...currentConfig,
-            style: design
+            style: completeDesign // Save the complete design object
           };
+          
+          console.log('[wheelStore] Sending to database - updatedConfig:', updatedConfig);
           
           const response = await WheelService.updateWheel(state.selectedWheelId, {
             config: updatedConfig as any
           });
           
+          console.log('[wheelStore] Database update response:', response);
+          
           if (response.success) {
             set(state => ({
               selectedWheel: state.selectedWheel 
-                ? { ...state.selectedWheel, wheelDesign: design }
+                ? { ...state.selectedWheel, wheelDesign: completeDesign }
                 : null,
               wheels: state.wheels.map(w => 
                 w.id === state.selectedWheelId 
-                  ? { ...w, wheelDesign: design }
+                  ? { ...w, wheelDesign: completeDesign }
                   : w
               )
             }));
@@ -374,12 +424,11 @@ export const useWheelStore = create<WheelState>()(
       },
       
       // Update widget config
-      updateWidgetConfig: async (config: any) => {
+      updateWidgetConfig: async (configUpdates: any) => {
         const state = get();
         if (!state.selectedWheelId || !state.selectedWheel) {
           return;
         }
-        
         
         try {
           // Get the full wheel data from the API first to preserve other config fields
@@ -389,14 +438,25 @@ export const useWheelStore = create<WheelState>()(
           }
           
           const currentConfig = (wheelResponse.data.config as any) || {};
-          const isEmailCaptureConfig = 'captureFormat' in config || 
-                                      'captureTitle' in config || 
-                                      'captureSubtitle' in config;
+          
+          // Determine if this is an email capture or handle update based on properties
+          const isEmailCaptureConfig = 'captureFormat' in configUpdates || 
+                                      'captureTitle' in configUpdates || 
+                                      'captureSubtitle' in configUpdates ||
+                                      'emailPlaceholder' in configUpdates;
+          
+          // Merge with defaults to create complete objects
+          const currentHandle = mergeWithDefaults(DEFAULT_WIDGET_HANDLE_CONFIG, currentConfig.wheelHandle);
+          const currentCapture = mergeWithDefaults(DEFAULT_EMAIL_CAPTURE_CONFIG, currentConfig.emailCapture);
+          
+          // Apply updates to the appropriate config
+          const completeHandle = isEmailCaptureConfig ? currentHandle : mergeWithDefaults(currentHandle, configUpdates);
+          const completeCapture = isEmailCaptureConfig ? mergeWithDefaults(currentCapture, configUpdates) : currentCapture;
           
           const updatedConfig = {
             ...currentConfig,
-            wheelHandle: isEmailCaptureConfig ? currentConfig.wheelHandle : config,
-            emailCapture: isEmailCaptureConfig ? config : currentConfig.emailCapture
+            wheelHandle: completeHandle,
+            emailCapture: completeCapture
           };
           
           const response = await WheelService.updateWheel(state.selectedWheelId, {
@@ -404,13 +464,18 @@ export const useWheelStore = create<WheelState>()(
           });
           
           if (response.success) {
+            const updatedWidgetConfig = {
+              ...completeHandle,
+              ...completeCapture
+            };
+            
             set(state => ({
               selectedWheel: state.selectedWheel 
-                ? { ...state.selectedWheel, widgetConfig: { ...state.selectedWheel.widgetConfig, ...config } }
+                ? { ...state.selectedWheel, widgetConfig: updatedWidgetConfig }
                 : null,
               wheels: state.wheels.map(w => 
                 w.id === state.selectedWheelId 
-                  ? { ...w, widgetConfig: { ...w.widgetConfig, ...config } }
+                  ? { ...w, widgetConfig: updatedWidgetConfig }
                   : w
               )
             }));

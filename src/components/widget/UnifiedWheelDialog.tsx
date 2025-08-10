@@ -172,29 +172,54 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
               <FortuneWheel
                 config={{
                   segments: config.segments.map((seg: any, idx: number) => ({
-                    id: `seg-${idx}`,
-                    ...seg
+                    id: seg.id || `seg-${idx}`,
+                    label: seg.label,
+                    value: seg.value,
+                    color: seg.color,
+                    weight: seg.weight || 10,
                   })),
                   dimensions: {
                     diameter: 450,
                     innerRadius: 60,
                     pegRingWidth: 30,
-                    pegSize: 8,
+                    pegSize: config.wheelDesign?.pegSize || 8,
                     pegCount: 20
                   },
+                  style: config.wheelDesign ? {
+                    shadow: `${config.wheelDesign.shadowOffsetX || 0}px ${config.wheelDesign.shadowOffsetY || 0}px ${config.wheelDesign.shadowBlur || 30}px rgba(0, 0, 0, ${config.wheelDesign.shadowIntensity || 0.3})`,
+                    borderColor: config.wheelDesign.wheelBorderColor || "#8B5CF6",
+                    borderWidth: config.wheelDesign.wheelBorderWidth || 4,
+                    backgroundColor: config.wheelDesign.wheelBackgroundColor || 'transparent',
+                  } : undefined,
+                  pegConfig: config.wheelDesign ? {
+                    style: (config.wheelDesign.pegStyle as 'dots' | 'stars' | 'diamonds' | 'sticks' | 'none') || 'dots',
+                    color: config.wheelDesign.pegColor || '#FFD700',
+                    size: config.wheelDesign.pegSize || 8,
+                  } : undefined,
+                  pointer: config.wheelDesign ? {
+                    color: config.wheelDesign.pointerColor || "#FF1744",
+                    size: config.wheelDesign.pointerSize || 60,
+                    style: (config.wheelDesign.pointerStyle as 'arrow' | 'circle' | 'triangle') || "triangle",
+                  } : undefined,
                   spinConfig: {
-                    duration: (config.spinDuration || 5000) / 1000,
-                    easing: 'ease-out',
-                    minRotations: 3,
-                    maxRotations: 5,
+                    duration: config.wheelDesign?.spinDuration || (config.spinDuration || 5000) / 1000,
+                    easing: config.wheelDesign?.spinningEffect === 'elastic' ? "ease-in-out" : 
+                            config.wheelDesign?.spinningEffect === 'power' ? "ease-out" : "ease-out",
+                    minRotations: config.wheelDesign?.rotations || 3,
+                    maxRotations: (config.wheelDesign?.rotations || 5) + 2,
                     allowDrag: hasTicket
                   },
                   centerCircle: {
-                    text: hasTicket ? 'GIRAR' : '🔒',
-                    textColor: '#FFFFFF',
-                    backgroundColor: hasTicket ? '#8B5CF6' : '#6B7280',
-                    fontSize: hasTicket ? 22 : 28,
-                    showButton: hasTicket
+                    text: hasTicket ? (config.wheelDesign?.centerButtonText || 'GIRAR') : '🔒',
+                    textColor: hasTicket ? (config.wheelDesign?.centerButtonTextColor || '#FFFFFF') : '#FFFFFF',
+                    backgroundColor: hasTicket ? (config.wheelDesign?.centerButtonBackgroundColor || '#8B5CF6') : '#6B7280',
+                    fontSize: hasTicket ? (
+                      config.wheelDesign?.centerButtonTextSize === 'small' ? 18 : 
+                      config.wheelDesign?.centerButtonTextSize === 'large' ? 28 :
+                      config.wheelDesign?.centerButtonTextSize === 'extra-large' ? 32 : 22
+                    ) : 28,
+                    showButton: hasTicket,
+                    logo: config.wheelDesign?.centerButtonLogo
                   }
                 }}
                 onSpinComplete={handleSpinComplete}
@@ -464,29 +489,52 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
                 <FortuneWheel
                   config={{
                     segments: config.segments.map((seg: any, idx: number) => ({
-                      id: `seg-${idx}`,
-                      ...seg
+                      id: seg.id || `seg-${idx}`,
+                      label: seg.label,
+                      value: seg.value,
+                      color: seg.color,
+                      weight: seg.weight || 10,
                     })),
                     dimensions: {
                       diameter: 400,
                       innerRadius: 50,
                       pegRingWidth: 25,
-                      pegSize: 6,
+                      pegSize: config.wheelDesign?.pegSize ? Math.floor(config.wheelDesign.pegSize * 0.75) : 6,
                       pegCount: 20
                     },
+                    style: config.wheelDesign ? {
+                      shadow: `${config.wheelDesign.shadowOffsetX || 0}px ${config.wheelDesign.shadowOffsetY || 0}px ${config.wheelDesign.shadowBlur || 30}px rgba(0, 0, 0, ${config.wheelDesign.shadowIntensity || 0.3})`,
+                      borderColor: config.wheelDesign.wheelBorderColor || "#8B5CF6",
+                      borderWidth: config.wheelDesign.wheelBorderWidth || 4,
+                      backgroundColor: config.wheelDesign.wheelBackgroundColor || 'transparent',
+                    } : undefined,
+                    pegConfig: config.wheelDesign ? {
+                      style: (config.wheelDesign.pegStyle as 'dots' | 'stars' | 'diamonds' | 'sticks' | 'none') || 'dots',
+                      color: config.wheelDesign.pegColor || '#FFD700',
+                      size: config.wheelDesign.pegSize ? Math.floor(config.wheelDesign.pegSize * 0.75) : 6,
+                    } : undefined,
+                    pointer: config.wheelDesign ? {
+                      color: config.wheelDesign.pointerColor || "#FF1744",
+                      size: config.wheelDesign.pointerSize ? Math.floor(config.wheelDesign.pointerSize * 0.85) : 50,
+                      style: (config.wheelDesign.pointerStyle as 'arrow' | 'circle' | 'triangle') || "triangle",
+                    } : undefined,
                     spinConfig: {
-                      duration: (config.spinDuration || 5000) / 1000,
-                      easing: 'ease-out',
-                      minRotations: 3,
-                      maxRotations: 5,
+                      duration: config.wheelDesign?.spinDuration || (config.spinDuration || 5000) / 1000,
+                      easing: config.wheelDesign?.spinningEffect === 'elastic' ? "ease-in-out" : 
+                              config.wheelDesign?.spinningEffect === 'power' ? "ease-out" : "ease-out",
+                      minRotations: config.wheelDesign?.rotations || 3,
+                      maxRotations: (config.wheelDesign?.rotations || 5) + 2,
                       allowDrag: true
                     },
                     centerCircle: {
-                      text: 'GIRAR',
-                      textColor: '#FFFFFF',
-                      backgroundColor: '#8B5CF6',
-                      fontSize: 20,
-                      showButton: true
+                      text: config.wheelDesign?.centerButtonText || 'GIRAR',
+                      textColor: config.wheelDesign?.centerButtonTextColor || '#FFFFFF',
+                      backgroundColor: config.wheelDesign?.centerButtonBackgroundColor || '#8B5CF6',
+                      fontSize: config.wheelDesign?.centerButtonTextSize === 'small' ? 16 : 
+                               config.wheelDesign?.centerButtonTextSize === 'large' ? 24 :
+                               config.wheelDesign?.centerButtonTextSize === 'extra-large' ? 28 : 20,
+                      showButton: true,
+                      logo: config.wheelDesign?.centerButtonLogo
                     }
                   }}
                   onSpinComplete={handleSpinComplete}
