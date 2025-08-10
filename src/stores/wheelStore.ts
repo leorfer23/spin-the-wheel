@@ -4,6 +4,19 @@ import { WheelService } from '../services/wheelService';
 import toast from 'react-hot-toast';
 import type { WheelScheduleConfig } from '../types/models';
 import type { Segment } from '../components/dashboard/products/wheel/types';
+
+// Extended Segment type with optional UI properties
+interface ExtendedSegment extends Segment {
+  textColor?: string;
+  fontSize?: number;
+  fontWeight?: string;
+  icon?: string | null;
+  image?: string | null;
+  description?: string | null;
+  terms?: string | null;
+  isJackpot?: boolean;
+  soundEffect?: string | null;
+}
 import {
   DEFAULT_WHEEL_DESIGN,
   DEFAULT_WIDGET_HANDLE_CONFIG,
@@ -273,22 +286,25 @@ export const useWheelStore = create<WheelState>()(
         }
         
         // Ensure each segment has all properties
-        const completeSegments = segments.map(segment => ({
-          id: segment.id,
-          label: segment.label,
-          value: segment.value,
-          color: segment.color,
-          weight: segment.weight || 20,
-          textColor: segment.textColor || '#FFFFFF',
-          fontSize: segment.fontSize || 14,
-          fontWeight: segment.fontWeight || 'normal',
-          icon: segment.icon || null,
-          image: segment.image || null,
-          description: segment.description || null,
-          terms: segment.terms || null,
-          isJackpot: segment.isJackpot || false,
-          soundEffect: segment.soundEffect || null,
-        }));
+        const completeSegments = segments.map(segment => {
+          const ext = segment as ExtendedSegment;
+          return {
+            id: ext.id,
+            label: ext.label,
+            value: ext.value,
+            color: ext.color,
+            weight: ext.weight || 20,
+            textColor: ext.textColor || '#FFFFFF',
+            fontSize: ext.fontSize || 14,
+            fontWeight: ext.fontWeight || 'normal',
+            icon: ext.icon || null,
+            image: ext.image || null,
+            description: ext.description || null,
+            terms: ext.terms || null,
+            isJackpot: ext.isJackpot || false,
+            soundEffect: ext.soundEffect || null,
+          };
+        });
         
         try {
           // Get the full wheel data from the API first to preserve other config fields

@@ -6,6 +6,48 @@
 import type { Segment } from '../components/dashboard/products/wheel/types';
 import type { WheelScheduleConfig } from '../types/models';
 
+// Extended Segment type with UI properties for default configurations
+interface ExtendedSegment extends Segment {
+  textColor?: string;
+  fontSize?: number;
+  fontWeight?: string;
+  icon?: string | null;
+  image?: string | null;
+  description?: string | null;
+  terms?: string | null;
+  isJackpot?: boolean;
+  soundEffect?: string | null;
+}
+
+// Extended schedule config with additional properties
+interface ExtendedScheduleConfig extends WheelScheduleConfig {
+  scheduleType?: string;
+  startDate?: string | null;
+  endDate?: string | null;
+  recurringDays?: number[];
+  recurringStartTime?: string | null;
+  recurringEndTime?: string | null;
+  specificDates?: string[];
+  timeWindows?: any[];
+  maxSpinsPerUser?: number;
+  maxSpinsPerDay?: number | null;
+  maxSpinsTotal?: number | null;
+  resetFrequency?: string;
+  blackoutDates?: string[];
+  blackoutMessage?: string;
+  disableOnHolidays?: boolean;
+  holidayCountry?: string;
+  requireLogin?: boolean;
+  requireMinimumCart?: boolean;
+  minimumCartValue?: number;
+  onlyNewCustomers?: boolean;
+  onlyReturningCustomers?: boolean;
+  prizeExpirationDays?: number;
+  showCountdown?: boolean;
+  countdownMessage?: string;
+  [key: string]: any; // Allow additional properties
+}
+
 // ============================================
 // WHEEL DESIGN/STYLE CONFIGURATION
 // ============================================
@@ -181,7 +223,7 @@ export const DEFAULT_EMAIL_CAPTURE_CONFIG = {
 // ============================================
 // SEGMENTS CONFIGURATION
 // ============================================
-export const DEFAULT_SEGMENTS: Segment[] = [
+export const DEFAULT_SEGMENTS: ExtendedSegment[] = [
   { 
     id: '1', 
     label: '10% Descuento', 
@@ -265,7 +307,7 @@ export const DEFAULT_SEGMENTS: Segment[] = [
 ];
 
 // Simplified version for quick setup
-export const DEFAULT_SEGMENTS_SIMPLE: Segment[] = [
+export const DEFAULT_SEGMENTS_SIMPLE: ExtendedSegment[] = [
   { id: '1', label: 'Premio 1', value: 'PREMIO1', color: '#FF6B6B', weight: 20 },
   { id: '2', label: 'Premio 2', value: 'PREMIO2', color: '#4ECDC4', weight: 20 },
   { id: '3', label: 'Premio 3', value: 'PREMIO3', color: '#FFE66D', weight: 20 },
@@ -276,7 +318,7 @@ export const DEFAULT_SEGMENTS_SIMPLE: Segment[] = [
 // ============================================
 // SCHEDULE CONFIGURATION
 // ============================================
-export const DEFAULT_SCHEDULE_CONFIG: WheelScheduleConfig = {
+export const DEFAULT_SCHEDULE_CONFIG: ExtendedScheduleConfig = {
   enabled: false,
   timezone: 'America/Argentina/Buenos_Aires',
   
@@ -299,7 +341,7 @@ export const DEFAULT_SCHEDULE_CONFIG: WheelScheduleConfig = {
   timeWindows: [],
   
   // Availability Rules
-  maxSpinsPerUser: null,
+  maxSpinsPerUser: undefined,
   maxSpinsPerDay: null,
   maxSpinsTotal: null,
   resetFrequency: 'never', // 'daily', 'weekly', 'monthly', 'never'

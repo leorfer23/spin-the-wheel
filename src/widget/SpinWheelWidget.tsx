@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { FullWidget } from '../components/widget/FullWidget';
-import type { WheelWidgetConfig, WheelSegment } from '../types/widget';
+import type { WheelWidgetConfig } from '../types/widget';
 
 interface WidgetProps {
   wheelConfig: WheelWidgetConfig;
@@ -38,12 +38,12 @@ export const SpinWheelWidget: React.FC<WidgetProps> = ({
 
   // Convert widget config to FullWidget format
   const convertToFullWidgetConfig = useCallback(() => {
-    const { wheelData, handleConfig, emailCaptureConfig, config } = wheelConfig;
+    const { wheelData, handleConfig, emailCaptureConfig } = wheelConfig;
     
-    // Extract all configurations from the database
-    const widgetHandle = config?.wheelHandle || {};
-    const emailCapture = config?.emailCapture || {};
-    const style = config?.style || {};
+    // Extract all configurations from the widget config
+    const widgetHandle = handleConfig || {};
+    const emailCapture = emailCaptureConfig || {};
+    const style = wheelData?.style || {};
     
     console.log('[SpinWheelWidget] Using complete config from database:', {
       style,
@@ -52,31 +52,31 @@ export const SpinWheelWidget: React.FC<WidgetProps> = ({
     });
     
     return {
-      // Handle configuration from database
-      handleType: widgetHandle.handleType || handleConfig.type === 'button' ? 'floating' : handleConfig.type as any,
-      handlePosition: widgetHandle.handlePosition || ((handleConfig.style?.position === 'center' || handleConfig.style?.position === 'bottom' || handleConfig.style?.position === 'custom' ? 'right' : handleConfig.style?.position as 'left' | 'right') || 'right'),
-      handleText: widgetHandle.handleText || handleConfig.text || '¡Gana Premios!',
-      handleBackgroundColor: widgetHandle.handleBackgroundColor || handleConfig.style?.backgroundColor || '#8B5CF6',
-      handleTextColor: widgetHandle.handleTextColor || handleConfig.style?.textColor || '#FFFFFF',
-      handleIcon: widgetHandle.handleIcon || handleConfig.icon || '🎁',
-      handleSize: widgetHandle.handleSize || (handleConfig.size || 'medium') as 'small' | 'medium' | 'large',
-      handleAnimation: widgetHandle.handleAnimation || (() => {
+      // Handle configuration
+      handleType: handleConfig.type === 'button' ? 'floating' : handleConfig.type as any,
+      handlePosition: (handleConfig.style?.position === 'center' || handleConfig.style?.position === 'bottom' || handleConfig.style?.position === 'custom' ? 'right' : handleConfig.style?.position as 'left' | 'right') || 'right',
+      handleText: handleConfig.text || '¡Gana Premios!',
+      handleBackgroundColor: handleConfig.style?.backgroundColor || '#8B5CF6',
+      handleTextColor: handleConfig.style?.textColor || '#FFFFFF',
+      handleIcon: handleConfig.icon || '🎁',
+      handleSize: (handleConfig.size || 'medium') as 'small' | 'medium' | 'large',
+      handleAnimation: (() => {
         const anim = typeof handleConfig.animation === 'string' ? handleConfig.animation : handleConfig.animation?.type;
         if (anim === 'glow' || !anim) return 'pulse';
         return anim as 'none' | 'pulse' | 'bounce' | 'rotate';
       })(),
-      handleBorderRadius: String(widgetHandle.handleBorderRadius || handleConfig.style?.borderRadius || '9999px'),
+      handleBorderRadius: String(handleConfig.style?.borderRadius || '9999px'),
       
-      // Email capture configuration from database
-      captureImageUrl: emailCapture.captureImageUrl || 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=600&h=400&fit=crop',
-      captureTitle: emailCapture.captureTitle || '¡Gira y Gana Premios Increíbles!',
-      captureSubtitle: emailCapture.captureSubtitle || 'Ingresa tu email para participar y ganar descuentos exclusivos',
-      captureButtonText: emailCapture.captureButtonText || '¡Quiero Participar!',
-      capturePrivacyText: emailCapture.capturePrivacyText || emailCaptureConfig.consentText || 'Al participar, aceptas recibir emails promocionales.',
-      captureFormat: emailCapture.captureFormat || 'instant' as const,
+      // Email capture configuration
+      captureImageUrl: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=600&h=400&fit=crop',
+      captureTitle: '¡Gira y Gana Premios Increíbles!',
+      captureSubtitle: 'Ingresa tu email para participar y ganar descuentos exclusivos',
+      captureButtonText: '¡Quiero Participar!',
+      capturePrivacyText: emailCaptureConfig.consentText || 'Al participar, aceptas recibir emails promocionales.',
+      captureFormat: 'instant' as const,
       
       // Wheel segments with complete configuration
-      segments: (config?.segments || wheelData.segments).map((seg: any) => ({
+      segments: wheelData.segments.map((seg: any) => ({
         id: seg.id,
         label: seg.label,
         value: seg.value,
@@ -93,12 +93,12 @@ export const SpinWheelWidget: React.FC<WidgetProps> = ({
       wheelDesign: style || {},
       
       // Additional configurations
-      spinDuration: style.spinDuration || wheelData.physics?.spinDuration || 5000,
-      confettiEnabled: style.confettiEnabled !== false,
-      soundEnabled: style.soundEnabled || false,
+      spinDuration: wheelData.physics?.spinDuration || 5000,
+      confettiEnabled: true,
+      soundEnabled: false,
       
       // General styling
-      primaryColor: widgetHandle.handleBackgroundColor || handleConfig.style?.backgroundColor || '#8B5CF6',
+      primaryColor: handleConfig.style?.backgroundColor || '#8B5CF6',
       backgroundColor: style.backgroundColor || wheelData.style?.backgroundColor || '#FFFFFF'
     };
   }, [wheelConfig]);
