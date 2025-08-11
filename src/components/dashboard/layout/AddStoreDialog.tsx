@@ -46,7 +46,7 @@ export const AddStoreDialog: React.FC<AddStoreDialogProps> = ({
       // Redirect to Tienda Nube OAuth page
       window.location.href = authUrl;
     } catch (error) {
-      console.error("Error:", error);
+      // Error handled silently
     } finally {
       setIsSubmitting(false);
     }

@@ -39,12 +39,11 @@ export class WheelService {
   
   static async createWheel(storeId: string, data: any): Promise<ApiResponse<Wheel>> {
     try {
-      console.log('[WheelService] Creating wheel for store:', storeId);
-      console.log('[WheelService] Input data:', data);
+  
       
       // Check authentication
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('[WheelService] User authenticated:', user?.id);
+      await supabase.auth.getUser();
+
       
       // Transform the data to match new schema structure
       const { config, schedule_config, ...restData } = data as any;
@@ -71,7 +70,7 @@ export class WheelService {
         is_active: restData.is_active !== undefined ? restData.is_active : true
       };
       
-      console.log('[WheelService] Insert data prepared:', insertData);
+
       
       const { data: wheel, error } = await (supabase as any)
         .schema('spinawheel')
@@ -80,17 +79,17 @@ export class WheelService {
         .select()
         .single();
 
-      console.log('[WheelService] Supabase response:', { wheel, error });
+
 
       if (error) {
-        console.error('[WheelService] Supabase error:', error);
+
         throw error;
       }
 
-      console.log('[WheelService] Wheel created successfully:', wheel);
+
       return { data: wheel, success: true };
     } catch (error: any) {
-      console.error('[WheelService] Create wheel error:', error);
+
       return { 
         error: error?.message || 'Failed to create wheel', 
         success: false 

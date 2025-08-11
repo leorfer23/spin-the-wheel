@@ -285,7 +285,19 @@ body {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
+    position: relative;
+  }
+  /* Prevent horizontal scroll on mobile */
+  #root {
+    overflow-x: hidden;
+    position: relative;
+    width: 100%;
   }
 }

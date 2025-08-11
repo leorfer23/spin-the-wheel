@@ -61,12 +61,6 @@ export const SimpleScheduleConfig: React.FC<SimpleScheduleConfigProps> = ({
   enabled,
   onEnabledChange,
 }) => {
-  // Debug logging
-  console.log('[SimpleScheduleConfig] Received config:', config);
-  console.log('[SimpleScheduleConfig] Config weekDays:', config?.weekDays);
-  console.log('[SimpleScheduleConfig] Config dateRange:', config?.dateRange);
-  console.log('[SimpleScheduleConfig] Config timeSlots:', config?.timeSlots);
-  console.log('[SimpleScheduleConfig] Enabled:', enabled);
   // Track selected template for visual feedback
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   // Warning modal state
@@ -120,8 +114,6 @@ export const SimpleScheduleConfig: React.FC<SimpleScheduleConfigProps> = ({
         return adjustedDate.toISOString().slice(0, 16);
       };
       
-      console.log('[SimpleScheduleConfig] Setting default dates');
-      
       onChange({
         ...config,
         dateRange: {
@@ -163,11 +155,6 @@ export const SimpleScheduleConfig: React.FC<SimpleScheduleConfigProps> = ({
   };
 
   const applyTemplate = (template: typeof scheduleTemplates[0]) => {
-    console.log('[SimpleScheduleConfig] ========== APPLYING TEMPLATE ==========');
-    console.log('[SimpleScheduleConfig] Template:', template.name);
-    console.log('[SimpleScheduleConfig] Current config:', config);
-    console.log('[SimpleScheduleConfig] Template weekDays:', template.config.weekDays);
-    console.log('[SimpleScheduleConfig] Template timeSlots:', template.config.timeSlots);
     
     // Build new config with template's weekDays and timeSlots
     const newConfig: WheelScheduleConfig = {
@@ -184,28 +171,19 @@ export const SimpleScheduleConfig: React.FC<SimpleScheduleConfigProps> = ({
       }
     };
     
-    console.log('[SimpleScheduleConfig] New config to be applied:', newConfig);
-    console.log('[SimpleScheduleConfig] New weekDays.enabled:', newConfig.weekDays?.enabled);
-    console.log('[SimpleScheduleConfig] New weekDays.days:', newConfig.weekDays?.days);
-    console.log('[SimpleScheduleConfig] New timeSlots.enabled:', newConfig.timeSlots?.enabled);
-    console.log('[SimpleScheduleConfig] New timeSlots.slots:', newConfig.timeSlots?.slots);
-    
     // Set selected template for immediate visual feedback
     setSelectedTemplate(template.name);
     
     // First enable the main schedule toggle if not already enabled
     if (!enabled) {
-      console.log('[SimpleScheduleConfig] Enabling main schedule toggle');
       onEnabledChange(true);
     }
     
     // Update the config which will trigger auto-save to database
-    console.log('[SimpleScheduleConfig] Calling onChange with new config');
     onChange(newConfig);
     
     // Clear selection after a brief delay to show feedback
     setTimeout(() => {
-      console.log('[SimpleScheduleConfig] Clearing template selection');
       setSelectedTemplate(null);
     }, 2000);
   };
@@ -232,14 +210,10 @@ export const SimpleScheduleConfig: React.FC<SimpleScheduleConfigProps> = ({
 
   const toggleWeekDay = (day: number) => {
     const days = config.weekDays?.days || [];
-    console.log('[SimpleScheduleConfig] Current weekDays before toggle:', days);
-    console.log('[SimpleScheduleConfig] Toggling day:', day);
     
     const newDays = days.includes(day) 
       ? days.filter(d => d !== day)
       : [...days, day].sort((a, b) => a - b);
-    
-    console.log('[SimpleScheduleConfig] New weekDays after toggle:', newDays);
     
     const newConfig = {
       ...config,
@@ -249,7 +223,6 @@ export const SimpleScheduleConfig: React.FC<SimpleScheduleConfigProps> = ({
       }
     };
     
-    console.log('[SimpleScheduleConfig] New config after toggle:', newConfig);
     onChange(newConfig);
   };
 
@@ -472,8 +445,6 @@ export const SimpleScheduleConfig: React.FC<SimpleScheduleConfigProps> = ({
               {config.weekDays?.enabled !== false && (
                 <div className="grid grid-cols-7 gap-1.5">
                   {weekDays.map(day => {
-                    const isSelected = config.weekDays?.days?.includes(day.value);
-                    console.log(`[SimpleScheduleConfig] Day ${day.label} (${day.value}): ${isSelected ? 'selected' : 'not selected'}`);
                     return (
                       <motion.button
                       key={day.value}

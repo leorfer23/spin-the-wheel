@@ -90,12 +90,8 @@ export class StoreService {
   }
   static async createStore(data: any): Promise<ApiResponse<Store>> {
     try {
-      console.log('[StoreService] Creating store with data:', data);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('[StoreService] Current user:', user?.id);
-      
-      if (!user) throw new Error('User not authenticated');
+const { data: { user } } = await supabase.auth.getUser();
+if (!user) throw new Error('User not authenticated');
 
       // Make sure we're using the exact field names from the schema
       const insertData = { 
@@ -107,22 +103,18 @@ export class StoreService {
         is_active: true,
         plan_tier: 'free'
       };
-      console.log('[StoreService] Insert data:', insertData);
-
-      const { data: store, error } = await (supabase as any)
+const { data: store, error } = await (supabase as any)
         .schema('spinawheel')
         .from('stores')
         .insert(insertData)
         .select()
         .single();
 
-      console.log('[StoreService] Supabase response:', { store, error });
-
-      if (error) throw error;
+if (error) throw error;
 
       return { data: store, success: true };
     } catch (error) {
-      console.error('[StoreService] Create store error:', error);
+
       return { 
         error: error instanceof Error ? error.message : 'Failed to create store', 
         success: false 

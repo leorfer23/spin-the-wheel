@@ -47,7 +47,6 @@ export class TiendaNubeApiService {
 
       return { success: true, data };
     } catch (err) {
-      console.error('Error fetching integration:', err);
       return {
         success: false,
         error: err instanceof Error ? err.message : 'Failed to fetch integration'
@@ -71,24 +70,6 @@ export class TiendaNubeApiService {
         ? `/api/tiendanube-proxy?path=${encodeURIComponent(path)}`
         : `/api/tiendanube/proxy/${path}`;
       
-      // Enhanced production debugging
-      console.log('🚀 [makeRequest] Production API Request:', {
-        fullUrl: window.location.origin + url,
-        environment: import.meta.env.MODE,
-        deploymentUrl: import.meta.env.VERCEL_URL,
-        path,
-        method,
-        isProduction,
-        usingAlternativeEndpoint: isProduction
-      });
-      
-      console.log('🔐 [makeRequest] Auth debug:', {
-        url,
-        path,
-        tokenLength: accessToken?.length,
-        tokenPreview: accessToken ? `${accessToken.substring(0, 20)}...${accessToken.substring(accessToken.length - 10)}` : 'NO TOKEN',
-        method
-      });
       
       const options: RequestInit = {
         method,
@@ -105,23 +86,10 @@ export class TiendaNubeApiService {
       const response = await fetch(url, options);
       const responseText = await response.text();
 
-      // Log response details for debugging
-      console.log('📥 [makeRequest] Response:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        responsePreview: responseText ? responseText.substring(0, 200) : 'empty'
-      });
-
       if (!response.ok) {
         // Special handling for 404 in production
         if (response.status === 404) {
-          console.error('❌ [makeRequest] 404 Error - Endpoint not found:', {
-            requestedUrl: url,
-            fullUrl: window.location.origin + url,
-            possibleIssue: 'Vercel may not be recognizing the [...path].js catch-all route'
-          });
-        }
+    }
         
         // Check for 401 Unauthorized
         if (response.status === 401) {
@@ -158,7 +126,6 @@ export class TiendaNubeApiService {
         };
       }
     } catch (err) {
-      console.error('API request failed:', err);
       return {
         success: false,
         error: err instanceof Error ? err.message : 'Request failed'
@@ -170,21 +137,13 @@ export class TiendaNubeApiService {
    * Get all coupons for a store
    */
   async getCoupons(storeId: string, filters?: CouponFilters): Promise<ApiResponse<TiendaNubeCoupon[]>> {
-    console.log('🎯 [tiendaNubeApi.getCoupons] Starting with storeId:', storeId);
-    
     const integrationResult = await this.getIntegration(storeId);
-    console.log('🔌 [tiendaNubeApi.getCoupons] Integration result:', integrationResult);
     
     if (!integrationResult.success) {
-      console.error('❌ [tiendaNubeApi.getCoupons] No integration found');
       return integrationResult;
     }
 
     const integration = integrationResult.data;
-    console.log('✅ [tiendaNubeApi.getCoupons] Integration found:', {
-      platform_store_id: integration.platform_store_id,
-      has_token: !!integration.access_token
-    });
     
     // Build query string from filters
     const queryParams = new URLSearchParams();

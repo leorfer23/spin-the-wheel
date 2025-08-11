@@ -84,12 +84,10 @@ export const WheelReporting: React.FC<WheelReportingProps> = ({ wheelId, segment
           });
 
         if (error) {
-          console.warn('Failed to fetch analytics:', error);
           return [];
         }
         return data || [];
       } catch (error) {
-        console.warn('Analytics fetch error:', error);
         return [];
       }
     },

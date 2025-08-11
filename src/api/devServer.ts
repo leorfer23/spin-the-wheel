@@ -419,100 +419,52 @@ export function widgetAPIPlugin(): Plugin {
           return;
         }
         
-        // POST /api/widget/prize-accepted
-        if (req.url === '/api/widget/prize-accepted' && req.method === 'POST') {
+        // POST /api/widget/track - Consolidated tracking endpoint
+        if (req.url === '/api/widget/track' && req.method === 'POST') {
           let body = '';
           req.on('data', chunk => {
             body += chunk.toString();
           });
           req.on('end', async () => {
+            let data: any;
             try {
-              const data = JSON.parse(body);
-              const { widgetService } = await import('../services/widgetService');
-              await widgetService.recordPrizeAcceptance(data);
+              data = JSON.parse(body);
+              const { type, ...trackingData } = data;
+              
+              let result;
+              switch (type) {
+                case 'impression':
+                  const { widgetAnalytics: impressionAnalytics } = await import('../services/widgetAnalyticsService');
+                  const impressionId = await impressionAnalytics.trackImpression(trackingData);
+                  result = { success: true, id: impressionId, type };
+                  break;
+                  
+                case 'prize-accepted':
+                  const { widgetService } = await import('../services/widgetService');
+                  await widgetService.recordPrizeAcceptance(trackingData);
+                  result = { success: true, type };
+                  break;
+                  
+                case 'event':
+                  const { widgetAnalytics: eventAnalytics } = await import('../services/widgetAnalyticsService');
+                  await eventAnalytics.trackEvent(trackingData);
+                  result = { success: true, type };
+                  break;
+                  
+                default:
+                  res.statusCode = 400;
+                  res.end(JSON.stringify({ error: `Unknown tracking type: ${type}` }));
+                  return;
+              }
               
               res.setHeader('Content-Type', 'application/json');
               res.setHeader('Access-Control-Allow-Origin', '*');
               res.statusCode = 200;
-              res.end(JSON.stringify({ success: true }));
+              res.end(JSON.stringify(result));
             } catch (error) {
+              console.error(`[DevServer] Failed to track ${data?.type}:`, error);
               res.statusCode = 500;
-              res.end(JSON.stringify({ error: 'Failed to record prize acceptance' }));
-            }
-          });
-          return;
-        }
-        
-        // POST /api/widget/impression
-        if (req.url === '/api/widget/impression' && req.method === 'POST') {
-          let body = '';
-          req.on('data', chunk => {
-            body += chunk.toString();
-          });
-          req.on('end', async () => {
-            try {
-              const data = JSON.parse(body);
-              const { widgetAnalytics } = await import('../services/widgetAnalyticsService');
-              const impressionId = await widgetAnalytics.trackImpression(data);
-              
-              res.setHeader('Content-Type', 'application/json');
-              res.setHeader('Access-Control-Allow-Origin', '*');
-              res.statusCode = 200;
-              res.end(JSON.stringify({ success: true, impressionId }));
-            } catch (error) {
-              console.error('[DevServer] Failed to track impression:', error);
-              res.statusCode = 500;
-              res.end(JSON.stringify({ error: 'Failed to track impression' }));
-            }
-          });
-          return;
-        }
-        
-        // POST /api/widget/event
-        if (req.url === '/api/widget/event' && req.method === 'POST') {
-          let body = '';
-          req.on('data', chunk => {
-            body += chunk.toString();
-          });
-          req.on('end', async () => {
-            try {
-              const data = JSON.parse(body);
-              const { widgetAnalytics } = await import('../services/widgetAnalyticsService');
-              await widgetAnalytics.trackEvent(data);
-              
-              res.setHeader('Content-Type', 'application/json');
-              res.setHeader('Access-Control-Allow-Origin', '*');
-              res.statusCode = 200;
-              res.end(JSON.stringify({ success: true }));
-            } catch (error) {
-              console.error('[DevServer] Failed to track event:', error);
-              res.statusCode = 500;
-              res.end(JSON.stringify({ error: 'Failed to track event' }));
-            }
-          });
-          return;
-        }
-        
-        // POST /api/widget/update-impression-time
-        if (req.url === '/api/widget/update-impression-time' && req.method === 'POST') {
-          let body = '';
-          req.on('data', chunk => {
-            body += chunk.toString();
-          });
-          req.on('end', async () => {
-            try {
-              const data = JSON.parse(body);
-              const { widgetAnalytics } = await import('../services/widgetAnalyticsService');
-              await widgetAnalytics.updateImpressionTime(data.sessionId, data.timeOnWidget * 1000);
-              
-              res.setHeader('Content-Type', 'application/json');
-              res.setHeader('Access-Control-Allow-Origin', '*');
-              res.statusCode = 200;
-              res.end(JSON.stringify({ success: true }));
-            } catch (error) {
-              console.error('[DevServer] Failed to update impression time:', error);
-              res.statusCode = 500;
-              res.end(JSON.stringify({ error: 'Failed to update impression time' }));
+              res.end(JSON.stringify({ error: `Failed to track ${data?.type}` }));
             }
           });
           return;

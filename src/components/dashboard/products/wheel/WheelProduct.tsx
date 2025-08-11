@@ -49,9 +49,7 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
 
   // Load wheels when store is selected (only once per store change)
   useEffect(() => {
-    console.log('[WheelProduct] useEffect - tiendanubeStoreId:', tiendanubeStoreId, 'user:', user?.id);
     if (tiendanubeStoreId && user) {
-      console.log('[WheelProduct] Loading wheels for tiendanubeStoreId:', tiendanubeStoreId);
       loadWheels(tiendanubeStoreId);
     }
   }, [tiendanubeStoreId, user]); // Using tiendanubeStoreId instead of selectedStoreId
@@ -156,11 +154,8 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
     const wheelName = name || 'Nueva Campaña';
     
     if (tiendanubeStoreId) {
-      console.log('[WheelProduct] Creating wheel with tiendanubeStoreId:', tiendanubeStoreId, 'name:', wheelName);
       // Fire async creation but don't wait for it
       createWheel(tiendanubeStoreId, wheelName);
-    } else {
-      console.error('[WheelProduct] No tiendanubeStoreId available. selectedStoreId:', selectedStoreId, 'selectedStore:', selectedStore);
     }
     
     // Return a dummy WheelConfig immediately for the UI
@@ -207,7 +202,6 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
         <div
           className="relative group cursor-pointer w-full max-w-[600px] aspect-square flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-transform duration-300"
           onClick={() => {
-            console.log('[WheelProduct] Creating wheel via click');
             handleCreateWheel();
           }}
         >

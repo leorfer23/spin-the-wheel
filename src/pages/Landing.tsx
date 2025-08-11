@@ -5,7 +5,10 @@ import { MinimalCelebration } from '../components/MinimalCelebration';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { Sparkles, ArrowRight, Zap, Gift, TrendingUp, Users, Star, ChevronDown, Menu, X } from 'lucide-react';
+import { 
+  Sparkles, ArrowRight, Zap, Gift, TrendingUp, Star, ChevronDown, Menu, X,
+  Calendar, Target, Palette, Gamepad2 as GamepadIcon, Trophy, BarChart, Mail, Smartphone, Check
+} from 'lucide-react';
 import type { WheelConfig, SpinResult } from '../types/wheel.types';
 
 // Create responsive wheel configs
@@ -51,28 +54,29 @@ const createWheelConfig = (isMobile: boolean): WheelConfig => ({
   }
 });
 
-const features = [
-  {
-    icon: Zap,
-    title: "Aumenta las Conversiones",
-    description: "Hasta un 35% más de ventas con gamificación interactiva"
-  },
-  {
-    icon: Gift,
-    title: "Captura Leads",
-    description: "Recolecta emails de manera divertida y efectiva"
-  },
-  {
-    icon: TrendingUp,
-    title: "Métricas en Tiempo Real",
-    description: "Analiza el comportamiento y optimiza tus campañas"
-  },
-  {
-    icon: Users,
-    title: "Integraciones Fáciles",
-    description: "Conecta con Shopify, Tiendanube y más plataformas"
-  }
-];
+// Commented out - features array not currently used
+// const features = [
+//   {
+//     icon: Zap,
+//     title: "Aumenta las Conversiones",
+//     description: "Hasta un 35% más de ventas con gamificación interactiva"
+//   },
+//   {
+//     icon: Gift,
+//     title: "Captura Leads",
+//     description: "Recolecta emails de manera divertida y efectiva"
+//   },
+//   {
+//     icon: TrendingUp,
+//     title: "Métricas en Tiempo Real",
+//     description: "Analiza el comportamiento y optimiza tus campañas"
+//   },
+//   {
+//     icon: Users,
+//     title: "Integraciones Fáciles",
+//     description: "Conecta con Shopify, Tiendanube y más plataformas"
+//   }
+// ];
 
 const stats = [
   { value: "2M+", label: "Giros Mensuales" },
@@ -87,6 +91,7 @@ export const Landing: React.FC = () => {
   const [hasSpun, setHasSpun] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<'basico' | 'profesional' | 'empresa'>('profesional');
   const { scrollY } = useScroll();
   
   const wheelY = useTransform(scrollY, [0, 300], [0, isMobile ? -20 : -50]);
@@ -110,12 +115,10 @@ export const Landing: React.FC = () => {
     setHasSpun(true);
   };
 
-  // Removed the redirect to signup - users stay on landing page
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50">
       {/* Mobile Navigation */}
-      <nav className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-lg shadow-sm">
+      <nav className="lg:hidden sticky top-0 z-50 bg-white/90 backdrop-blur-lg shadow-sm">
         <div className="flex items-center justify-between px-4 py-4">
           <div className="flex items-center">
             <img 
@@ -166,9 +169,9 @@ export const Landing: React.FC = () => {
         </AnimatePresence>
       </nav>
       
-      {/* Hero Section */}
+      {/* Hero Section - PERFECT AS IS */}
       <motion.section 
-        className="relative flex items-start px-4 pt-20 pb-12 lg:pt-24 lg:pb-16"
+        className="relative flex items-start px-4 pt-8 pb-12 lg:pt-24 lg:pb-16"
         style={{ opacity: heroOpacity }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/50" />
@@ -425,7 +428,167 @@ export const Landing: React.FC = () => {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* NEW: Social Proof Section with Testimonials */}
+      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-gradient-to-b from-white/50 to-transparent">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Lo que dicen nuestros clientes
+              </span>
+            </h2>
+            <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto">
+              Miles de tiendas ya están aumentando sus ventas con Rooleta
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                name: "María González",
+                store: "Boutique María",
+                avatar: "MG",
+                rating: 5,
+                testimonial: "Incrementé mis ventas un 42% en el primer mes. La rueda es adictiva y mis clientes la aman!",
+                metrics: "+42% ventas"
+              },
+              {
+                name: "Carlos Rodríguez",
+                store: "TechStore AR",
+                avatar: "CR",
+                rating: 5,
+                testimonial: "La mejor inversión para mi tienda. Super fácil de instalar y los resultados son inmediatos.",
+                metrics: "3x conversión"
+              },
+              {
+                name: "Ana Martínez",
+                store: "Deco Home",
+                avatar: "AM",
+                rating: 5,
+                testimonial: "Capturé 2000+ emails en 2 semanas. El sistema de programación es genial para eventos especiales.",
+                metrics: "2000+ leads"
+              }
+            ].map((testimonial, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -5 }}
+              >
+                <Card className="p-6 h-full backdrop-blur-xl bg-white/90 border-white/20 shadow-xl rounded-2xl">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                      {testimonial.avatar}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold">{testimonial.name}</h4>
+                      <p className="text-sm text-gray-600">{testimonial.store}</p>
+                      <div className="flex gap-0.5 mt-1">
+                        {[...Array(testimonial.rating)].map((_, i) => (
+                          <Star key={i} size={14} className="fill-yellow-400 text-yellow-400" />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-gray-700 mb-4 italic">"{testimonial.testimonial}"</p>
+                  <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                    <TrendingUp size={14} />
+                    {testimonial.metrics}
+                  </div>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* NEW: Easy Integration Section */}
+      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-white/80 backdrop-blur">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Instalación en 3 simples pasos
+              </span>
+            </h2>
+            <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto">
+              Conecta con tu tienda en menos de 5 minutos
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: "1",
+                title: "Conecta tu tienda",
+                description: "Un click para conectar con Shopify, Tiendanube o WooCommerce",
+                icon: "🔗"
+              },
+              {
+                step: "2",
+                title: "Personaliza tu rueda",
+                description: "Elige premios, colores y diseño acorde a tu marca",
+                icon: "🎨"
+              },
+              {
+                step: "3",
+                title: "¡Listo para vender!",
+                description: "Tu rueda aparece automáticamente en tu tienda",
+                icon: "🚀"
+              }
+            ].map((item, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.2 }}
+                viewport={{ once: true }}
+                className="relative"
+              >
+                {index < 2 && (
+                  <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2">
+                    <ArrowRight className="text-gray-300" size={32} />
+                  </div>
+                )}
+                <div className="text-center">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+                    {item.step}
+                  </div>
+                  <div className="text-4xl mb-4">{item.icon}</div>
+                  <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
+                  <p className="text-gray-600">{item.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Platform logos */}
+          <div className="mt-16 text-center">
+            <p className="text-sm text-gray-600 mb-6">Compatible con las principales plataformas</p>
+            <div className="flex flex-wrap justify-center items-center gap-8">
+              {['Shopify', 'Tiendanube', 'WooCommerce', 'Mercado Shops', 'Wix'].map((platform) => (
+                <div key={platform} className="px-6 py-3 bg-white rounded-xl shadow-md">
+                  <span className="text-gray-700 font-medium">{platform}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ENHANCED: Features Section with More Features */}
       <section className="py-12 sm:py-16 lg:py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <motion.div
@@ -436,30 +599,91 @@ export const Landing: React.FC = () => {
           >
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Todo lo que necesitas
+                Funciones poderosas
               </span>
             </h2>
             <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto">
-              Herramientas poderosas para transformar tu tienda en una experiencia interactiva
+              Todo lo que necesitas para gamificar tu tienda y multiplicar tus ventas
             </p>
           </motion.div>
           
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {features.map((feature, index) => (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              {
+                icon: Zap,
+                title: "Rueda de la Fortuna",
+                description: "Sistema completo de rueda interactiva con premios personalizables",
+                badge: "Popular"
+              },
+              {
+                icon: Calendar,
+                title: "Programación Inteligente",
+                description: "Programa campañas para fechas especiales, eventos y temporadas",
+                badge: "Nuevo"
+              },
+              {
+                icon: Target,
+                title: "Segmentación Avanzada",
+                description: "Muestra diferentes ruedas según el comportamiento del usuario"
+              },
+              {
+                icon: Palette,
+                title: "100% Personalizable",
+                description: "Adapta colores, premios y diseño a tu identidad de marca"
+              },
+              {
+                icon: GamepadIcon,
+                title: "Próximamente: Rasca y Gana",
+                description: "Nuevos juegos interactivos para mantener a tus clientes enganchados",
+                badge: "Pronto"
+              },
+              {
+                icon: Trophy,
+                title: "Próximamente: Jackpot",
+                description: "Premios acumulativos que generan expectativa y urgencia",
+                badge: "Pronto"
+              },
+              {
+                icon: BarChart,
+                title: "Analytics en Tiempo Real",
+                description: "Métricas detalladas de conversión, participación y ROI"
+              },
+              {
+                icon: Mail,
+                title: "Captura de Emails",
+                description: "Construye tu lista de suscriptores de forma divertida"
+              },
+              {
+                icon: Smartphone,
+                title: "Mobile First",
+                description: "Optimizado para dispositivos móviles donde ocurre el 70% de las compras"
+              }
+            ].map((feature, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: index * 0.05 }}
                 viewport={{ once: true }}
                 whileHover={{ y: -5 }}
               >
-                <Card className="p-4 sm:p-6 h-full backdrop-blur-xl bg-white/90 border-white/20 shadow-xl rounded-2xl sm:rounded-3xl">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl sm:rounded-2xl flex items-center justify-center mb-3 sm:mb-4 shadow-lg">
-                    <feature.icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                <Card className="p-6 h-full backdrop-blur-xl bg-white/90 border-white/20 shadow-xl rounded-2xl relative overflow-hidden">
+                  {feature.badge && (
+                    <div className="absolute top-4 right-4">
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        feature.badge === 'Popular' ? 'bg-green-100 text-green-700' :
+                        feature.badge === 'Nuevo' ? 'bg-blue-100 text-blue-700' :
+                        'bg-orange-100 text-orange-700'
+                      }`}>
+                        {feature.badge}
+                      </span>
+                    </div>
+                  )}
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                    <feature.icon className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-lg sm:text-xl font-semibold mb-2">{feature.title}</h3>
-                  <p className="text-sm sm:text-base text-gray-600">{feature.description}</p>
+                  <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-sm text-gray-600">{feature.description}</p>
                 </Card>
               </motion.div>
             ))}
@@ -467,7 +691,258 @@ export const Landing: React.FC = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* NEW: Pricing Section in ARS */}
+      <section className="py-12 sm:py-16 lg:py-20 px-4 bg-white/80 backdrop-blur">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Planes simples y transparentes
+              </span>
+            </h2>
+            <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+              Sin sorpresas, sin costos ocultos. Cancela cuando quieras.
+            </p>
+            
+            {/* Plan toggle */}
+            <div className="inline-flex items-center gap-4 bg-gray-100 p-1 rounded-full">
+              <button
+                onClick={() => setSelectedPlan('basico')}
+                className={`px-6 py-2 rounded-full transition-all ${
+                  selectedPlan === 'basico' ? 'bg-white shadow-md' : ''
+                }`}
+              >
+                Básico
+              </button>
+              <button
+                onClick={() => setSelectedPlan('profesional')}
+                className={`px-6 py-2 rounded-full transition-all ${
+                  selectedPlan === 'profesional' ? 'bg-white shadow-md' : ''
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  Profesional
+                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs px-2 py-0.5 rounded-full">
+                    Popular
+                  </span>
+                </span>
+              </button>
+              <button
+                onClick={() => setSelectedPlan('empresa')}
+                className={`px-6 py-2 rounded-full transition-all ${
+                  selectedPlan === 'empresa' ? 'bg-white shadow-md' : ''
+                }`}
+              >
+                Empresa
+              </button>
+            </div>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {[
+              {
+                name: 'Básico',
+                price: '$12.900',
+                originalPrice: '$19.900',
+                period: '/mes',
+                description: 'Perfecto para empezar',
+                features: [
+                  '1 Rueda activa',
+                  'Hasta 1,000 giros/mes',
+                  'Personalización básica',
+                  'Captura de emails',
+                  'Analytics básico',
+                  'Soporte por email'
+                ],
+                cta: 'Empezar Gratis',
+                highlight: false
+              },
+              {
+                name: 'Profesional',
+                price: '$24.900',
+                originalPrice: '$39.900',
+                period: '/mes',
+                description: 'Para tiendas en crecimiento',
+                features: [
+                  '3 Ruedas activas',
+                  'Giros ilimitados',
+                  'Personalización completa',
+                  'Programación de campañas',
+                  'Segmentación avanzada',
+                  'Analytics detallado',
+                  'Integraciones premium',
+                  'Soporte prioritario'
+                ],
+                cta: 'Prueba 14 días gratis',
+                highlight: true,
+                badge: 'Más Popular'
+              },
+              {
+                name: 'Empresa',
+                price: 'Personalizado',
+                originalPrice: '',
+                period: '',
+                description: 'Soluciones a medida',
+                features: [
+                  'Ruedas ilimitadas',
+                  'Todo de Profesional',
+                  'API personalizada',
+                  'Manager dedicado',
+                  'Onboarding premium',
+                  'SLA garantizado',
+                  'Desarrollo personalizado',
+                  'Facturación especial'
+                ],
+                cta: 'Contactar Ventas',
+                highlight: false
+              }
+            ].map((plan, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -5 }}
+                className={plan.highlight ? 'relative' : ''}
+              >
+                {plan.badge && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg">
+                      {plan.badge}
+                    </div>
+                  </div>
+                )}
+                <Card className={`p-6 h-full backdrop-blur-xl border-2 shadow-xl rounded-2xl ${
+                  plan.highlight 
+                    ? 'bg-gradient-to-br from-blue-50 to-purple-50 border-purple-400' 
+                    : 'bg-white/90 border-white/20'
+                }`}>
+                  <div className="text-center mb-6">
+                    <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+                    <p className="text-gray-600 text-sm mb-4">{plan.description}</p>
+                    <div className="flex items-baseline justify-center gap-2">
+                      {plan.originalPrice && (
+                        <span className="text-gray-400 line-through text-lg">{plan.originalPrice}</span>
+                      )}
+                      <span className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        {plan.price}
+                      </span>
+                      <span className="text-gray-600">{plan.period}</span>
+                    </div>
+                  </div>
+                  
+                  <ul className="space-y-3 mb-8">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm text-gray-700">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  
+                  <Button 
+                    className={`w-full ${
+                      plan.highlight 
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700' 
+                        : 'bg-gray-900 text-white hover:bg-gray-800'
+                    }`}
+                    onClick={() => navigate('/signup')}
+                  >
+                    {plan.cta}
+                  </Button>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="mt-12 text-center">
+            <p className="text-sm text-gray-600">
+              💳 Aceptamos todas las tarjetas • 🔒 Pago 100% seguro • ↩️ Garantía de 30 días
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* NEW: Comparison/Why Choose Us Section */}
+      <section className="py-12 sm:py-16 lg:py-20 px-4">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                ¿Por qué elegir Rooleta?
+              </span>
+            </h2>
+            <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto">
+              Comparado con no tener gamificación o usar la competencia
+            </p>
+          </motion.div>
+
+          <div className="max-w-4xl mx-auto">
+            <Card className="overflow-hidden backdrop-blur-xl bg-white/90 border-white/20 shadow-xl rounded-2xl">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gradient-to-r from-blue-50 to-purple-50">
+                    <tr>
+                      <th className="text-left p-4 font-semibold">Característica</th>
+                      <th className="text-center p-4">
+                        <div className="flex flex-col items-center">
+                          <span className="text-gray-500 text-sm">Sin gamificación</span>
+                        </div>
+                      </th>
+                      <th className="text-center p-4">
+                        <div className="flex flex-col items-center">
+                          <span className="text-gray-500 text-sm">Competencia</span>
+                        </div>
+                      </th>
+                      <th className="text-center p-4">
+                        <div className="flex flex-col items-center">
+                          <span className="font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            Rooleta
+                          </span>
+                        </div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {[
+                      ['Aumento en conversión', '0%', '+10-15%', '+35-42%'],
+                      ['Captura de emails', '❌', '✓', '✓✓'],
+                      ['Instalación', '-', '30+ min', '5 min'],
+                      ['Personalización marca', '-', 'Limitada', 'Total'],
+                      ['Precio mensual', '$0', '$49 USD', '$24.900 ARS'],
+                      ['Soporte en español', '-', '❌', '✓'],
+                      ['Juegos adicionales', '-', '❌', '✓ Pronto'],
+                      ['Analytics', '❌', 'Básico', 'Avanzado']
+                    ].map(([feature, none, competitor, rooleta], index) => (
+                      <tr key={index} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="p-4 font-medium">{feature}</td>
+                        <td className="text-center p-4 text-gray-500">{none}</td>
+                        <td className="text-center p-4 text-gray-700">{competitor}</td>
+                        <td className="text-center p-4">
+                          <span className="font-semibold text-green-600">{rooleta}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* ENHANCED CTA Section */}
       <section className="py-12 sm:py-16 lg:py-20 px-4">
         <div className="max-w-4xl mx-auto">
           <motion.div
@@ -486,15 +961,27 @@ export const Landing: React.FC = () => {
                   viewport={{ once: true }}
                   className="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 backdrop-blur rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6"
                 >
-                  <Sparkles className="w-8 h-8 sm:w-10 sm:h-10" />
+                  <Gift className="w-8 h-8 sm:w-10 sm:h-10" />
                 </motion.div>
                 
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
-                  ¿Listo para aumentar tus ventas?
+                  Oferta por tiempo limitado
                 </h2>
                 <p className="text-base sm:text-lg lg:text-xl mb-6 sm:mb-8 opacity-90">
-                  Únete a miles de tiendas que ya están convirtiendo más con gamificación
+                  Obtén 50% de descuento en todos los planes + 14 días de prueba gratis
                 </p>
+                
+                <div className="flex items-center justify-center gap-4 mb-6">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold">14</div>
+                    <div className="text-sm opacity-75">días gratis</div>
+                  </div>
+                  <div className="text-4xl">+</div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold">50%</div>
+                    <div className="text-sm opacity-75">descuento</div>
+                  </div>
+                </div>
                 
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Button 
@@ -502,13 +989,13 @@ export const Landing: React.FC = () => {
                     className="bg-white text-purple-600 hover:bg-gray-100 px-6 sm:px-8 lg:px-10 py-4 sm:py-5 lg:py-6 text-base sm:text-lg rounded-xl sm:rounded-2xl shadow-xl w-full sm:w-auto"
                     onClick={() => navigate('/signup')}
                   >
-                    Comenzar Ahora - Es Gratis
+                    Activar Oferta Ahora
                     <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
                   </Button>
                 </motion.div>
                 
                 <p className="mt-4 sm:mt-6 text-xs sm:text-sm opacity-75">
-                  No se requiere tarjeta de crédito • Configuración en 5 minutos
+                  No se requiere tarjeta • Cancela cuando quieras • Setup en 5 minutos
                 </p>
               </div>
             </Card>
@@ -519,7 +1006,15 @@ export const Landing: React.FC = () => {
       {/* Footer */}
       <footer className="py-8 sm:py-12 px-4 bg-white/50 backdrop-blur">
         <div className="max-w-7xl mx-auto text-center text-gray-600">
-          <p className="text-sm">&copy; 2024 Rooleta. Todos los derechos reservados.</p>
+          <div className="mb-4">
+            <img 
+              src="/rooleta_wordmark_transparent.png" 
+              alt="Rooleta" 
+              className="h-8 w-auto mx-auto mb-4"
+            />
+          </div>
+          <p className="text-sm mb-2">&copy; 2024 Rooleta. Todos los derechos reservados.</p>
+          <p className="text-xs">Made with ❤️ in Argentina 🇦🇷</p>
         </div>
       </footer>
 

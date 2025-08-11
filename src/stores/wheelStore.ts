@@ -168,11 +168,9 @@ export const useWheelStore = create<WheelState>()(
       
       // Create a new wheel
       createWheel: async (storeId: string, name: string) => {
-        console.log('[wheelStore] createWheel called with storeId:', storeId, 'name:', name);
         set({ isLoading: true, error: null });
         
         try {
-          console.log('[wheelStore] Calling WheelService.createWheel');
           const response = await WheelService.createWheel(storeId, {
             name,
             config: { 
@@ -185,22 +183,17 @@ export const useWheelStore = create<WheelState>()(
             is_active: true
           });
           
-          console.log('[wheelStore] WheelService.createWheel response:', response);
-          
           if (response.success && response.data) {
             toast.success('¡Ruleta creada exitosamente!');
             
             // Reload wheels and select the new one
-            console.log('[wheelStore] Reloading wheels after creation');
             await get().loadWheels(storeId);
             get().selectWheel(response.data.id);
             set({ isLoading: false });
           } else {
-            console.error('[wheelStore] Creation failed, response:', response);
             throw new Error(response.error || 'Error al crear la ruleta');
           }
         } catch (error) {
-          console.error('[wheelStore] Create wheel error:', error);
           toast.error(error instanceof Error ? error.message : 'Error al crear la ruleta');
           set({ error: error as Error, isLoading: false });
         }
@@ -387,8 +380,6 @@ export const useWheelStore = create<WheelState>()(
           return;
         }
         
-        console.log('[wheelStore] updateWheelDesign called with updates:', designUpdates);
-        
         // Merge updates with current wheel design to create complete object
         const currentWheelDesign = state.selectedWheel.wheelDesign || DEFAULT_WHEEL_DESIGN;
         const completeDesign = {
@@ -396,8 +387,6 @@ export const useWheelStore = create<WheelState>()(
           ...currentWheelDesign,    // Apply current saved values
           ...designUpdates          // Apply new updates
         };
-        
-        console.log('[wheelStore] Complete design object:', completeDesign);
         
         try {
           // Get the full wheel data from the API first to preserve other config fields
@@ -412,13 +401,9 @@ export const useWheelStore = create<WheelState>()(
             style: completeDesign // Save the complete design object
           };
           
-          console.log('[wheelStore] Sending to database - updatedConfig:', updatedConfig);
-          
           const response = await WheelService.updateWheel(state.selectedWheelId, {
             config: updatedConfig as any
           });
-          
-          console.log('[wheelStore] Database update response:', response);
           
           if (response.success) {
             set(state => ({

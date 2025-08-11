@@ -30,12 +30,10 @@ export const WheelEmailList: React.FC<WheelEmailListProps> = ({ wheelId }) => {
           .limit(50);
 
         if (error) {
-          console.warn('Failed to fetch email captures:', error);
           return [];
         }
         return data || [];
       } catch (error) {
-        console.warn('Error fetching email captures:', error);
         return [];
       }
     },

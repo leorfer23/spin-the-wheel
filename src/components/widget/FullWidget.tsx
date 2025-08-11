@@ -70,12 +70,6 @@ export const FullWidget: React.FC<FullWidgetProps> = ({
   const [stage, setStage] = useState<WidgetStage>('hidden');
   const [spinResult, setSpinResult] = useState<any>(null);
   const [showAttentionCue, setShowAttentionCue] = useState(true);
-  
-  console.log('[FullWidget] Rendering with config:', {
-    handleType: config.handleType,
-    handlePosition: config.handlePosition,
-    stage: stage
-  });
 
   const handleOpen = () => {
     setStage('unified');

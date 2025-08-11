@@ -91,12 +91,13 @@
   async function trackImpression() {
     try {
       impressionStartTime = Date.now();
-      const response = await fetch(`${config.apiUrl}/api/widget/impression`, {
+      const response = await fetch(`${config.apiUrl}/api/widget/track`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          type: 'impression',
           wheelId: wheelConfig?.id,
           storeId: config.storeId,
           sessionId: getSessionId(),
@@ -125,12 +126,13 @@
   // Track widget events
   async function trackEvent(eventType, eventData = {}) {
     try {
-      await fetch(`${config.apiUrl}/api/widget/event`, {
+      await fetch(`${config.apiUrl}/api/widget/track`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          type: 'event',
           wheelId: wheelConfig?.id,
           storeId: config.storeId,
           sessionId: getSessionId(),
@@ -502,18 +504,7 @@
       const timeSpent = Date.now() - impressionStartTime;
       trackEvent('widget_close', { timeSpentMs: timeSpent });
       
-      // Update impression with time spent
-      if (impressionId) {
-        fetch(`${config.apiUrl}/api/widget/update-impression-time`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            impressionId: impressionId,
-            sessionId: getSessionId(),
-            timeOnWidget: Math.round(timeSpent / 1000)
-          })
-        }).catch(err => console.error('[CoolPops Widget] Failed to update time:', err));
-      }
+      // Note: We no longer update impression time as that endpoint was removed
     }
     
     document.getElementById('coolpops-backdrop').style.opacity = '0';
@@ -594,12 +585,13 @@
       }
 
       // Send acceptance data to API with analytics
-      const response = await fetch(`${config.apiUrl}/api/widget/prize-accepted`, {
+      const response = await fetch(`${config.apiUrl}/api/widget/track`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          type: 'prize-accepted',
           wheelId: wheelConfig?.id,
           storeId: config.storeId,
           sessionId: getSessionId(),

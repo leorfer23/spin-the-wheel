@@ -12,49 +12,24 @@ export const widgetService = {
     referrer?: string;
     timestamp?: string;
   }): Promise<WidgetAPIResponse> {
-    console.log('[WidgetService] getActiveWheelForStore called with storeId:', storeId);
-    
     try {
-      // Check if Supabase is configured
-      const supabaseUrl = process.env.VITE_SUPABASE_URL || (import.meta as any).env?.VITE_SUPABASE_URL;
-      const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || (import.meta as any).env?.VITE_SUPABASE_ANON_KEY;
-      
-      console.log('[WidgetService] Supabase config:', {
-        hasUrl: !!supabaseUrl,
-        hasKey: !!supabaseKey,
-        url: supabaseUrl ? 'SET' : 'NOT SET',
-        processEnv: !!process.env.VITE_SUPABASE_URL,
-        importMeta: !!(import.meta as any).env?.VITE_SUPABASE_URL
-      });
+      // Check if Supabase is configured - keeping for debugging info but not using
+      // const supabaseUrl = process.env.VITE_SUPABASE_URL || (import.meta as any).env?.VITE_SUPABASE_URL;
+      // const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || (import.meta as any).env?.VITE_SUPABASE_ANON_KEY;
 
-      // First, let's test if we can query the wheels table at all
-      const testQuery = await supabase
-        .from('wheels')
-        .select('id, name, tiendanube_store_id, is_active')
-        .limit(5);
+      // First, let's test if we can query the wheels table at all - disabled for now
+      // const testQuery = await supabase
+      //   .from('wheels')
+      //   .select('id, name, tiendanube_store_id, is_active')
+      //   .limit(5);
       
-      console.log('[WidgetService] Test query - List of wheels:', {
-        error: testQuery.error,
-        dataCount: testQuery.data?.length,
-        data: testQuery.data
-      });
-      
-      // Also specifically look for this store ID without the is_active filter
-      const storeTestQuery = await supabase
-        .from('wheels')
-        .select('id, name, tiendanube_store_id, is_active')
-        .eq('tiendanube_store_id', String(storeId));
-      
-      console.log('[WidgetService] Store-specific test query (without is_active filter):', {
-        storeId: storeId,
-        storeIdAsString: String(storeId),
-        error: storeTestQuery.error,
-        dataCount: storeTestQuery.data?.length,
-        data: storeTestQuery.data
-      });
+      // Also specifically look for this store ID without the is_active filter - disabled for now
+      // const storeTestQuery = await supabase
+      //   .from('wheels')
+      //   .select('id, name, tiendanube_store_id, is_active')
+      //   .eq('tiendanube_store_id', String(storeId));
 
       // Try both string and number formats for the store ID
-      console.log('[WidgetService] Attempting query with storeId:', storeId, 'type:', typeof storeId);
       
       // Convert to string to ensure it matches the database format
       const storeIdString = String(storeId);
@@ -68,47 +43,11 @@ export const widgetService = {
         .limit(1)
         .single();
 
-      console.log('[WidgetService] Supabase query executed');
-      console.log('[WidgetService] Query details:', {
-        table: 'wheels',
-        filters: {
-          tiendanube_store_id: storeId,
-          is_active: true
-        }
-      });
-      
-      console.log('[WidgetService] Supabase query result:', {
-        error: error ? {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        } : null,
-        data: data ? {
-          id: data.id,
-          name: data.name,
-          tiendanube_store_id: data.tiendanube_store_id,
-          is_active: data.is_active,
-          segments_config: data.segments_config,
-          style_config: data.style_config,
-          hasSegmentsConfig: !!data.segments_config,
-          segmentsLength: data.segments_config?.length
-        } : null,
-        dataExists: !!data
-      });
-
       if (error) {
-        console.error('[WidgetService] Supabase error details:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
         throw error;
       }
 
       if (!data) {
-        console.log('[WidgetService] No data returned from query');
         return {
           success: false,
           error: 'No active wheel found for this store'
@@ -116,9 +55,7 @@ export const widgetService = {
       }
 
       // Transform segments from segments_config field
-      console.log('[WidgetService] Processing segments_config:', data.segments_config);
-      
-      const segments = data.segments_config ? data.segments_config.map((segment: any, index: number) => {
+      const segments = data.segments_config ? data.segments_config.map((segment: any) => {
         const transformed = {
           id: segment.id,
           label: segment.label,
@@ -131,11 +68,8 @@ export const widgetService = {
           discountCode: segment.discountCode || segment.value,
           description: segment.description || segment.label
         };
-        console.log(`[WidgetService] Transformed segment ${index}:`, transformed);
         return transformed;
       }) : [];
-      
-      console.log('[WidgetService] Final segments array:', segments);
 
       // Transform style from style_config field
       const styleConfig = data.style_config || {};
@@ -242,20 +176,11 @@ export const widgetService = {
         }
       };
 
-      console.log('[WidgetService] Final widgetConfig:', {
-        id: widgetConfig.id,
-        storeId: widgetConfig.storeId,
-        segmentsCount: widgetConfig.wheelData.segments.length,
-        segments: widgetConfig.wheelData.segments
-      });
-
       return {
         success: true,
         data: widgetConfig
       };
     } catch (error) {
-      console.error('[WidgetService] Error in getActiveWheelForStore:', error);
-      
       return {
         success: false,
         error: 'No active wheel found for this store'
@@ -389,7 +314,6 @@ export const widgetService = {
       
       return { spinId: spin?.id };
     } catch (error) {
-      console.error('[WidgetService] Failed to record spin:', error);
       return {};
     }
   },
@@ -423,7 +347,7 @@ export const widgetService = {
         });
 
       if (emailError) {
-        console.error('[WidgetService] Failed to record email capture:', emailError);
+        // Email capture failed silently
       }
 
       // Track the interaction event
@@ -443,7 +367,7 @@ export const widgetService = {
           });
       }
     } catch (error) {
-      console.error('[WidgetService] Failed to record prize acceptance:', error);
+      // Prize acceptance recording failed silently
     }
   }
 };

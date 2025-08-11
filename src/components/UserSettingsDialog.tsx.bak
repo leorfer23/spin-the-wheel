@@ -114,6 +114,7 @@ export function UserSettingsDialog({
         setWheels(allWheels);
       }
     } catch (error) {
+      console.error("Error loading user data:", error);
     } finally {
       setIsLoadingData(false);
     }
@@ -136,6 +137,7 @@ export function UserSettingsDialog({
       // Reload data
       await loadUserData();
     } catch (error) {
+      console.error("Error disconnecting store:", error);
       alert("Error al desconectar la tienda");
     } finally {
       setDisconnectingStoreId(null);

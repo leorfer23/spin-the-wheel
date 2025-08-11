@@ -22,7 +22,6 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
   const { save, saveStatus } = useAutoSave({
     type: 'schedule',
     onSave: async (config) => {
-      console.log('[ScheduleSection] Auto-saving schedule to database:', config);
       await onUpdateScheduleConfig(config);
     },
     debounceDelay: 1500 // Slightly longer delay for schedule changes
@@ -30,23 +29,15 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
 
   // Update local state when prop changes (from database)
   useEffect(() => {
-    console.log('[ScheduleSection] Schedule from database:', scheduleConfig);
-    console.log('[ScheduleSection] Schedule keys:', Object.keys(scheduleConfig || {}));
-    console.log('[ScheduleSection] Schedule enabled:', scheduleConfig?.enabled);
-    console.log('[ScheduleSection] Schedule weekDays:', scheduleConfig?.weekDays);
-    console.log('[ScheduleSection] Schedule dateRange:', scheduleConfig?.dateRange);
-    console.log('[ScheduleSection] Schedule timeSlots:', scheduleConfig?.timeSlots);
     setLocalScheduleConfig(scheduleConfig);
   }, [scheduleConfig]);
 
   const handleScheduleConfigChange = (newConfig: WheelScheduleConfig) => {
-    console.log('[ScheduleSection] Local config change:', newConfig);
     setLocalScheduleConfig(newConfig);
     save(newConfig);
   };
 
   const handleEnabledChange = (enabled: boolean) => {
-    console.log('[ScheduleSection] Enabled change:', enabled);
     const updatedConfig = { 
       ...localScheduleConfig, 
       enabled,

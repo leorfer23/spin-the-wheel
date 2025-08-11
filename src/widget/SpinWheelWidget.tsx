@@ -25,33 +25,17 @@ export const SpinWheelWidget: React.FC<WidgetProps> = ({
   callbacks 
 }) => {
   const [capturedEmail, setCapturedEmail] = useState<string>('');
-  
-  console.log('[SpinWheelWidget] Using unified FullWidget with config:', {
-    wheelId: wheelConfig.id,
-    storeId: wheelConfig.storeId,
-    segmentsCount: wheelConfig.wheelData?.segments?.length,
-    handleType: wheelConfig.handleConfig?.type,
-    handlePosition: wheelConfig.handleConfig?.style?.position
-  });
-  
-  console.log('[SpinWheelWidget] Full handle config:', wheelConfig.handleConfig);
 
   // Convert widget config to FullWidget format
   const convertToFullWidgetConfig = useCallback(() => {
     const { wheelData, handleConfig, emailCaptureConfig } = wheelConfig;
     
     // Extract all configurations from the widget config
-    const widgetHandle = handleConfig || {};
-    const emailCapture = emailCaptureConfig || {};
+    // const widgetHandle = handleConfig || {};
+    // const emailCapture = emailCaptureConfig || {};
     const style = wheelData?.style || {};
     
-    console.log('[SpinWheelWidget] Using complete config from database:', {
-      style,
-      widgetHandle,
-      emailCapture
-    });
-    
-    return {
+  return {
       // Handle configuration
       handleType: handleConfig.type === 'button' ? 'floating' : handleConfig.type as any,
       handlePosition: (handleConfig.style?.position === 'center' || handleConfig.style?.position === 'bottom' || handleConfig.style?.position === 'custom' ? 'right' : handleConfig.style?.position as 'left' | 'right') || 'right',
@@ -103,10 +87,9 @@ export const SpinWheelWidget: React.FC<WidgetProps> = ({
     };
   }, [wheelConfig]);
 
-  const handleEmailSubmit = useCallback((email: string, marketingConsent: boolean) => {
+  const handleEmailSubmit = useCallback((email: string) => {
     setCapturedEmail(email);
     // Email is stored for later use in prize acceptance
-    console.log('[SpinWheelWidget] Email captured:', email, 'Marketing consent:', marketingConsent);
   }, []);
 
   const handleSpinComplete = useCallback(async (result: any) => {

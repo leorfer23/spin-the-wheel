@@ -69,17 +69,21 @@ export const WheelSelector: React.FC<WheelSelectorProps> = ({
   };
 
   const handleCreateWheel = () => {
+    console.log('[WheelSelector] Starting wheel creation...');
     setIsCreatingNew(true);
     setNewWheelName("Nueva Campaña");
   };
 
   const saveNewWheel = () => {
+    console.log('[WheelSelector] Saving new wheel with name:', newWheelName);
     if (newWheelName.trim()) {
       try {
-        onCreateWheel(newWheelName.trim());
+        const newWheel = onCreateWheel(newWheelName.trim());
+        console.log('[WheelSelector] Wheel creation initiated, returned:', newWheel);
         // Note: Navigation happens in the mutation's onSuccess callback
         // navigate(`/dashboard/wheel/${newWheel.id}`);
       } catch (error) {
+        console.error('[WheelSelector] Error creating wheel:', error);
         // The mutation will handle the actual error display via toast
       }
     }

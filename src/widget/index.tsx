@@ -59,8 +59,6 @@ window.CoolPopsWidget = {
           z-index: 2147483647;
         `;
         document.body.appendChild(widgetContainer);
-        
-        console.log('[CoolPops Widget] Created widget container for handle-based widget');
 
         // Hide the modal container since we're using our own
         if (config.container) {
@@ -119,7 +117,6 @@ window.CoolPopsWidget = {
       }
 
     } catch (error) {
-      console.error('[CoolPops Widget] Initialization error:', error);
       // Handle initialization error silently
       config.callbacks.onClose();
     }

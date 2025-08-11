@@ -26,14 +26,6 @@ export const FloatingHandle: React.FC<FloatingHandleProps> = ({
   animation = 'pulse',
   borderRadius = '9999px'
 }) => {
-  console.log('[FloatingHandle] Rendering with:', {
-    type,
-    position,
-    text,
-    backgroundColor,
-    icon,
-    size
-  });
   const getAnimationProps = () => {
     switch (animation) {
       case 'pulse':
