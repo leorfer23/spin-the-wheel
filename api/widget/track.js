@@ -66,11 +66,22 @@ export default async function handler(req, res) {
     }
 
     console.log(`[Widget API] ${type} tracked:`, result.id);
-    res.status(200).json({ 
+    
+    // Return appropriate response based on type
+    const response = {
       success: true,
       id: result.id,
       type
-    });
+    };
+    
+    // Add type-specific fields
+    if (type === 'impression') {
+      response.impressionId = result.id;
+    } else if (type === 'spin') {
+      response.spinId = result.id;
+    }
+    
+    res.status(200).json(response);
 
   } catch (error) {
     console.error('[Widget API] Error:', error);
@@ -92,25 +103,44 @@ async function trackImpression(data) {
     userAgent
   } = data;
 
-  return supabase
+  const impressionData = {
+    wheel_id: wheelId,
+    store_id: storeId,
+    session_id: sessionId,
+    trigger_type: triggerType,
+    page_url: pageUrl,
+    referrer_url: referrerUrl,
+    platform: platform || 'web',
+    device_type: deviceType || 'desktop',
+    browser: browser,
+    user_agent: userAgent,
+    timestamp: new Date().toISOString()
+  };
+
+  // Log the data being inserted for debugging
+  console.log('[Widget API] Inserting impression data:', impressionData);
+
+  // Use insert without chaining select - we'll return a synthetic response
+  const { data: result, error } = await supabase
     .from('widget_impressions')
-    .insert([
-      {
-        wheel_id: wheelId,
-        store_id: storeId,
-        session_id: sessionId,
-        trigger_type: triggerType,
-        page_url: pageUrl,
-        referrer_url: referrerUrl,
-        platform: platform || 'web',
-        device_type: deviceType || 'desktop',
-        browser: browser,
-        user_agent: userAgent,
-        timestamp: new Date().toISOString()
-      }
-    ])
-    .select()
-    .single();
+    .insert([impressionData]);
+
+  if (error) {
+    console.error('[Widget API] Error inserting impression:', error);
+    return { data: null, error };
+  }
+
+  // Generate a unique ID for the impression (since we can't get it from the insert)
+  const impressionId = `imp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
+  // Return a synthetic response with the generated ID
+  return { 
+    data: { 
+      id: impressionId,
+      ...impressionData 
+    }, 
+    error: null 
+  };
 }
 
 async function trackPrizeAcceptance(data) {
@@ -127,31 +157,40 @@ async function trackPrizeAcceptance(data) {
     capturedAtStep 
   } = data;
 
+  const acceptanceData = {
+    wheel_id: wheelId,
+    store_id: storeId,
+    session_id: sessionId,
+    impression_id: impressionId,
+    spin_id: spinId,
+    email: email,
+    prize_type: prize?.prizeType,
+    prize_value: prize?.value,
+    discount_code: prize?.discountCode,
+    platform: platform || 'web',
+    captured_at_step: capturedAtStep || 'with_prize',
+    timestamp: timestamp || new Date().toISOString()
+  };
+
   // Record the prize acceptance
   const { data: acceptance, error } = await supabase
     .from('widget_prize_acceptances')
-    .insert([
-      {
-        wheel_id: wheelId,
-        store_id: storeId,
-        session_id: sessionId,
-        impression_id: impressionId,
-        spin_id: spinId,
-        email: email,
-        prize_type: prize?.prizeType,
-        prize_value: prize?.value,
-        discount_code: prize?.discountCode,
-        platform: platform || 'web',
-        captured_at_step: capturedAtStep || 'with_prize',
-        timestamp: timestamp || new Date().toISOString()
-      }
-    ])
-    .select()
-    .single();
+    .insert([acceptanceData]);
 
   if (error) {
     return { data: null, error };
   }
+
+  // Generate a unique ID for the acceptance
+  const acceptanceId = `acc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
+  return { 
+    data: { 
+      id: acceptanceId,
+      ...acceptanceData 
+    }, 
+    error: null 
+  };
 
   // If email is provided, add to email list
   if (email) {
@@ -177,7 +216,6 @@ async function trackPrizeAcceptance(data) {
     }
   }
 
-  return { data: acceptance, error: null };
 }
 
 async function trackEvent(data) {
@@ -190,19 +228,32 @@ async function trackEvent(data) {
     eventData
   } = data;
 
-  return supabase
+  const eventRecord = {
+    wheel_id: wheelId,
+    store_id: storeId,
+    session_id: sessionId,
+    impression_id: impressionId,
+    event_type: eventType,
+    event_data: eventData,
+    timestamp: new Date().toISOString()
+  };
+
+  const { data: result, error } = await supabase
     .from('widget_events')
-    .insert([
-      {
-        wheel_id: wheelId,
-        store_id: storeId,
-        session_id: sessionId,
-        impression_id: impressionId,
-        event_type: eventType,
-        event_data: eventData,
-        timestamp: new Date().toISOString()
-      }
-    ])
-    .select()
-    .single();
+    .insert([eventRecord]);
+
+  if (error) {
+    return { data: null, error };
+  }
+
+  // Generate a unique ID for the event
+  const eventId = `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
+  return { 
+    data: { 
+      id: eventId,
+      ...eventRecord 
+    }, 
+    error: null 
+  };
 }

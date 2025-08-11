@@ -91,35 +91,46 @@
   async function trackImpression() {
     try {
       impressionStartTime = Date.now();
+      const trackingData = {
+        type: 'impression',
+        wheelId: wheelConfig?.id,
+        storeId: config.storeId,
+        sessionId: getSessionId(),
+        triggerType: config.trigger,
+        pageUrl: window.location.href,
+        referrerUrl: document.referrer,
+        platform: 'tiendanube',
+        deviceType: config.context.isMobile ? 'mobile' : 'desktop',
+        browser: navigator.userAgent,
+        userAgent: navigator.userAgent
+      };
+      
+      console.log('[CoolPops Widget] Tracking impression with data:', trackingData);
+      
       const response = await fetch(`${config.apiUrl}/api/widget/track`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          type: 'impression',
-          wheelId: wheelConfig?.id,
-          storeId: config.storeId,
-          sessionId: getSessionId(),
-          triggerType: config.trigger,
-          pageUrl: window.location.href,
-          referrerUrl: document.referrer,
-          platform: 'tiendanube',
-          deviceType: config.context.isMobile ? 'mobile' : 'desktop',
-          browser: navigator.userAgent,
-          userAgent: navigator.userAgent
-        })
+        body: JSON.stringify(trackingData)
       });
       
       if (response.ok) {
         const data = await response.json();
         impressionId = data.impressionId;
-        if (config.isDevelopment) {
-          console.log('[CoolPops Widget] Impression tracked:', impressionId);
-        }
+        console.log('[CoolPops Widget] Impression tracked successfully:', {
+          impressionId: impressionId,
+          response: data
+        });
+      } else {
+        const errorText = await response.text();
+        console.error('[CoolPops Widget] Failed to track impression - Server error:', {
+          status: response.status,
+          error: errorText
+        });
       }
     } catch (error) {
-      console.error('[CoolPops Widget] Failed to track impression:', error);
+      console.error('[CoolPops Widget] Failed to track impression - Network error:', error);
     }
   }
   
@@ -301,9 +312,7 @@
       document.getElementById('coolpops-content').style.transform = 'translate(-50%, -50%) scale(1)';
     }, 10);
     
-    // Track impression when modal is shown
-    trackImpression();
-    trackEvent('widget_view', { handleType: wheelConfig?.handleConfig?.type });
+    // Note: Impression tracking is now done in loadWidget() after wheelConfig is set
   }
 
   // Load widget configuration and bundle
@@ -436,6 +445,10 @@
       // Store wheel config globally for the widget to access
       window.__coolPopsWheelConfig = wheelConfig;
       
+      // Track impression immediately after wheel config is set
+      // This ensures we have wheelConfig available for tracking
+      trackImpression();
+      
       // For handle-based widgets (tab, bubble, floating), let the widget display immediately
       // The widget will manage its own visibility
       if (wheelConfig.handleConfig?.type === 'tab' || 
@@ -444,11 +457,16 @@
         // Load widget immediately, it will show its own handle
         console.log('[CoolPops Widget] Handle-based widget detected:', wheelConfig.handleConfig?.type);
         // Widget will be loaded below and will display its own handle
+        trackEvent('widget_handle_shown', { handleType: wheelConfig.handleConfig?.type });
       } else if (trigger === 'immediate') {
         showModal();
+        trackEvent('widget_view', { trigger: 'immediate' });
       } else if (trigger === 'delay') {
         const delay = (wheelConfig.settings?.triggerDelay || config.delaySeconds) * 1000;
-        setTimeout(() => showModal(), delay);
+        setTimeout(() => {
+          showModal();
+          trackEvent('widget_view', { trigger: 'delay', delaySeconds: delay / 1000 });
+        }, delay);
       }
 
       // Load widget bundle

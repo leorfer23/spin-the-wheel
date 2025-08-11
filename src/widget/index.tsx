@@ -43,9 +43,11 @@ window.CoolPopsWidget = {
       console.log('[Widget] Initializing with config:', config.wheelConfig?.handleConfig);
       
       // Check if this is a handle-based widget (floating, tab, or bubble)
-      const isHandleWidget = config.wheelConfig?.handleConfig?.type === 'floating' || 
-                            config.wheelConfig?.handleConfig?.type === 'tab' || 
-                            config.wheelConfig?.handleConfig?.type === 'bubble';
+      // Note: These are internal handle types, not the same as HandleConfiguration.type
+      const handleType = (config.wheelConfig?.handleConfig as any)?.type;
+      const isHandleWidget = handleType === 'floating' || 
+                            handleType === 'tab' || 
+                            handleType === 'bubble';
 
       if (isHandleWidget) {
         console.log('[Widget] Handle widget detected, creating floating handle');

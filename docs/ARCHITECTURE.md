@@ -19,6 +19,7 @@
 SpinWheel Pro is a production-ready SaaS application that allows e-commerce stores to create and manage promotional spin wheels. It's designed to be platform-agnostic, supporting Shopify, Tienda Nube, and custom implementations.
 
 ### Key Features
+
 - 🏪 Multi-tenant architecture with store isolation
 - 🎨 Customizable wheel designs and themes
 - 📊 Advanced analytics and conversion tracking
@@ -30,6 +31,7 @@ SpinWheel Pro is a production-ready SaaS application that allows e-commerce stor
 ## Technology Stack
 
 ### Frontend
+
 - **React 19** - Latest React with concurrent features
 - **TypeScript** - Type safety throughout the application
 - **Vite** - Lightning-fast build tool and dev server
@@ -43,6 +45,7 @@ SpinWheel Pro is a production-ready SaaS application that allows e-commerce stor
 - **Zod** - Schema validation
 
 ### Backend
+
 - **Supabase** - Backend-as-a-Service
   - PostgreSQL database
   - Authentication
@@ -180,11 +183,13 @@ erDiagram
 ### Key Database Features
 
 1. **Row Level Security (RLS)**
+
    - Users can only access their own stores
    - Automatic data isolation between tenants
    - Public access for widget spin recording
 
 2. **Triggers & Functions**
+
    - Auto-update `updated_at` timestamps
    - Generate embed codes automatically
    - Validate inventory limits
@@ -199,11 +204,13 @@ erDiagram
 ### Components
 
 1. **AuthContext** (`src/contexts/AuthContext.tsx`)
+
    - Manages authentication state
    - Provides auth methods (signIn, signUp, signOut)
    - Handles session persistence
 
 2. **Protected Routes** (`src/components/ProtectedRoute.tsx`)
+
    - Wraps dashboard routes
    - Redirects to login if not authenticated
    - Shows loading state during auth check
@@ -214,6 +221,7 @@ erDiagram
    - Password reset functionality
 
 ### Flow
+
 ```
 User → Login Page → Supabase Auth → Session Token → Protected Dashboard
                 ↓
@@ -235,15 +243,15 @@ User → Login Page → Supabase Auth → Session Token → Protected Dashboard
 
 ```typescript
 interface WheelConfiguration {
-  segments: SegmentConfig[];      // Prize segments
-  spinDuration: number;           // Animation duration
-  spinRevolutions: number;        // Full rotations
-  friction: number;               // Deceleration factor
-  easeType: string;              // Animation easing
+  segments: SegmentConfig[]; // Prize segments
+  spinDuration: number; // Animation duration
+  spinRevolutions: number; // Full rotations
+  friction: number; // Deceleration factor
+  easeType: string; // Animation easing
   appearance: {
     showConfetti: boolean;
     soundEnabled: boolean;
-    pointerStyle: 'arrow' | 'triangle' | 'star';
+    pointerStyle: "arrow" | "triangle" | "star";
     wheelSize: number;
     fontSize: number;
     borderWidth: number;
@@ -262,7 +270,7 @@ interface WheelConfiguration {
 const selectWinningSegment = (segments: Segment[]) => {
   const totalWeight = segments.reduce((sum, s) => sum + s.weight, 0);
   let random = Math.random() * totalWeight;
-  
+
   for (const segment of segments) {
     random -= segment.weight;
     if (random <= 0) return segment;
@@ -281,7 +289,7 @@ const selectWinningSegment = (segments: Segment[]) => {
 
 ```typescript
 interface Integration {
-  provider: 'mailchimp' | 'klaviyo' | 'sendgrid' | 'activecampaign';
+  provider: "mailchimp" | "klaviyo" | "sendgrid" | "activecampaign";
   apiCredentials: {
     apiKey: string;
     listId?: string;
@@ -317,16 +325,19 @@ class ServiceName {
 ### Available Services
 
 1. **StoreService** (`src/services/storeService.ts`)
+
    - CRUD operations for stores
    - Store statistics aggregation
    - Plan tier management
 
 2. **WheelService** (`src/services/wheelService.ts`)
+
    - Wheel creation and configuration
    - Segment management
    - Wheel duplication
 
 3. **CampaignService** (`src/services/campaignService.ts`)
+
    - Campaign lifecycle management
    - Spin recording and validation
    - Analytics data aggregation
@@ -359,11 +370,13 @@ App
 ### State Management
 
 1. **Server State** (React Query)
+
    - API data caching
    - Optimistic updates
    - Background refetching
 
 2. **Client State** (Zustand)
+
    - UI state (modals, sidebars)
    - User preferences
    - Temporary form data
@@ -396,8 +409,8 @@ CREATE POLICY "Users can view their own stores" ON stores
 CREATE POLICY "Users can view wheels from their stores" ON wheels
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM stores 
-            WHERE stores.id = wheels.store_id 
+            SELECT 1 FROM stores
+            WHERE stores.id = wheels.store_id
             AND stores.user_id = auth.uid()
         )
     );
@@ -422,12 +435,14 @@ CREATE POLICY "Users can view wheels from their stores" ON wheels
 ### Prerequisites
 
 1. **Supabase Project**
+
    ```bash
    # Create project at supabase.com
    # Get URL and anon key from project settings
    ```
 
 2. **Environment Variables**
+
    ```bash
    cp .env.example .env
    # Fill in your Supabase credentials
@@ -458,12 +473,14 @@ npm run preview
 ### Deployment Options
 
 1. **Vercel** (Recommended)
+
    ```bash
    npm i -g vercel
    vercel
    ```
 
 2. **Netlify**
+
    - Connect GitHub repo
    - Build command: `npm run build`
    - Publish directory: `dist`
@@ -477,10 +494,11 @@ npm run preview
 
 ```javascript
 // Embed code for merchants
-<script src="https://yourdomain.com/widget.js" 
-        data-wheel-id="UUID_HERE"
-        data-trigger="exit_intent">
-</script>
+<script
+  src="https://yourdomain.com/widget.js"
+  data-wheel-id="UUID_HERE"
+  data-trigger="exit_intent"
+></script>
 ```
 
 ## Development Workflow
@@ -527,15 +545,15 @@ git push origin feature/wheel-analytics
 
 ```typescript
 // Component testing
-describe('WheelBuilder', () => {
-  it('should create wheel with segments', async () => {
+describe("WheelBuilder", () => {
+  it("should create wheel with segments", async () => {
     // Test implementation
   });
 });
 
 // Service testing
-describe('CampaignService', () => {
-  it('should enforce spin limits', async () => {
+describe("CampaignService", () => {
+  it("should enforce spin limits", async () => {
     // Test implementation
   });
 });
@@ -561,4 +579,4 @@ describe('CampaignService', () => {
 
 ## License
 
-Copyright © 2024 SpinWheel Pro. All rights reserved.
+Copyright © 2025 SpinWheel Pro. All rights reserved.

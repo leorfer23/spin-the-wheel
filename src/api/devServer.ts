@@ -76,7 +76,7 @@ export function widgetAPIPlugin(): Plugin {
             console.log('[DevServer] Querying with storeId:', storeIdString, 'Type:', typeof storeIdString);
             
             // Query all active wheels for this store - MUST use spinawheel schema
-            const { data: wheels, error } = await getSupabaseClient()!
+            const { data: wheels, error } = await (getSupabaseClient() as any)
               .schema('spinawheel')
               .from('wheels')
               .select('*')
@@ -88,7 +88,7 @@ export function widgetAPIPlugin(): Plugin {
             console.log('[DevServer] Raw query results:', {
               storeId: storeIdString,
               wheelsFound: wheels?.length || 0,
-              wheels: wheels?.map(w => ({ 
+              wheels: wheels?.map((w: any) => ({ 
                 id: w.id, 
                 name: w.name, 
                 is_active: w.is_active,
@@ -100,7 +100,7 @@ export function widgetAPIPlugin(): Plugin {
             
             if (error || !wheels || wheels.length === 0) {
               // Let's also check without the is_active filter to debug
-              const { data: allWheels, error: allError } = await getSupabaseClient()!
+              const { data: allWheels, error: allError } = await (getSupabaseClient() as any)
                 .schema('spinawheel')
                 .from('wheels')
                 .select('id, name, is_active, tiendanube_store_id')
@@ -114,13 +114,13 @@ export function widgetAPIPlugin(): Plugin {
               });
               
               // Also check ALL wheels to see what store IDs exist
-              const { data: sampleWheels } = await getSupabaseClient()!
+              const { data: sampleWheels } = await (getSupabaseClient() as any)
                 .schema('spinawheel')
                 .from('wheels')
                 .select('tiendanube_store_id, name')
                 .limit(10);
               
-              console.log('[DevServer] Sample store IDs in database:', sampleWheels?.map(w => ({
+              console.log('[DevServer] Sample store IDs in database:', sampleWheels?.map((w: any) => ({
                 store_id: w.tiendanube_store_id,
                 type: typeof w.tiendanube_store_id,
                 name: w.name
@@ -132,7 +132,7 @@ export function widgetAPIPlugin(): Plugin {
             }
             
             // Transform all wheels to widget format
-            const widgetConfigs = wheels.map(wheel => {
+            const widgetConfigs = wheels.map((wheel: any) => {
               const styleConfig = (wheel.style_config || {}) as any;
               
               return {
@@ -287,7 +287,7 @@ export function widgetAPIPlugin(): Plugin {
           
           try {
             // Query the wheel directly - MUST use spinawheel schema
-            const { data: wheel, error } = await getSupabaseClient()!
+            const { data: wheel, error } = await (getSupabaseClient() as any)
               .schema('spinawheel')
               .from('wheels')
               .select('*')
