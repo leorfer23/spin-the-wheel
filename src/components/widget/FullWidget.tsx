@@ -197,7 +197,7 @@ export const FullWidget: React.FC<FullWidgetProps> = ({
             />
             
             <motion.div
-              className="relative bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-auto"
+              className="relative bg-white rounded-2xl shadow-2xl w-[90vw] max-w-5xl h-[85vh] max-h-[650px] min-h-[500px] overflow-hidden"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
@@ -205,7 +205,7 @@ export const FullWidget: React.FC<FullWidgetProps> = ({
             >
               <button
                 onClick={handleClose}
-                className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/90 hover:bg-white transition-colors"
+                className="absolute top-4 right-4 z-50 p-2 rounded-full bg-white/90 hover:bg-white transition-colors shadow-lg"
               >
                 <X className="w-5 h-5" />
               </button>

@@ -40,11 +40,16 @@ declare global {
 window.CoolPopsWidget = {
   init: async (config: WidgetInitConfig) => {
     try {
-      // Check if this is a handle-based widget
-      const isHandleWidget = config.wheelConfig?.handleConfig?.type === 'pull_tab' || 
-                            config.wheelConfig?.handleConfig?.type === 'button';
+      console.log('[Widget] Initializing with config:', config.wheelConfig?.handleConfig);
+      
+      // Check if this is a handle-based widget (floating, tab, or bubble)
+      const isHandleWidget = config.wheelConfig?.handleConfig?.type === 'floating' || 
+                            config.wheelConfig?.handleConfig?.type === 'tab' || 
+                            config.wheelConfig?.handleConfig?.type === 'bubble';
 
       if (isHandleWidget) {
+        console.log('[Widget] Handle widget detected, creating floating handle');
+        
         // For handle-based widgets, create a new container and render directly to body
         const widgetContainer = document.createElement('div');
         widgetContainer.id = 'coolpops-widget-root';
@@ -59,6 +64,7 @@ window.CoolPopsWidget = {
           z-index: 2147483647;
         `;
         document.body.appendChild(widgetContainer);
+        console.log('[Widget] Widget container added to body');
 
         // Hide the modal container since we're using our own
         if (config.container) {

@@ -92,6 +92,7 @@ export const Landing: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'basico' | 'profesional' | 'empresa'>('profesional');
+  const [audioEnabled] = useState(true);
   const { scrollY } = useScroll();
   
   const wheelY = useTransform(scrollY, [0, 300], [0, isMobile ? -20 : -50]);
@@ -109,10 +110,50 @@ export const Landing: React.FC = () => {
   
   const wheelConfig = createWheelConfig(isMobile);
 
+  // Play wheel spin sound effect
+  const playWheelSound = () => {
+    if (audioEnabled && typeof window !== 'undefined') {
+      // Create audio context and oscillator for a spinning sound effect
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Create a clicking/ticking sound that speeds up and slows down
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+      
+      // Fade in and out
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.1);
+      gainNode.gain.linearRampToValueAtTime(0.05, audioContext.currentTime + 3);
+      gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 4.5);
+      
+      // Frequency modulation for spinning effect
+      oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 1);
+      oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 4);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 5);
+    }
+  };
+
   const handleSpinComplete = (result: SpinResult) => {
     setSpinResult(result);
     setHasSpun(true);
   };
+
+  // Play sound when wheel auto-spins
+  useEffect(() => {
+    if (!hasSpun) {
+      const timer = setTimeout(() => {
+        playWheelSound();
+      }, 800); // Match autoSpinDelay
+      return () => clearTimeout(timer);
+    }
+  }, [hasSpun]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50">
@@ -174,13 +215,13 @@ export const Landing: React.FC = () => {
       >
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/50" />
         
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
+        <div className="max-w-7xl lg:max-w-[1400px] mx-auto grid lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
           {/* Left Column - Text */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center lg:text-left order-2 lg:order-1"
+            className="text-center lg:text-left order-2 lg:order-1 px-4 sm:px-0"
           >
             {/* Logo for Desktop */}
             <div className="mb-8 hidden lg:block">
@@ -195,13 +236,13 @@ export const Landing: React.FC = () => {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium mb-6"
+              className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm lg:text-base font-medium mb-6"
             >
               <Sparkles size={16} />
               La Plataforma #1 de Gamificación
             </motion.div>
             
-            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold mb-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl xl:text-8xl font-bold mb-6">
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Transforma Visitantes
               </span>
@@ -209,7 +250,7 @@ export const Landing: React.FC = () => {
               <span className="text-gray-800">en Clientes</span>
             </h1>
             
-            <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-lg mx-auto lg:mx-0">
+            <p className="text-lg sm:text-xl lg:text-2xl text-gray-600 mb-8 max-w-xl mx-auto lg:mx-0">
               Aumenta tus conversiones con ruedas de la fortuna interactivas. 
               Gamifica la experiencia de compra y mira crecer tus ventas.
             </p>
@@ -302,12 +343,13 @@ export const Landing: React.FC = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0 }}
                   transition={{ delay: 0.5, type: "spring", stiffness: 100 }}
-                  className="absolute -right-8 sm:-right-16 lg:-right-24 top-1/2 -translate-y-1/2 z-20"
+                  className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full sm:bottom-auto sm:left-auto sm:right-0 sm:-right-16 lg:-right-24 sm:top-1/2 sm:-translate-y-1/2 sm:translate-y-0 z-20"
                 >
                   <motion.div
                     animate={{
                       rotate: [0, -10, 0, 10, 0],
-                      x: [0, -10, 0, 10, 0],
+                      x: isMobile ? 0 : [0, -10, 0, 10, 0],
+                      y: isMobile ? [0, -10, 0, 10, 0] : 0,
                     }}
                     transition={{
                       duration: 2,
@@ -317,7 +359,7 @@ export const Landing: React.FC = () => {
                     className="relative"
                   >
                     {/* Pointing hand emoji */}
-                    <div className="text-4xl sm:text-6xl lg:text-8xl transform rotate-180">
+                    <div className="text-4xl sm:text-6xl lg:text-8xl transform -rotate-90 sm:rotate-180">
                       👉
                     </div>
                     
@@ -332,7 +374,7 @@ export const Landing: React.FC = () => {
                         repeat: Infinity,
                         ease: "easeInOut"
                       }}
-                      className="absolute -top-8 sm:-top-12 lg:-top-16 left-1/2 -translate-x-1/2 whitespace-nowrap"
+                      className="absolute -bottom-10 left-1/2 -translate-x-1/2 sm:bottom-auto sm:-top-12 lg:-top-16 sm:left-1/2 sm:-translate-x-1/2 whitespace-nowrap"
                     >
                       <div className="bg-gradient-to-r from-red-500 to-yellow-500 text-white font-black text-lg sm:text-2xl lg:text-3xl px-3 sm:px-4 py-1 sm:py-2 rounded-full shadow-lg transform -rotate-12">
                         ¡GIRA!
@@ -405,7 +447,7 @@ export const Landing: React.FC = () => {
 
       {/* Stats Section */}
       <section className="py-12 sm:py-16 lg:py-20 bg-white/80 backdrop-blur">
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="max-w-7xl lg:max-w-[1400px] mx-auto px-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
             {stats.map((stat, index) => (
               <motion.div
@@ -416,10 +458,10 @@ export const Landing: React.FC = () => {
                 viewport={{ once: true }}
                 className="text-center"
               >
-                <p className="text-2xl sm:text-3xl lg:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <p className="text-2xl sm:text-3xl lg:text-5xl xl:text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   {stat.value}
                 </p>
-                <p className="text-xs sm:text-sm lg:text-base text-gray-600 mt-1 lg:mt-2">{stat.label}</p>
+                <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600 mt-1 lg:mt-2">{stat.label}</p>
               </motion.div>
             ))}
           </div>
@@ -428,19 +470,19 @@ export const Landing: React.FC = () => {
 
       {/* NEW: Social Proof Section with Testimonials */}
       <section className="py-12 sm:py-16 lg:py-20 px-4 bg-gradient-to-b from-white/50 to-transparent">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl lg:max-w-[1400px] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4">
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Lo que dicen nuestros clientes
               </span>
             </h2>
-            <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg lg:text-xl xl:text-2xl text-gray-600 max-w-2xl mx-auto">
               Miles de tiendas ya están aumentando sus ventas con Rooleta
             </p>
           </motion.div>
@@ -509,19 +551,19 @@ export const Landing: React.FC = () => {
 
       {/* NEW: Easy Integration Section */}
       <section className="py-12 sm:py-16 lg:py-20 px-4 bg-white/80 backdrop-blur">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl lg:max-w-[1400px] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4">
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Instalación en 3 simples pasos
               </span>
             </h2>
-            <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg lg:text-xl xl:text-2xl text-gray-600 max-w-2xl mx-auto">
               Conecta con tu tienda en menos de 5 minutos
             </p>
           </motion.div>
@@ -588,19 +630,19 @@ export const Landing: React.FC = () => {
 
       {/* ENHANCED: Features Section with More Features */}
       <section className="py-12 sm:py-16 lg:py-20 px-4">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl lg:max-w-[1400px] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4">
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Funciones poderosas
               </span>
             </h2>
-            <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg lg:text-xl xl:text-2xl text-gray-600 max-w-2xl mx-auto">
               Todo lo que necesitas para gamificar tu tienda y multiplicar tus ventas
             </p>
           </motion.div>
@@ -691,19 +733,19 @@ export const Landing: React.FC = () => {
 
       {/* NEW: Pricing Section in ARS */}
       <section className="py-12 sm:py-16 lg:py-20 px-4 bg-white/80 backdrop-blur">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl lg:max-w-[1400px] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4">
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Planes simples y transparentes
               </span>
             </h2>
-            <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+            <p className="text-base sm:text-lg lg:text-xl xl:text-2xl text-gray-600 max-w-2xl mx-auto mb-8">
               Sin sorpresas, sin costos ocultos. Cancela cuando quieras.
             </p>
             
@@ -741,7 +783,7 @@ export const Landing: React.FC = () => {
             </div>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto px-4 sm:px-0">
             {[
               {
                 name: 'Básico',
@@ -869,19 +911,19 @@ export const Landing: React.FC = () => {
 
       {/* NEW: Comparison/Why Choose Us Section */}
       <section className="py-12 sm:py-16 lg:py-20 px-4">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl lg:max-w-[1400px] mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4">
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 ¿Por qué elegir Rooleta?
               </span>
             </h2>
-            <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg lg:text-xl xl:text-2xl text-gray-600 max-w-2xl mx-auto">
               Comparado con no tener gamificación o usar la competencia
             </p>
           </motion.div>
@@ -900,36 +942,36 @@ export const Landing: React.FC = () => {
                       </th>
                       <th className="text-center p-4">
                         <div className="flex flex-col items-center">
-                          <span className="text-gray-500 text-sm">Competencia</span>
+                          <span className="font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            Rooleta
+                          </span>
                         </div>
                       </th>
                       <th className="text-center p-4">
                         <div className="flex flex-col items-center">
-                          <span className="font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            Rooleta
-                          </span>
+                          <span className="text-gray-500 text-sm">Competencia</span>
                         </div>
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {[
-                      ['Aumento en conversión', '0%', '+10-15%', '+35-42%'],
-                      ['Captura de emails', '❌', '✓', '✓✓'],
-                      ['Instalación', '-', '30+ min', '5 min'],
-                      ['Personalización marca', '-', 'Limitada', 'Total'],
-                      ['Precio mensual', '$0', '$49 USD', '$24.900 ARS'],
-                      ['Soporte en español', '-', '❌', '✓'],
-                      ['Juegos adicionales', '-', '❌', '✓ Pronto'],
-                      ['Analytics', '❌', 'Básico', 'Avanzado']
-                    ].map(([feature, none, competitor, rooleta], index) => (
+                      ['Aumento en conversión', '0%', '+35-42%', '+10-15%'],
+                      ['Captura de emails', '❌', '✓✓', '✓'],
+                      ['Instalación', '-', '5 min', '30+ min'],
+                      ['Personalización marca', '-', 'Total', 'Limitada'],
+                      ['Precio mensual', '$0', '$24.900 ARS', '$49 USD'],
+                      ['Soporte en español', '-', '✓', '❌'],
+                      ['Juegos adicionales', '-', '✓ Pronto', '❌'],
+                      ['Analytics', '❌', 'Avanzado', 'Básico']
+                    ].map(([feature, none, rooleta, competitor], index) => (
                       <tr key={index} className="hover:bg-gray-50/50 transition-colors">
                         <td className="p-4 font-medium">{feature}</td>
                         <td className="text-center p-4 text-gray-500">{none}</td>
-                        <td className="text-center p-4 text-gray-700">{competitor}</td>
                         <td className="text-center p-4">
                           <span className="font-semibold text-green-600">{rooleta}</span>
                         </td>
+                        <td className="text-center p-4 text-gray-700">{competitor}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1003,16 +1045,16 @@ export const Landing: React.FC = () => {
 
       {/* Footer */}
       <footer className="py-8 sm:py-12 px-4 bg-white/50 backdrop-blur">
-        <div className="max-w-7xl mx-auto text-center text-gray-600">
-          <div className="mb-4">
+        <div className="max-w-7xl lg:max-w-[1400px] mx-auto text-center text-gray-600">
+          <div className="mb-8">
             <img 
               src="/rooleta_wordmark_transparent.png" 
               alt="Rooleta" 
-              className="h-8 w-auto mx-auto mb-4"
+              className="h-8 w-auto mx-auto mb-6"
             />
           </div>
           <p className="text-sm mb-2">&copy; 2024 Rooleta. Todos los derechos reservados.</p>
-          <p className="text-xs">Made with ❤️ in Argentina 🇦🇷</p>
+          <p className="text-xs mb-4">Made with ❤️ in Argentina 🇦🇷</p>
         </div>
       </footer>
 

@@ -53,10 +53,10 @@ export const SpinWheelWidget: React.FC<WidgetProps> = ({
       
       // Email capture configuration
       captureImageUrl: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=600&h=400&fit=crop',
-      captureTitle: '¡Gira y Gana Premios Increíbles!',
-      captureSubtitle: 'Ingresa tu email para participar y ganar descuentos exclusivos',
-      captureButtonText: '¡Quiero Participar!',
-      capturePrivacyText: emailCaptureConfig.consentText || 'Al participar, aceptas recibir emails promocionales.',
+      captureTitle: '',  // Keep empty to use UnifiedWheelDialog's design
+      captureSubtitle: '', // Keep empty to use UnifiedWheelDialog's design
+      captureButtonText: '→',
+      capturePrivacyText: emailCaptureConfig.consentText || '',
       captureFormat: 'instant' as const,
       
       // Wheel segments with complete configuration

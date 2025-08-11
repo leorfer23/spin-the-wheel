@@ -13,6 +13,7 @@
   /* Reset styles for widget container */
   all: initial;
   display: contents;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* Fix positioning for floating elements */
@@ -130,6 +131,30 @@
   left: 0 !important;
 }
 
+#coolpops-widget-root .h-full {
+  height: 100% !important;
+}
+
+#coolpops-widget-root .min-h-\[500px\] {
+  min-height: 500px !important;
+}
+
+#coolpops-widget-root .max-h-\[650px\] {
+  max-height: 650px !important;
+}
+
+#coolpops-widget-root .h-\[85vh\] {
+  height: 85vh !important;
+}
+
+#coolpops-widget-root .w-\[90vw\] {
+  width: 90vw !important;
+}
+
+#coolpops-widget-root .max-w-5xl {
+  max-width: 64rem !important;
+}
+
 #coolpops-widget-root .bg-black\/50 {
   background-color: rgba(0, 0, 0, 0.5) !important;
 }
@@ -203,4 +228,43 @@
 /* Ensure framer-motion animations work */
 #coolpops-widget-root [data-framer-motion] {
   will-change: transform;
+}
+
+/* Fix flex layouts */
+#coolpops-widget-root .flex-row {
+  flex-direction: row !important;
+}
+
+#coolpops-widget-root .flex-col {
+  flex-direction: column !important;
+}
+
+#coolpops-widget-root .flex-1 {
+  flex: 1 1 0% !important;
+}
+
+#coolpops-widget-root .flex-\[1\.2\] {
+  flex: 1.2 1 0% !important;
+}
+
+#coolpops-widget-root .flex-\[0\.8\] {
+  flex: 0.8 1 0% !important;
+}
+
+/* Gradient backgrounds */
+#coolpops-widget-root .bg-gradient-to-br {
+  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops)) !important;
+}
+
+#coolpops-widget-root .from-purple-900 {
+  --tw-gradient-from: #581c87 !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(88, 28, 135, 0)) !important;
+}
+
+#coolpops-widget-root .via-purple-800 {
+  --tw-gradient-stops: var(--tw-gradient-from), #6b21a8, var(--tw-gradient-to, rgba(107, 33, 168, 0)) !important;
+}
+
+#coolpops-widget-root .to-pink-900 {
+  --tw-gradient-to: #831843 !important;
 }

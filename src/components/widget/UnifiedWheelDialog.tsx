@@ -75,7 +75,7 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
   return (
     <>
       {/* Desktop Layout - Side by side */}
-      <div className="hidden lg:flex flex-row h-full min-h-[600px] bg-gradient-to-br from-purple-900 via-purple-800 to-pink-900 relative overflow-hidden">
+      <div className="hidden lg:flex flex-row h-full bg-gradient-to-br from-purple-900 via-purple-800 to-pink-900 relative overflow-hidden">
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -left-40 w-80 h-80 bg-yellow-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
@@ -348,7 +348,7 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
       </div>
 
       {/* Mobile Layout - Full screen sections with conversion optimization */}
-      <div className="lg:hidden flex flex-col h-full min-h-[600px] bg-gradient-to-br from-purple-900 via-purple-800 to-pink-900 relative">
+      <div className="lg:hidden flex flex-col h-full bg-gradient-to-br from-purple-900 via-purple-800 to-pink-900 relative">
         {/* Animated background for mobile */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-20 -left-20 w-40 h-40 bg-yellow-400 rounded-full mix-blend-multiply filter blur-2xl opacity-20 animate-blob"></div>

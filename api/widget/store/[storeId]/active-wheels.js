@@ -1,12 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase client
+// Initialize Supabase client with SERVICE ROLE to bypass RLS
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL,
-  process.env.VITE_SUPABASE_ANON_KEY,
+  process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SERVICE_ROLE_KEY,
   {
     db: {
       schema: 'spinawheel'
+    },
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
     }
   }
 );
@@ -38,13 +42,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    console.log('[Widget API] Fetching active wheels for store:', storeId);
+    // Ensure storeId is a string
+    const storeIdString = String(storeId);
+    console.log('[Widget API] Fetching active wheels for store:', storeIdString, 'Type:', typeof storeIdString);
 
-    // Query all active wheels for this store
+    // Query all active wheels for this store - MUST use spinawheel schema
     const { data: wheels, error } = await supabase
+      .schema('spinawheel')
       .from('wheels')
       .select('*')
-      .eq('tiendanube_store_id', storeId)
+      .eq('tiendanube_store_id', storeIdString)
       .eq('is_active', true)
       .order('created_at', { ascending: false });
 
@@ -54,7 +61,48 @@ export default async function handler(req, res) {
       return;
     }
 
+    console.log('[Widget API] Supabase query error:', error);
+    console.log('[Widget API] Raw query results:', {
+      storeId: storeIdString,
+      wheelsFound: wheels?.length || 0,
+      wheels: wheels?.map(w => ({ 
+        id: w.id, 
+        name: w.name, 
+        is_active: w.is_active,
+        tiendanube_store_id: w.tiendanube_store_id,
+        has_schedule: !!w.schedule_config,
+        schedule_enabled: w.schedule_config?.enabled
+      }))
+    });
+
     if (!wheels || wheels.length === 0) {
+      // Let's also check without the is_active filter to debug
+      const { data: allWheels, error: allError } = await supabase
+        .schema('spinawheel')
+        .from('wheels')
+        .select('id, name, is_active, tiendanube_store_id')
+        .eq('tiendanube_store_id', storeIdString);
+      
+      console.log('[Widget API] Debug - All wheels for store (including inactive):', {
+        storeIdQueried: storeIdString,
+        error: allError,
+        wheelsFound: allWheels?.length || 0,
+        wheels: allWheels
+      });
+      
+      // Also check ALL wheels to see what store IDs exist
+      const { data: sampleWheels } = await supabase
+        .schema('spinawheel')
+        .from('wheels')
+        .select('tiendanube_store_id, name')
+        .limit(10);
+      
+      console.log('[Widget API] Sample store IDs in database:', sampleWheels?.map(w => ({
+        store_id: w.tiendanube_store_id,
+        type: typeof w.tiendanube_store_id,
+        name: w.name
+      })));
+      
       res.status(404).json({ error: 'No active wheels found for this store' });
       return;
     }

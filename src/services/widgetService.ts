@@ -115,24 +115,66 @@ export const widgetService = {
             slowdownRate: 0.98
           }
         },
-        handleConfig: data.handle_config || {
-          type: 'button' as const,
-          style: {
-            position: 'center',
-            backgroundColor: '#8B5CF6',
-            textColor: '#FFFFFF',
-            borderRadius: 50,
-            padding: '20px',
-            fontSize: 18,
-            customCSS: ''
-          },
-          text: 'SPIN',
-          animation: {
-            type: 'pulse' as const,
-            duration: 2000,
-            delay: 0
+        handleConfig: (() => {
+          const handleConfig = (data.wheel_handle_config || data.handle_config || {}) as any;
+          
+          // If we have proper database values, use them
+          if (handleConfig.handleType || handleConfig.handleText) {
+            return {
+              type: handleConfig.handleType || 'bubble',
+              style: {
+                position: handleConfig.handlePosition || 'right',
+                backgroundColor: handleConfig.handleBackgroundColor || '#8B5CF6',
+                textColor: handleConfig.handleTextColor || '#FFFFFF',
+                borderRadius: handleConfig.handleBorderRadius || '9999px',
+                padding: handleConfig.padding || '20px',
+                fontSize: handleConfig.handleFontSize || handleConfig.fontSize || 18,
+                customCSS: handleConfig.handleCustomCSS || handleConfig.customCSS || '',
+                borderColor: handleConfig.handleBorderColor,
+                borderWidth: handleConfig.handleBorderWidth,
+                fontFamily: handleConfig.handleFontFamily,
+                fontWeight: handleConfig.handleFontWeight,
+                letterSpacing: handleConfig.handleLetterSpacing,
+                shadowBlur: handleConfig.handleShadowBlur,
+                shadowColor: handleConfig.handleShadowColor,
+                shadowOpacity: handleConfig.handleShadowOpacity
+              },
+              text: handleConfig.handleText || '¡Ganas Premios!',
+              icon: handleConfig.handleIcon || '🎁',
+              size: handleConfig.handleSize || 'medium',
+              animation: {
+                type: handleConfig.handleAnimation || 'pulse',
+                duration: handleConfig.animationDuration || 2000,
+                delay: handleConfig.handleDelay || 0
+              },
+              trigger: handleConfig.handleTrigger || 'load',
+              frequency: handleConfig.handleFrequency || 'always',
+              zIndex: handleConfig.handleZIndex || 9999,
+              showOnMobile: handleConfig.handleShowOnMobile !== false,
+              showOnDesktop: handleConfig.handleShowOnDesktop !== false
+            };
           }
-        },
+          
+          // Fallback to default values if no database config
+          return {
+            type: 'button' as const,
+            style: {
+              position: 'center',
+              backgroundColor: '#8B5CF6',
+              textColor: '#FFFFFF',
+              borderRadius: 50,
+              padding: '20px',
+              fontSize: 18,
+              customCSS: ''
+            },
+            text: 'SPIN',
+            animation: {
+              type: 'pulse' as const,
+              duration: 2000,
+              delay: 0
+            }
+          };
+        })(),
         emailCaptureConfig: data.email_capture_config || {
           enabled: false,
           required: false,
