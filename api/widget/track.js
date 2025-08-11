@@ -120,25 +120,21 @@ async function trackImpression(data) {
   // Log the data being inserted for debugging
   console.log('[Widget API] Inserting impression data:', impressionData);
 
-  // Use insert without chaining select - we'll return a synthetic response
+  // Use insert with select chained properly
   const { data: result, error } = await supabase
     .from('widget_impressions')
-    .insert([impressionData]);
+    .insert([impressionData])
+    .select()
+    .single();
 
   if (error) {
     console.error('[Widget API] Error inserting impression:', error);
     return { data: null, error };
   }
 
-  // Generate a unique ID for the impression (since we can't get it from the insert)
-  const impressionId = `imp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
-  // Return a synthetic response with the generated ID
+  // Return the actual inserted data with its ID
   return { 
-    data: { 
-      id: impressionId,
-      ...impressionData 
-    }, 
+    data: result, 
     error: null 
   };
 }
@@ -175,23 +171,14 @@ async function trackPrizeAcceptance(data) {
   // Record the prize acceptance
   const { data: acceptance, error } = await supabase
     .from('widget_prize_acceptances')
-    .insert([acceptanceData]);
+    .insert([acceptanceData])
+    .select()
+    .single();
 
   if (error) {
     return { data: null, error };
   }
-
-  // Generate a unique ID for the acceptance
-  const acceptanceId = `acc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   
-  return { 
-    data: { 
-      id: acceptanceId,
-      ...acceptanceData 
-    }, 
-    error: null 
-  };
-
   // If email is provided, add to email list
   if (email) {
     const { error: emailError } = await supabase
@@ -216,6 +203,11 @@ async function trackPrizeAcceptance(data) {
     }
   }
 
+  // Return the acceptance data
+  return { 
+    data: acceptance, 
+    error: null 
+  };
 }
 
 async function trackEvent(data) {
@@ -240,20 +232,16 @@ async function trackEvent(data) {
 
   const { data: result, error } = await supabase
     .from('widget_events')
-    .insert([eventRecord]);
+    .insert([eventRecord])
+    .select()
+    .single();
 
   if (error) {
     return { data: null, error };
   }
-
-  // Generate a unique ID for the event
-  const eventId = `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   
   return { 
-    data: { 
-      id: eventId,
-      ...eventRecord 
-    }, 
+    data: result, 
     error: null 
   };
 }

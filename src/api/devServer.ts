@@ -487,7 +487,7 @@ export function widgetAPIPlugin(): Plugin {
               let result;
               switch (type) {
                 case 'impression':
-                  const { widgetAnalytics: impressionAnalytics } = await import('../services/widgetAnalyticsService');
+                  const { widgetAnalytics: impressionAnalytics } = await import('../services/widgetAnalyticsServiceServer');
                   const impressionId = await impressionAnalytics.trackImpression(trackingData);
                   result = { success: true, id: impressionId, type };
                   break;
@@ -499,7 +499,7 @@ export function widgetAPIPlugin(): Plugin {
                   break;
                   
                 case 'event':
-                  const { widgetAnalytics: eventAnalytics } = await import('../services/widgetAnalyticsService');
+                  const { widgetAnalytics: eventAnalytics } = await import('../services/widgetAnalyticsServiceServer');
                   await eventAnalytics.trackEvent(trackingData);
                   result = { success: true, type };
                   break;

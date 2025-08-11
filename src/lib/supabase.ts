@@ -39,11 +39,42 @@ export const supabase = new Proxy({} as SupabaseClient<Database>, {
           const mockQueryBuilder = {
             select: function() { 
               return {...this, 
-                then: (resolve: any) => resolve({ data: null, error: new Error('Mock mode - Supabase not configured') })
+                then: (resolve: any) => resolve({ data: null, error: new Error('Mock mode - Supabase not configured') }),
+                single: function() {
+                  return Promise.resolve({ data: null, error: new Error('Mock mode - Supabase not configured') });
+                }
               };
             },
-            insert: () => Promise.resolve({ data: null, error: null }),
-            update: () => Promise.resolve({ data: null, error: null }),
+            insert: function() {
+              return {
+                ...this,
+                select: function() {
+                  return {
+                    ...this,
+                    single: function() {
+                      return Promise.resolve({ data: null, error: new Error('Mock mode - Supabase not configured') });
+                    },
+                    then: (resolve: any) => resolve({ data: [], error: new Error('Mock mode - Supabase not configured') })
+                  };
+                },
+                then: (resolve: any) => resolve({ data: null, error: null })
+              };
+            },
+            update: function() {
+              return {
+                ...this,
+                select: function() {
+                  return {
+                    ...this,
+                    single: function() {
+                      return Promise.resolve({ data: null, error: new Error('Mock mode - Supabase not configured') });
+                    },
+                    then: (resolve: any) => resolve({ data: [], error: new Error('Mock mode - Supabase not configured') })
+                  };
+                },
+                then: (resolve: any) => resolve({ data: null, error: null })
+              };
+            },
             delete: () => Promise.resolve({ data: null, error: null }),
             eq: function() { return this; },
             limit: function() { return this; },
