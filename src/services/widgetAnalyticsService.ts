@@ -94,18 +94,25 @@ class WidgetAnalyticsService {
       const { browser, userAgent } = this.getBrowserInfo();
       const deviceType = this.getDeviceType();
       
+      // Truncate fields to match database constraints
+      const browserValue = browser.substring(0, 100);
+      const sessionIdValue = (data.sessionId || '').substring(0, 255);
+      const triggerTypeValue = (data.triggerType || '').substring(0, 50);
+      const platformValue = (data.platform || 'generic').substring(0, 50);
+      const deviceTypeValue = deviceType.substring(0, 50);
+      
       const { data: impression, error } = await supabase
         .from('widget_impressions')
         .insert({
           wheel_id: data.wheelId,
-          store_id: data.storeId,
-          session_id: data.sessionId,
-          trigger_type: data.triggerType,
+          tiendanube_store_id: data.storeId,  // Changed from store_id to tiendanube_store_id
+          session_id: sessionIdValue,
+          trigger_type: triggerTypeValue,
           page_url: data.pageUrl || (typeof window !== 'undefined' ? window.location.href : ''),
           referrer_url: data.referrerUrl || (typeof document !== 'undefined' ? document.referrer : ''),
-          platform: data.platform || 'generic',
-          device_type: deviceType,
-          browser: browser,
+          platform: platformValue,
+          device_type: deviceTypeValue,
+          browser: browserValue,
           user_agent: userAgent,
           widget_shown: true
         })

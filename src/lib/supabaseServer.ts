@@ -18,9 +18,6 @@ export function getServerSupabaseClient() {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
-      },
-      db: {
-        schema: 'spinawheel'
       }
     });
   }

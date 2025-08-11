@@ -105,7 +105,7 @@ async function trackImpression(data) {
 
   const impressionData = {
     wheel_id: wheelId,
-    store_id: storeId,
+    tiendanube_store_id: storeId,  // Changed from store_id to tiendanube_store_id
     session_id: sessionId,
     trigger_type: triggerType,
     page_url: pageUrl,
@@ -155,7 +155,7 @@ async function trackPrizeAcceptance(data) {
 
   const acceptanceData = {
     wheel_id: wheelId,
-    store_id: storeId,
+    tiendanube_store_id: storeId,  // Changed from store_id to tiendanube_store_id
     session_id: sessionId,
     impression_id: impressionId,
     spin_id: spinId,
@@ -186,14 +186,14 @@ async function trackPrizeAcceptance(data) {
       .upsert([
         {
           email: email,
-          store_id: storeId,
+          tiendanube_store_id: storeId,  // Changed from store_id to tiendanube_store_id
           wheel_id: wheelId,
           marketing_consent: true,
           source: 'widget_spin',
           captured_at: new Date().toISOString()
         }
       ], {
-        onConflict: 'email,store_id',
+        onConflict: 'email,tiendanube_store_id',  // Updated to match new column name
         ignoreDuplicates: false
       });
 
@@ -222,7 +222,7 @@ async function trackEvent(data) {
 
   const eventRecord = {
     wheel_id: wheelId,
-    store_id: storeId,
+    tiendanube_store_id: storeId,  // Changed from store_id to tiendanube_store_id
     session_id: sessionId,
     impression_id: impressionId,
     event_type: eventType,

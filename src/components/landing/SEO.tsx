@@ -39,7 +39,7 @@ export const SEO: React.FC<SEOProps> = ({
       if (!element) {
         element = document.createElement('link');
         element.rel = rel;
-        if (hrefLang) element.hrefLang = hrefLang;
+        if (hrefLang) element.hreflang = hrefLang;
         document.head.appendChild(element);
       }
       element.href = href;
@@ -181,7 +181,7 @@ export const SEO: React.FC<SEOProps> = ({
     };
 
     const addStructuredData = (data: any, id: string) => {
-      let script = document.getElementById(id);
+      let script = document.getElementById(id) as HTMLScriptElement;
       if (!script) {
         script = document.createElement('script');
         script.id = id;
