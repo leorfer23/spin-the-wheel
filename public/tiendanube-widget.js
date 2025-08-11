@@ -343,7 +343,29 @@
       if (!response.ok) {
         const errorText = await response.text();
         console.error('[CoolPops Widget] API Error Response:', errorText);
-        throw new Error(`No active wheels found for this store (${response.status}: ${errorText})`);
+        
+        // Parse error message if possible
+        let errorMessage = 'No active wheels found for this store';
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        } catch (e) {
+          // Use default message if parsing fails
+        }
+        
+        // Provide helpful message for store owners
+        if (response.status === 404) {
+          console.log('[CoolPops Widget] Info: No active wheels configured for store', config.storeId);
+          console.log('[CoolPops Widget] To fix this, please:');
+          console.log('1. Log in to your CoolPops dashboard at https://www.rooleta.com');
+          console.log('2. Create a new wheel or activate an existing one');
+          console.log('3. Make sure the wheel is properly configured with segments');
+          return; // Exit silently for 404 - this is expected for stores without wheels
+        }
+        
+        throw new Error(`${errorMessage} (Status: ${response.status})`);
       }
 
       const wheels = await response.json();
@@ -476,23 +498,30 @@
       
       // Show user-friendly message in development mode
       if (config.isDevelopment || config.testMode) {
-        document.getElementById('coolpops-loading').innerHTML = `
-          <div style="
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            font-family: system-ui, -apple-system, sans-serif;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          ">
-            <h3 style="margin: 0 0 10px 0; color: #ef4444;">Widget Error</h3>
-            <p style="margin: 0; color: #6b7280; font-size: 14px;">${error.message}</p>
-            <p style="margin: 10px 0 0 0; color: #6b7280; font-size: 12px;">Check console for details</p>
-          </div>
-        `;
-        setTimeout(hideWidget, 5000);
+        const loadingElement = document.getElementById('coolpops-loading');
+        if (loadingElement) {
+          loadingElement.innerHTML = `
+            <div style="
+              background: white;
+              padding: 20px;
+              border-radius: 8px;
+              text-align: center;
+              font-family: system-ui, -apple-system, sans-serif;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            ">
+              <h3 style="margin: 0 0 10px 0; color: #ef4444;">Widget Error</h3>
+              <p style="margin: 0; color: #6b7280; font-size: 14px;">${error.message}</p>
+              <p style="margin: 10px 0 0 0; color: #6b7280; font-size: 12px;">Check console for details</p>
+            </div>
+          `;
+        }
+        if (container) {
+          setTimeout(hideWidget, 5000);
+        }
       } else {
-        hideWidget();
+        if (container) {
+          hideWidget();
+        }
       }
     }
   }
@@ -507,12 +536,22 @@
       // Note: We no longer update impression time as that endpoint was removed
     }
     
-    document.getElementById('coolpops-backdrop').style.opacity = '0';
-    document.getElementById('coolpops-content').style.opacity = '0';
-    document.getElementById('coolpops-content').style.transform = 'translate(-50%, -50%) scale(0.9)';
-    setTimeout(() => {
-      container.style.display = 'none';
-    }, 300);
+    const backdrop = document.getElementById('coolpops-backdrop');
+    const content = document.getElementById('coolpops-content');
+    
+    if (backdrop) {
+      backdrop.style.opacity = '0';
+    }
+    if (content) {
+      content.style.opacity = '0';
+      content.style.transform = 'translate(-50%, -50%) scale(0.9)';
+    }
+    
+    if (container) {
+      setTimeout(() => {
+        container.style.display = 'none';
+      }, 300);
+    }
   }
 
   // Handle spin result
