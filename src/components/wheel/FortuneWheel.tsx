@@ -272,7 +272,6 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({
    * Handle touch start event
    */
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    e.preventDefault();
     const touch = e.touches[0];
     initDrag(touch.clientX, touch.clientY);
   }, [initDrag]);
@@ -396,7 +395,12 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({
         width={config.dimensions.diameter}
         height={config.dimensions.diameter}
         viewBox={viewBox}
-        style={{ display: 'block', cursor: config.spinConfig.allowDrag || !isSpinning ? 'pointer' : 'default' }}
+        style={{ 
+          display: 'block', 
+          cursor: config.spinConfig.allowDrag || !isSpinning ? 'pointer' : 'default',
+          touchAction: config.spinConfig.allowDrag ? 'none' : 'auto',
+          userSelect: 'none'
+        }}
         onClick={!config.spinConfig.allowDrag && !isSpinning ? spin : undefined}
         onMouseDown={config.spinConfig.allowDrag ? handleMouseDown : undefined}
         onTouchStart={config.spinConfig.allowDrag ? handleTouchStart : undefined}

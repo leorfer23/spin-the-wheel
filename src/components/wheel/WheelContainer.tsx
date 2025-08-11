@@ -35,6 +35,7 @@ export const WheelContainer: React.FC<WheelContainerProps> = ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    userSelect: 'none',
     ...(isGradientBorder ? {
       background: `${borderColor}, ${backgroundColor}`,
       backgroundClip: 'padding-box, border-box',

@@ -50,7 +50,7 @@ const createWheelConfig = (isMobile: boolean): WheelConfig => ({
     easing: 'ease-out',
     minRotations: 4,
     maxRotations: 6,
-    allowDrag: true
+    allowDrag: !isMobile // Disable drag on mobile to allow scrolling
   }
 });
 
@@ -95,7 +95,6 @@ export const Landing: React.FC = () => {
   const { scrollY } = useScroll();
   
   const wheelY = useTransform(scrollY, [0, 300], [0, isMobile ? -20 : -50]);
-  const heroOpacity = useTransform(scrollY, [0, 300], [1, 0.3]);
   
   // Detect mobile screen size
   useEffect(() => {
@@ -172,7 +171,6 @@ export const Landing: React.FC = () => {
       {/* Hero Section - PERFECT AS IS */}
       <motion.section 
         className="relative flex items-start px-4 pt-8 pb-12 lg:pt-24 lg:pb-16"
-        style={{ opacity: heroOpacity }}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/50" />
         
