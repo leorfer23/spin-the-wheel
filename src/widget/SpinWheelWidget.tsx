@@ -12,6 +12,7 @@ interface WidgetProps {
     language?: string;
   };
   callbacks: {
+    onOpen?: () => void;
     onClose: () => void;
     onSpin: (result: any) => Promise<void>;
     onPrizeAccepted: (prize: any, email: string) => Promise<void>;
@@ -131,6 +132,7 @@ export const SpinWheelWidget: React.FC<WidgetProps> = ({
   return (
     <FullWidget
       config={convertToFullWidgetConfig()}
+      onOpen={callbacks.onOpen}
       onClose={callbacks.onClose}
       onEmailSubmit={handleEmailSubmit}
       onSpinComplete={handleSpinComplete}

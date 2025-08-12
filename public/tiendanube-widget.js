@@ -445,9 +445,8 @@
       // Store wheel config globally for the widget to access
       window.__coolPopsWheelConfig = wheelConfig;
       
-      // Track impression immediately after wheel config is set
-      // This ensures we have wheelConfig available for tracking
-      trackImpression();
+      // DON'T track impression here - wait until popup actually opens
+      // trackImpression(); // REMOVED - moved to showModal and widget open callback
       
       // For handle-based widgets (tab, bubble, floating), let the widget display immediately
       // The widget will manage its own visibility
@@ -457,13 +456,16 @@
         // Load widget immediately, it will show its own handle
         console.log('[CoolPops Widget] Handle-based widget detected:', wheelConfig.handleConfig?.type);
         // Widget will be loaded below and will display its own handle
+        // Don't track impression yet - wait for actual click
         trackEvent('widget_handle_shown', { handleType: wheelConfig.handleConfig?.type });
       } else if (trigger === 'immediate') {
+        trackImpression(); // Track impression when modal actually shows
         showModal();
         trackEvent('widget_view', { trigger: 'immediate' });
       } else if (trigger === 'delay') {
         const delay = (wheelConfig.settings?.triggerDelay || config.delaySeconds) * 1000;
         setTimeout(() => {
+          trackImpression(); // Track impression when modal actually shows
           showModal();
           trackEvent('widget_view', { trigger: 'delay', delaySeconds: delay / 1000 });
         }, delay);
@@ -492,6 +494,13 @@
               language: window.LS?.store?.language || 'es'
             },
             callbacks: {
+              onOpen: () => {
+                // Track impression when handle is clicked and popup opens
+                if (!impressionId) {
+                  trackImpression();
+                  trackEvent('widget_opened', { source: 'handle_click' });
+                }
+              },
               onClose: hideWidget,
               onSpin: handleSpin,
               onPrizeAccepted: handlePrizeAccepted

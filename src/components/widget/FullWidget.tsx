@@ -54,6 +54,7 @@ export interface WidgetConfig {
 
 interface FullWidgetProps {
   config: WidgetConfig;
+  onOpen?: () => void;
   onClose?: () => void;
   onEmailSubmit?: (email: string, marketingConsent: boolean) => void;
   onSpinComplete?: (result: any) => void;
@@ -63,6 +64,7 @@ type WidgetStage = 'hidden' | 'unified' | 'celebration';
 
 export const FullWidget: React.FC<FullWidgetProps> = ({
   config,
+  onOpen,
   onClose,
   onEmailSubmit,
   onSpinComplete
@@ -72,6 +74,8 @@ export const FullWidget: React.FC<FullWidgetProps> = ({
   const [showAttentionCue, setShowAttentionCue] = useState(true);
 
   const handleOpen = () => {
+    // Call onOpen callback if provided (for impression tracking)
+    onOpen?.();
     setStage('unified');
   };
 
