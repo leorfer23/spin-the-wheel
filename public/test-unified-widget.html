@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Unified Widget Experience - CoolPops</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 18px;
+        }
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #444;
+            margin: 0;
+            font-size: 20px;
+        }
+        .status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .status.active {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+        }
+        .flow-step {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 8px;
+            position: relative;
+        }
+        .flow-step.expected {
+            background: #d1f2eb;
+            border: 2px solid #10b981;
+        }
+        .flow-step.actual {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+        }
+        .flow-arrow {
+            font-size: 24px;
+            color: #6c757d;
+        }
+        .test-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .test-info h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .console-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        .console-line {
+            margin: 2px 0;
+        }
+        .console-line.info { color: #4fc3f7; }
+        .console-line.success { color: #81c784; }
+        .console-line.error { color: #e57373; }
+        .console-line.warning { color: #ffb74d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Test Unified Widget Experience</h1>
+        <p class="subtitle">Verificando que el widget muestra la experiencia unificada (ruleta + email juntos)</p>
+
+        <div class="test-section">
+            <div class="test-header">
+                <h2>Expected Flow vs Actual Flow</h2>
+                <span class="status active">Testing Active</span>
+            </div>
+            
+            <div class="test-info">
+                <h3>✅ Expected Flow (Unified Experience):</h3>
+                <div class="flow-diagram">
+                    <div class="flow-step expected">
+                        <strong>1. Handle/Button</strong>
+                        <br><small>Floating button visible</small>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step expected">
+                        <strong>2. Unified Dialog</strong>
+                        <br><small>Wheel + Email together</small>
+                        <br><small style="color: #10b981;">✓ Side-by-side layout</small>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step expected">
+                        <strong>3. Celebration</strong>
+                        <br><small>Prize display</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="test-info" style="background: #fff3cd; border-color: #ffc107;">
+                <h3>❌ Old Flow (Sequential - NOT wanted):</h3>
+                <div class="flow-diagram">
+                    <div class="flow-step actual">
+                        <strong>1. Handle</strong>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step actual">
+                        <strong>2. Email Only</strong>
+                        <br><small style="color: #dc3545;">✗ Just email form</small>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step actual">
+                        <strong>3. Wheel Only</strong>
+                        <br><small style="color: #dc3545;">✗ Separate step</small>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step actual">
+                        <strong>4. Celebration</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Widget Test Controls</h2>
+            <p>Store ID: <strong>6545032</strong> (Test Store)</p>
+            
+            <div class="test-controls">
+                <button class="btn-primary" onclick="loadWidget()">
+                    🚀 Load Widget
+                </button>
+                <button class="btn-secondary" onclick="clearSession()">
+                    🔄 Clear Session
+                </button>
+                <button class="btn-secondary" onclick="toggleConsole()">
+                    📋 Toggle Console
+                </button>
+            </div>
+
+            <div id="console" class="console-output" style="display: none;">
+                <div class="console-line info">Console ready...</div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>How to Test:</h2>
+            <ol style="line-height: 1.8;">
+                <li><strong>Click "Load Widget"</strong> - This will load the widget with store ID 6545032</li>
+                <li><strong>Look for the floating handle</strong> - Should appear on the right side</li>
+                <li><strong>Click the handle</strong> - Should open the unified dialog</li>
+                <li><strong>Verify the layout:</strong>
+                    <ul>
+                        <li>✅ <strong>LEFT side:</strong> Should show the wheel (initially locked/grayed)</li>
+                        <li>✅ <strong>RIGHT side:</strong> Should show the email capture form</li>
+                        <li>✅ <strong>Both visible at once</strong> - NOT sequential steps</li>
+                    </ul>
+                </li>
+                <li><strong>Enter email</strong> - Wheel should unlock with animation</li>
+                <li><strong>Spin the wheel</strong> - Should show celebration</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Console logging
+        const logToConsole = (message, type = 'info') => {
+            const consoleDiv = document.getElementById('console');
+            if (!consoleDiv) return;
+            
+            const line = document.createElement('div');
+            line.className = `console-line ${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            consoleDiv.appendChild(line);
+            
+            // Keep only last 50 lines to prevent memory issues
+            while (consoleDiv.children.length > 50) {
+                consoleDiv.removeChild(consoleDiv.firstChild);
+            }
+            
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        };
+
+        // Store original console methods
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        // Flag to prevent recursion
+        let isLogging = false;
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            
+            if (isLogging) return; // Prevent recursion
+            isLogging = true;
+            
+            try {
+                const message = args.map(arg => 
+                    typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+                ).join(' ');
+                
+                if (message.includes('[CoolPops') || message.includes('[Widget]')) {
+                    logToConsole(message, 'info');
+                }
+            } catch (e) {
+                // Ignore circular reference errors
+            } finally {
+                isLogging = false;
+            }
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            if (!isLogging) {
+                isLogging = true;
+                try {
+                    logToConsole(args.map(a => String(a)).join(' '), 'error');
+                } catch (e) {
+                    // Ignore
+                } finally {
+                    isLogging = false;
+                }
+            }
+        };
+
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            if (!isLogging) {
+                isLogging = true;
+                try {
+                    logToConsole(args.map(a => String(a)).join(' '), 'warning');
+                } catch (e) {
+                    // Ignore
+                } finally {
+                    isLogging = false;
+                }
+            }
+        };
+
+        function loadWidget() {
+            // Check if widget already loaded
+            if (window.__coolPopsInitialized) {
+                logToConsole('Widget already loaded! Refresh the page to reload.', 'warning');
+                return;
+            }
+            
+            logToConsole('Loading widget for store 6545032...', 'info');
+            
+            // Create and append widget script
+            const script = document.createElement('script');
+            script.src = '/tiendanube-widget.js';
+            script.setAttribute('data-store-id', '6545032');
+            script.setAttribute('data-test', 'true');
+            script.setAttribute('data-trigger', 'immediate');
+            
+            script.onload = () => {
+                logToConsole('Widget script loaded successfully!', 'success');
+                logToConsole('Look for the floating handle on the right side', 'info');
+                
+                // Simple check after a delay instead of MutationObserver
+                setTimeout(() => {
+                    // Check if unified dialog exists
+                    const unifiedDialog = document.querySelector('.hidden.lg\\:flex.flex-row');
+                    if (unifiedDialog) {
+                        logToConsole('✅ UNIFIED DIALOG DETECTED! Wheel + Email side-by-side', 'success');
+                    }
+                    
+                    // Check for floating handle
+                    const floatingHandle = document.querySelector('#coolpops-widget-root');
+                    if (floatingHandle) {
+                        logToConsole('Floating handle container found', 'info');
+                    }
+                }, 2000);
+            };
+            
+            script.onerror = () => {
+                logToConsole('Failed to load widget script!', 'error');
+            };
+            
+            document.head.appendChild(script);
+        }
+
+        function clearSession() {
+            sessionStorage.clear();
+            localStorage.clear();
+            logToConsole('Session storage cleared', 'success');
+            logToConsole('You can now reload the widget fresh', 'info');
+        }
+
+        function toggleConsole() {
+            const consoleDiv = document.getElementById('console');
+            consoleDiv.style.display = consoleDiv.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Auto-show console on page load
+        window.addEventListener('load', () => {
+            document.getElementById('console').style.display = 'block';
+            logToConsole('Test page ready. Click "Load Widget" to begin testing.', 'success');
+        });
+    </script>
+</body>
+</html>

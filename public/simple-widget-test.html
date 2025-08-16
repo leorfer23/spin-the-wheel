@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Widget Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: 40px;
+            background: #f5f5f5;
+        }
+        .info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        p {
+            color: #666;
+            line-height: 1.6;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 6px;
+            border-left: 4px solid #2196f3;
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <h1>🎯 Simple Widget Test</h1>
+        <p>This page automatically loads the widget for store 6545032.</p>
+        <p>Expected behavior:</p>
+        <ol>
+            <li>A floating handle should appear on the right side</li>
+            <li>Click the handle to open the widget</li>
+            <li>The widget should show <strong>wheel + email side by side</strong> (unified experience)</li>
+        </ol>
+        
+        <div class="status">
+            <strong>Status:</strong> <span id="status">Loading widget...</span>
+        </div>
+    </div>
+
+    <!-- Load widget directly without any wrapper logic -->
+    <script 
+        src="/tiendanube-widget.js" 
+        data-store-id="6545032"
+        data-test="true"
+        data-trigger="immediate">
+    </script>
+    
+    <script>
+        // Just monitor what happens
+        setTimeout(() => {
+            const handle = document.querySelector('[id*="coolpops"]');
+            const status = document.getElementById('status');
+            
+            if (handle) {
+                status.textContent = '✅ Widget loaded! Look for the floating handle on the right side.';
+                status.style.color = 'green';
+            } else {
+                status.textContent = '⚠️ Widget may have loaded but handle not found. Check the right side of the screen.';
+                status.style.color = 'orange';
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

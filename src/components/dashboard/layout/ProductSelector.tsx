@@ -6,50 +6,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../../ui/tooltip";
-
-export type ProductType = "wheel" | "lottery" | "scratch-card" | "slot-machine";
-
-interface Product {
-  id: ProductType;
-  name: string;
-  description: string;
-  icon: string;
-  available: boolean;
-  businessOutcome?: string;
-}
-
-const products: Product[] = [
-  {
-    id: "wheel",
-    name: "Rueda de Premios",
-    description: "Gira para ganar premios",
-    icon: "🎡",
-    available: true,
-    businessOutcome:
-      "Captura más leads de email para convertirlos en clientes más tarde",
-  },
-  {
-    id: "lottery",
-    name: "Sorteo de la Suerte",
-    description: "Elige tus números",
-    icon: "🎰",
-    available: false,
-  },
-  {
-    id: "scratch-card",
-    name: "Tarjetas Rasca y Gana",
-    description: "Juegos de premio instantáneo",
-    icon: "🎟️",
-    available: false,
-  },
-  {
-    id: "slot-machine",
-    name: "Máquina Tragamonedas",
-    description: "Tira de la palanca",
-    icon: "🎲",
-    available: false,
-  },
-];
+import type { ProductType } from "@/types/product";
+import { PRODUCT_CATALOG } from "@/products/registry";
 
 interface ProductSelectorProps {
   selectedProduct: ProductType;
@@ -67,7 +25,7 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({
       <div className="flex h-full w-full overflow-hidden">
         {/* Product Tabs - Far left */}
         <div className="w-20 py-6 flex flex-col items-center gap-4 flex-shrink-0 bg-gray-50">
-          {products.map((product) => {
+          {PRODUCT_CATALOG.map((product) => {
             const button = (
               <button
                 key={product.id}

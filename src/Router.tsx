@@ -1,18 +1,30 @@
-import React, { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { StoreProvider } from './contexts/StoreContext';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { Toaster } from 'react-hot-toast';
+import React, { lazy, Suspense } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { StoreProvider } from "./contexts/StoreContext";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { Toaster } from "react-hot-toast";
 
 // Lazy load pages
-const Landing = lazy(() => import('./pages/Landing').then(module => ({ default: module.Landing })));
-const Auth = lazy(() => import('./pages/auth/Auth').then(module => ({ default: module.Auth })));
-const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword').then(module => ({ default: module.ForgotPassword })));
-const ModularDashboard = lazy(() => import('./pages/dashboard/ModularDashboard').then(module => ({ default: module.ModularDashboard })));
-const WheelTest = lazy(() => import('./pages/WheelTest'));
-const CouponTest = lazy(() => import('./pages/test/CouponTest'));
+const Landing = lazy(() =>
+  import("./pages/Landing").then((module) => ({ default: module.Landing }))
+);
+const Auth = lazy(() =>
+  import("./pages/auth/Auth").then((module) => ({ default: module.Auth }))
+);
+const ForgotPassword = lazy(() =>
+  import("./pages/auth/ForgotPassword").then((module) => ({
+    default: module.ForgotPassword,
+  }))
+);
+const ModularDashboard = lazy(() =>
+  import("./pages/dashboard/ModularDashboard").then((module) => ({
+    default: module.ModularDashboard,
+  }))
+);
+const WheelTest = lazy(() => import("./pages/WheelTest"));
+const CouponTest = lazy(() => import("./pages/test/CouponTest"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,76 +47,118 @@ export const Router: React.FC = () => {
       <AuthProvider>
         <StoreProvider>
           <BrowserRouter>
-          <Toaster 
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#363636',
-                color: '#fff',
-              },
-              success: {
-                duration: 3000,
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
                 style: {
-                  background: '#10b981',
+                  background: "#363636",
+                  color: "#fff",
                 },
-              },
-              error: {
-                duration: 5000,
-                style: {
-                  background: '#ef4444',
+                success: {
+                  duration: 3000,
+                  style: {
+                    background: "#10b981",
+                  },
                 },
-              },
-            }}
-          />
-          <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Landing />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/login" element={<Navigate to="/auth" replace />} />
-              <Route path="/signup" element={<Navigate to="/auth" replace />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              
-              {/* Protected dashboard routes */}
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <ModularDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dashboard/wheel/:wheelId"
-                element={
-                  <ProtectedRoute>
-                    <ModularDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              
-              {/* Debug route for TiendaNube */}
-              <Route 
-                path="/dashboard/tiendanube-debug" 
-                element={
-                  <ProtectedRoute>
-                    <Suspense fallback={<div>Loading debug page...</div>}>
-                      {React.createElement(React.lazy(() => import('./pages/dashboard/TiendaNubeDebug')))}
-                    </Suspense>
-                  </ProtectedRoute>
-                }
-              />
-              
-              {/* Test routes */}
-              <Route path="/test" element={<WheelTest />} />
-              <Route path="/test/coupon" element={<CouponTest />} />
-              
-              {/* Catch all - redirect to home */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
+                error: {
+                  duration: 5000,
+                  style: {
+                    background: "#ef4444",
+                  },
+                },
+              }}
+            />
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<Landing />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route
+                  path="/login"
+                  element={<Navigate to="/auth" replace />}
+                />
+                <Route
+                  path="/signup"
+                  element={<Navigate to="/auth" replace />}
+                />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+
+                {/* Protected dashboard routes */}
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <ModularDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/:product"
+                  element={
+                    <ProtectedRoute>
+                      <ModularDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/wheel/:wheelId"
+                  element={
+                    <ProtectedRoute>
+                      <ModularDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/wheels/:wheelId"
+                  element={
+                    <ProtectedRoute>
+                      <ModularDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/jackpot/:jackpotId"
+                  element={
+                    <ProtectedRoute>
+                      <ModularDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/jackpots/:jackpotId"
+                  element={
+                    <ProtectedRoute>
+                      <ModularDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Debug route for TiendaNube */}
+                <Route
+                  path="/dashboard/tiendanube-debug"
+                  element={
+                    <ProtectedRoute>
+                      <Suspense fallback={<div>Loading debug page...</div>}>
+                        {React.createElement(
+                          React.lazy(
+                            () => import("./pages/dashboard/TiendaNubeDebug")
+                          )
+                        )}
+                      </Suspense>
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Test routes */}
+                <Route path="/test" element={<WheelTest />} />
+                <Route path="/test/coupon" element={<CouponTest />} />
+
+                {/* Catch all - redirect to home */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
         </StoreProvider>
       </AuthProvider>
     </QueryClientProvider>

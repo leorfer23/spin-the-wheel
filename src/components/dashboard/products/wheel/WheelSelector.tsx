@@ -98,7 +98,7 @@ export const WheelSelector: React.FC<WheelSelectorProps> = ({
       onDeleteWheel(wheelId);
       // If deleting the current wheel, navigate to dashboard
       if (wheelId === selectedWheelId) {
-        navigate('/dashboard');
+        navigate("/dashboard");
       }
     }
   };
@@ -111,7 +111,7 @@ export const WheelSelector: React.FC<WheelSelectorProps> = ({
     if (!wheel?.schedule?.enabled) return true;
 
     // Check if it's the old format (WheelSchedule)
-    if ('days' in wheel.schedule) {
+    if ("days" in wheel.schedule) {
       // Check if today is in the scheduled days
       if (wheel.schedule.days && !wheel.schedule.days.includes(today)) {
         return false;
@@ -150,7 +150,7 @@ export const WheelSelector: React.FC<WheelSelectorProps> = ({
           />
         )}
         <span className="font-medium text-[15px] text-gray-900 group-hover:text-purple-700 transition-colors">
-          {selectedWheel?.name || 'Seleccionar una ruleta'}
+          {selectedWheel?.name || "Seleccionar una ruleta"}
         </span>
         <ChevronDown
           className={`h-4 w-4 text-gray-400 group-hover:text-purple-700 transition-all duration-300 ${
@@ -212,7 +212,7 @@ export const WheelSelector: React.FC<WheelSelectorProps> = ({
                         <button
                           onClick={() => {
                             onSelectWheel(wheel.id);
-                            navigate(`/dashboard/wheel/${wheel.id}`);
+                            navigate(`/dashboard/wheels/${wheel.id}`);
                             setIsOpen(false);
                           }}
                           className="flex-1 flex items-center gap-3 cursor-pointer"

@@ -72,6 +72,58 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
 
   // Removed best prize calculation for minimalistic design
 
+  // Generate wheel configuration from config prop
+  const generateWheelConfig = () => ({
+    segments: config.segments.map((seg: any, idx: number) => ({
+      id: seg.id || `seg-${idx}`,
+      label: seg.label,
+      value: seg.value,
+      color: seg.color,
+      weight: seg.weight || 10,
+    })),
+    dimensions: {
+      diameter: 400,
+      innerRadius: 50,
+      pegRingWidth: 25,
+      pegSize: config.wheelDesign?.pegSize || 8,
+      pegCount: 20
+    },
+    style: config.wheelDesign ? {
+      shadow: `${config.wheelDesign.shadowOffsetX || 0}px ${config.wheelDesign.shadowOffsetY || 0}px ${config.wheelDesign.shadowBlur || 30}px rgba(0, 0, 0, ${config.wheelDesign.shadowIntensity || 0.3})`,
+      borderColor: config.wheelDesign.wheelBorderColor || "#8B5CF6",
+      borderWidth: config.wheelDesign.wheelBorderWidth || 4,
+      backgroundColor: config.wheelDesign.wheelBackgroundColor || 'transparent',
+    } : undefined,
+    pegConfig: config.wheelDesign ? {
+      style: (config.wheelDesign.pegStyle as 'dots' | 'stars' | 'diamonds' | 'sticks' | 'none') || 'dots',
+      color: config.wheelDesign.pegColor || '#FFD700',
+      size: config.wheelDesign.pegSize || 8,
+    } : undefined,
+    pointer: config.wheelDesign ? {
+      color: config.wheelDesign.pointerColor || "#FF1744",
+      size: config.wheelDesign.pointerSize || 60,
+      style: (config.wheelDesign.pointerStyle as 'arrow' | 'circle' | 'triangle') || "triangle",
+    } : undefined,
+    spinConfig: {
+      duration: config.wheelDesign?.spinDuration || (config.spinDuration || 5000) / 1000,
+      easing: (config.wheelDesign?.spinningEffect === 'elastic' ? "ease-in-out" : 
+              config.wheelDesign?.spinningEffect === 'power' ? "ease-out" : "ease-out") as "ease-out" | "ease-in-out" | "linear",
+      minRotations: config.wheelDesign?.rotations || 3,
+      maxRotations: (config.wheelDesign?.rotations || 5) + 2,
+      allowDrag: true
+    },
+    centerCircle: {
+      text: config.wheelDesign?.centerButtonText || 'GIRAR',
+      textColor: config.wheelDesign?.centerButtonTextColor || '#FFFFFF',
+      backgroundColor: config.wheelDesign?.centerButtonBackgroundColor || '#8B5CF6',
+      fontSize: config.wheelDesign?.centerButtonTextSize === 'small' ? 16 : 
+               config.wheelDesign?.centerButtonTextSize === 'large' ? 24 :
+               config.wheelDesign?.centerButtonTextSize === 'extra-large' ? 28 : 20,
+      showButton: true,
+      logo: config.wheelDesign?.centerButtonLogo
+    }
+  });
+
   return (
     <>
       {/* Desktop Layout - Side by side */}
@@ -87,36 +139,18 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
         <div className="flex-[1.2] flex flex-col items-center justify-center p-8 relative">
           {/* Removed prize showcase for minimalistic design */}
 
-          {/* Simple overlay when no ticket - just grayed out */}
+          {/* Simple overlay when no ticket - subtle blur only */}
           <AnimatePresence>
             {!hasTicket && (
               <motion.div
-                className="absolute inset-0 z-10 flex items-center justify-center"
+                className="absolute inset-0 z-10"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                {/* Pulsing glow effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-900/60 via-transparent to-pink-900/60 backdrop-blur-[2px]" />
-                
-                {/* Lock overlay with message */}
-                <motion.div 
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-20"
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <div className="bg-black/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border-2 border-yellow-400/50">
-                    <motion.div
-                      animate={{ rotate: [0, 5, -5, 0] }}
-                      transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
-                    >
-                      <span className="text-5xl">🎁</span>
-                    </motion.div>
-                    <p className="text-white text-xl font-bold mt-4">¡Ingresa tu email para desbloquear!</p>
-                    <p className="text-yellow-400 text-sm mt-2">Solo 1 intento por usuario</p>
-                  </div>
-                </motion.div>
+                {/* Very subtle overlay with blur to indicate locked state */}
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 via-transparent to-pink-900/20 backdrop-blur-[1px]" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -347,224 +381,126 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
         </div>
       </div>
 
-      {/* Mobile Layout - Full screen sections with conversion optimization */}
-      <div className="lg:hidden flex flex-col h-full bg-gradient-to-br from-purple-900 via-purple-800 to-pink-900 relative">
+      {/* Mobile Layout - Unified experience (vertical stack) */}
+      <div className="lg:hidden flex flex-col h-full bg-gradient-to-br from-purple-900 via-purple-800 to-pink-900 relative overflow-y-auto">
         {/* Animated background for mobile */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-20 -left-20 w-40 h-40 bg-yellow-400 rounded-full mix-blend-multiply filter blur-2xl opacity-20 animate-blob"></div>
           <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-pink-400 rounded-full mix-blend-multiply filter blur-2xl opacity-20 animate-blob animation-delay-2000"></div>
         </div>
 
-        {!hasTicket ? (
-          /* Mobile: Show only email capture with high conversion design */
-          <motion.div 
-            className="flex-1 flex flex-col bg-white relative z-10"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            {/* Countdown timer bar */}
-            <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white p-3">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-sm">⏰ OFERTA LIMITADA</span>
-                <span className="text-lg font-bold tabular-nums">
-                  {String(timeLeft.minutes).padStart(2, '0')}:{String(timeLeft.seconds).padStart(2, '0')}
-                </span>
+        {/* Mobile: Show wheel and email form together (vertical stack) */}
+        <div className="flex flex-col min-h-full relative z-10">
+          {/* Top section - Wheel (smaller on mobile) */}
+          <div className="flex-1 flex items-center justify-center p-4 relative min-h-[400px]">
+            {/* Overlay when no ticket - subtle blur only */}
+            <AnimatePresence>
+              {!hasTicket && (
+                <motion.div
+                  className="absolute inset-0 z-10"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 via-transparent to-pink-900/20 backdrop-blur-[1px]" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Activation effect */}
+            <AnimatePresence>
+              {isWheelActivating && (
+                <motion.div
+                  className="absolute inset-0 z-20 pointer-events-none"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/30 via-pink-500/30 to-purple-600/30 animate-pulse" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.5, 1],
+                        rotate: [0, 180, 360]
+                      }}
+                      transition={{
+                        duration: 0.5,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      <Sparkles className="w-16 h-16 text-yellow-400" />
+                    </motion.div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* The wheel - smaller for mobile */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ 
+                opacity: hasTicket ? 1 : 0.5, 
+                scale: 1,
+                rotate: wheelPreviewRotation
+              }}
+              transition={{ duration: 0.5 }}
+              className={`relative ${!hasTicket ? 'pointer-events-none' : ''}`}
+              style={{ 
+                transform: `scale(0.8)`,
+                maxWidth: '350px',
+                width: '100%'
+              }}
+            >
+              <FortuneWheel
+                config={generateWheelConfig()}
+                onSpinComplete={handleSpinComplete}
+                autoSpin={false}
+              />
+            </motion.div>
+          </div>
+
+          {/* Bottom section - Email capture (if not submitted) */}
+          {!hasTicket && (
+            <motion.div 
+              className="bg-white relative z-10 p-6 rounded-t-3xl shadow-2xl"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              {/* Countdown timer */}
+              <div className="text-center mb-4">
+                <div className="inline-flex items-center gap-2 text-sm text-gray-600">
+                  <span>Oferta limitada:</span>
+                  <span className="font-mono font-medium text-red-600">
+                    {String(timeLeft.minutes).padStart(2, '0')}:{String(timeLeft.seconds).padStart(2, '0')}
+                  </span>
+                </div>
               </div>
-            </div>
 
-            <div className="flex-1 flex items-center justify-center px-6 py-8">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="space-y-6 w-full max-w-md"
-              >
-                {/* Simplified title */}
-                <div className="text-center">
-                  <h2 className="text-2xl font-semibold text-gray-800">
-                    Gira y Gana
-                  </h2>
-                  
-                  {config.captureSubtitle && (
-                    <p className="text-lg text-gray-700 font-medium">{config.captureSubtitle}</p>
-                  )}
+              {/* Title */}
+              <div className="text-center mb-4">
+                <h2 className="text-xl font-bold text-gray-800">🎁 ¡Tu Descuento Te Espera!</h2>
+                <p className="text-sm text-gray-600 mt-1">100% de probabilidad de ganar</p>
+              </div>
 
-                  {/* Trust badges */}
-                  <div className="flex justify-center gap-3">
-                    <span className="text-green-600 text-sm font-bold">✓ Gratis</span>
-                    <span className="text-green-600 text-sm font-bold">✓ Instantáneo</span>
-                    <span className="text-green-600 text-sm font-bold">✓ Seguro</span>
-                  </div>
-                </div>
-
-                {/* Email capture form */}
-                <div className="relative">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur opacity-50"></div>
-                  
-                  <div className="relative bg-white rounded-2xl p-6 shadow-2xl">
-                    <EmailCapture
-                      onSubmit={handleEmailSubmit}
-                      imageUrl={config.captureImageUrl}
-                      title=""
-                      subtitle=""
-                      buttonText="→"
-                      privacyText=""
-                      primaryColor={config.primaryColor || "#8B5CF6"}
-                      format="instant"
-                    />
-                  </div>
-                </div>
-
-                {/* Removed live activity for minimalistic design */}
-              </motion.div>
-            </div>
-          </motion.div>
-        ) : (
-          /* Mobile: Show only wheel after email submission */
-          <motion.div 
-            className="flex-1 flex flex-col relative z-10"
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            {/* Minimalistic success header */}
-            <div className="text-center p-3 border-b border-gray-200">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-              >
-                <span className="text-sm text-green-600 font-medium">✓ Listo para girar</span>
-              </motion.div>
-            </div>
-
-            {/* Wheel section */}
-            <div className="flex-1 flex items-center justify-center p-4 relative overflow-hidden">
-              {/* Activation effect */}
-              <AnimatePresence>
-                {isWheelActivating && (
-                  <motion.div
-                    className="absolute inset-0 z-20 pointer-events-none"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/30 via-pink-500/30 to-purple-600/30 animate-pulse" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <motion.div
-                        animate={{
-                          scale: [1, 1.5, 1],
-                          rotate: [0, 180, 360]
-                        }}
-                        transition={{
-                          duration: 0.5,
-                          ease: "easeInOut"
-                        }}
-                      >
-                        <Sparkles className="w-24 h-24 text-yellow-400" />
-                      </motion.div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <motion.div
-                className="relative"
-                style={{ 
-                  width: '90%',
-                  maxWidth: '400px',
-                  aspectRatio: '1'
-                }}
-                initial={{ scale: 0.8, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{
-                  duration: 0.7,
-                  ease: "easeOut"
-                }}
-              >
-                {/* Glowing ring */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 opacity-30 blur-xl animate-pulse"></div>
-                
-                <FortuneWheel
-                  config={{
-                    segments: config.segments.map((seg: any, idx: number) => ({
-                      id: seg.id || `seg-${idx}`,
-                      label: seg.label,
-                      value: seg.value,
-                      color: seg.color,
-                      weight: seg.weight || 10,
-                    })),
-                    dimensions: {
-                      diameter: 400,
-                      innerRadius: 50,
-                      pegRingWidth: 25,
-                      pegSize: config.wheelDesign?.pegSize ? Math.floor(config.wheelDesign.pegSize * 0.75) : 6,
-                      pegCount: 20
-                    },
-                    style: config.wheelDesign ? {
-                      shadow: `${config.wheelDesign.shadowOffsetX || 0}px ${config.wheelDesign.shadowOffsetY || 0}px ${config.wheelDesign.shadowBlur || 30}px rgba(0, 0, 0, ${config.wheelDesign.shadowIntensity || 0.3})`,
-                      borderColor: config.wheelDesign.wheelBorderColor || "#8B5CF6",
-                      borderWidth: config.wheelDesign.wheelBorderWidth || 4,
-                      backgroundColor: config.wheelDesign.wheelBackgroundColor || 'transparent',
-                    } : undefined,
-                    pegConfig: config.wheelDesign ? {
-                      style: (config.wheelDesign.pegStyle as 'dots' | 'stars' | 'diamonds' | 'sticks' | 'none') || 'dots',
-                      color: config.wheelDesign.pegColor || '#FFD700',
-                      size: config.wheelDesign.pegSize ? Math.floor(config.wheelDesign.pegSize * 0.75) : 6,
-                    } : undefined,
-                    pointer: config.wheelDesign ? {
-                      color: config.wheelDesign.pointerColor || "#FF1744",
-                      size: config.wheelDesign.pointerSize ? Math.floor(config.wheelDesign.pointerSize * 0.85) : 50,
-                      style: (config.wheelDesign.pointerStyle as 'arrow' | 'circle' | 'triangle') || "triangle",
-                    } : undefined,
-                    spinConfig: {
-                      duration: config.wheelDesign?.spinDuration || (config.spinDuration || 5000) / 1000,
-                      easing: config.wheelDesign?.spinningEffect === 'elastic' ? "ease-in-out" : 
-                              config.wheelDesign?.spinningEffect === 'power' ? "ease-out" : "ease-out",
-                      minRotations: config.wheelDesign?.rotations || 3,
-                      maxRotations: (config.wheelDesign?.rotations || 5) + 2,
-                      allowDrag: true
-                    },
-                    centerCircle: {
-                      text: config.wheelDesign?.centerButtonText || 'GIRAR',
-                      textColor: config.wheelDesign?.centerButtonTextColor || '#FFFFFF',
-                      backgroundColor: config.wheelDesign?.centerButtonBackgroundColor || '#8B5CF6',
-                      fontSize: config.wheelDesign?.centerButtonTextSize === 'small' ? 16 : 
-                               config.wheelDesign?.centerButtonTextSize === 'large' ? 24 :
-                               config.wheelDesign?.centerButtonTextSize === 'extra-large' ? 28 : 20,
-                      showButton: true,
-                      logo: config.wheelDesign?.centerButtonLogo
-                    }
-                  }}
-                  onSpinComplete={handleSpinComplete}
-                  autoSpin={false}
-                />
-              </motion.div>
-
-              {/* Subtle tap indicator with pulsing animation */}
-              <motion.div 
-                className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-                animate={{ 
-                  y: [0, -5, 0],
-                  opacity: [0.6, 1, 0.6]
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <div className="text-center">
-                  <motion.div
-                    className="inline-block"
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    <span className="text-3xl">👆</span>
-                  </motion.div>
-                  <p className="text-xs text-gray-500 mt-1">Toca para girar</p>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
+              {/* Email capture form */}
+              <EmailCapture
+                onSubmit={handleEmailSubmit}
+                imageUrl={config.captureImageUrl}
+                title=""
+                subtitle=""
+                buttonText="→"
+                privacyText=""
+                primaryColor={config.primaryColor || "#8B5CF6"}
+                format="instant"
+                emailPlaceholder="Ingresa tu email"
+                autoFocus={true}
+                showConsent={false}
+              />
+            </motion.div>
+          )}
+        </div>
       </div>
 
       {/* Ticket Animation Overlay */}

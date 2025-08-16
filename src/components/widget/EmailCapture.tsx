@@ -78,48 +78,84 @@ export const EmailCapture: React.FC<EmailCaptureProps> = ({
         )}
         
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="relative">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setError('');
-              }}
-              placeholder={emailPlaceholder || "tu@email.com"}
-              className="w-full px-5 py-3.5 text-base rounded-xl border border-gray-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all pr-14 text-center"
-              style={{ 
-                borderColor: error ? '#EF4444' : undefined,
-                '--tw-ring-color': primaryColor
-              } as React.CSSProperties}
-              autoFocus={autoFocus}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleSubmit(e as any);
-                }
-              }}
-            />
-            <motion.button
-              type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-lg flex items-center justify-center text-white"
-              style={{ backgroundColor: primaryColor }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </motion.button>
-          </div>
+          {/* Clean input group with integrated button */}
+          <motion.div 
+            className="relative flex items-center"
+            animate={{ 
+              scale: [1, 1.02, 1]
+            }}
+            transition={{ 
+              duration: 2, 
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <div className="relative flex-1 flex items-center bg-white rounded-full border-2 overflow-hidden shadow-lg"
+                 style={{ borderColor: primaryColor }}>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError('');
+                }}
+                placeholder={emailPlaceholder || "Tu email para ganar"}
+                className="flex-1 px-6 py-4 text-base bg-transparent outline-none text-gray-700 placeholder-gray-500 font-medium"
+                autoFocus={autoFocus}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSubmit(e as any);
+                  }
+                }}
+              />
+              <motion.button
+                type="submit"
+                className="h-full px-8 py-4 flex items-center justify-center text-white font-bold transition-all bg-gradient-to-r hover:shadow-lg"
+                style={{ 
+                  background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`,
+                  minWidth: '60px'
+                }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </motion.button>
+            </div>
+          </motion.div>
+          
+          {/* Error message */}
           {error && (
-            <p className="text-red-500 text-xs text-center">{error}</p>
+            <p className="text-red-500 text-xs text-center font-medium">{error}</p>
           )}
-          {privacyText && showConsent !== false && (
+          
+          {/* Privacy text if provided */}
+          {privacyText && showConsent !== false && !error && (
             <p className="text-xs text-gray-400 text-center">
               {privacyText}
             </p>
           )}
+          
+          {/* Skip option */}
+          <motion.div 
+            className="mt-4 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                // Submit with a special email that indicates skip
+                onSubmit('skip@user.declined', false);
+              }}
+              className="text-xs text-gray-400 hover:text-gray-600 underline transition-colors"
+            >
+              Prefiero pagar precio completo
+            </button>
+          </motion.div>
         </form>
       </motion.div>
     );

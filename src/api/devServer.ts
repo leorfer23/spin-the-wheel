@@ -457,8 +457,8 @@ export function widgetAPIPlugin(): Plugin {
           req.on('end', async () => {
             try {
               const data = JSON.parse(body);
-              const { widgetService } = await import('../services/widgetService');
-              const result = await widgetService.recordSpin(data);
+              const { widgetServiceServer } = await import('../services/widgetServiceServer');
+              const result = await widgetServiceServer.recordSpin(data);
               
               res.setHeader('Content-Type', 'application/json');
               res.setHeader('Access-Control-Allow-Origin', '*');
@@ -493,8 +493,8 @@ export function widgetAPIPlugin(): Plugin {
                   break;
                   
                 case 'prize-accepted':
-                  const { widgetService } = await import('../services/widgetService');
-                  await widgetService.recordPrizeAcceptance(trackingData);
+                  const { widgetServiceServer } = await import('../services/widgetServiceServer');
+                  await widgetServiceServer.recordPrizeAcceptance(trackingData);
                   result = { success: true, type };
                   break;
                   

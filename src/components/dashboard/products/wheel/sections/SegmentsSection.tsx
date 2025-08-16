@@ -339,7 +339,6 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
                   />
                 )}
               <motion.div
-                key={segment.id}
                 layout
                 layoutId={segment.id}
                 initial={{ opacity: 0, x: -20 }}
