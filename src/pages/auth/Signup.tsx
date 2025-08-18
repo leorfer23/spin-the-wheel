@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { ArrowRight, Sparkles, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { EmailConfirmationDialog } from '../../components/auth/EmailConfirmationDialog';
+import { useNavigate } from 'react-router-dom';
 
 export const Signup: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -13,8 +13,8 @@ export const Signup: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
   const { signUp } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,31 +33,14 @@ export const Signup: React.FC = () => {
     setLoading(true);
 
     try {
-      const result = await signUp(email, password);
-      
-      // Check if email confirmation is required
-      // If user exists but session is null, confirmation is required
-      // If both user and session exist, confirmation is not required (dev mode)
-      if (result?.user && !result?.session) {
-        // Email confirmation required - show dialog
-        setShowConfirmationDialog(true);
-      } else if (result?.user && result?.session) {
-        // No confirmation required - user can proceed
-        // But we still show the dialog to inform them about the email
-        setShowConfirmationDialog(true);
-      }
+      await signUp(email, password);
+      // Navigate to dashboard immediately after signup
+      navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al crear la cuenta');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleCloseDialog = () => {
-    setShowConfirmationDialog(false);
-    setEmail('');
-    setPassword('');
-    setConfirmPassword('');
   };
 
   return (
@@ -222,8 +205,8 @@ export const Signup: React.FC = () => {
               >
                 <p className="text-xs text-gray-500">
                   Al registrarte, aceptas nuestros{' '}
-                  <a href="#" className="text-purple-600 hover:text-purple-700">Términos</a> y{' '}
-                  <a href="#" className="text-purple-600 hover:text-purple-700">Privacidad</a>
+                  <Link to="/terms" className="text-purple-600 hover:text-purple-700">Términos</Link> y{' '}
+                  <Link to="/privacy" className="text-purple-600 hover:text-purple-700">Privacidad</Link>
                 </p>
               </motion.div>
 
@@ -277,12 +260,6 @@ export const Signup: React.FC = () => {
           </motion.div>
         </div>
       </motion.div>
-      
-      <EmailConfirmationDialog 
-        isOpen={showConfirmationDialog}
-        email={email}
-        onClose={handleCloseDialog}
-      />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -13,8 +13,24 @@ export const Login: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, user, session } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check if this is an OAuth callback redirect
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const isOAuthCallback = params.get('integration_success') === 'true' || 
+                           params.get('integration_error') !== null;
+    
+    // If user is already authenticated and this is an OAuth callback, redirect to dashboard
+    if (user && session && isOAuthCallback) {
+      navigate(`/dashboard${location.search}`);
+    } else if (user && session && !isOAuthCallback) {
+      // Regular authenticated user, redirect to dashboard
+      navigate('/dashboard');
+    }
+  }, [user, session, location.search, navigate]);
 
   useEffect(() => {
     const savedCredentials = localStorage.getItem('rememberedCredentials');
@@ -44,7 +60,12 @@ export const Login: React.FC = () => {
         localStorage.removeItem('rememberedCredentials');
       }
       
-      navigate('/dashboard');
+      // Preserve OAuth callback params if they exist
+      const params = new URLSearchParams(location.search);
+      const isOAuthCallback = params.get('integration_success') === 'true' || 
+                             params.get('integration_error') !== null;
+      
+      navigate(isOAuthCallback ? `/dashboard${location.search}` : '/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Credenciales inválidas');
     } finally {

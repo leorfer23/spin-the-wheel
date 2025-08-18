@@ -297,7 +297,7 @@ export const WheelSelector: React.FC<WheelSelectorProps> = ({
               ) : (
                 <button
                   onClick={handleCreateWheel}
-                  className="w-full px-4 py-3 text-left hover:bg-gray-50/70 transition-colors rounded-xl group/create cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
+                  className="wheel-creation w-full px-4 py-3 text-left hover:bg-gray-50/70 transition-colors rounded-xl group/create cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
                 >
                   <p className="font-medium text-[15px] text-gray-600 group-hover/create:text-purple-700 flex items-center gap-2.5 transition-colors">
                     <Plus className="h-4 w-4" />

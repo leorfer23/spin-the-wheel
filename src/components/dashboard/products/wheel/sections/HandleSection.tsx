@@ -62,83 +62,82 @@ export const HandleSection: React.FC<HandleSectionProps> = ({
         exit={{ opacity: 0, x: 20 }}
         className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl p-6 flex-1 flex flex-col overflow-hidden"
       >
-        {/* Fixed header with title and preview */}
+        {/* Fixed header with title and preview side by side */}
         <div className="mb-6 flex-shrink-0">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-4 mb-4">
-                <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  Configuración del Botón Flotante
-                </h3>
-                <SaveStatusIndicator status={saveStatus} />
-              </div>
-              
-              {/* Live Preview - positioned below title on the left side */}
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl shadow-xl p-4 border border-gray-200 inline-block" style={{ minWidth: '300px', height: '140px' }}>
-                <p className="text-xs text-gray-500 mb-2 font-medium">Vista Previa</p>
-                <div className="relative h-24 flex items-center justify-center bg-white rounded-lg">
-                  {widgetConfig.handleType === 'floating' && (
-                    <motion.div
-                      className="flex items-center gap-2 px-4 py-3 rounded-lg shadow-lg"
-                      style={{
-                        backgroundColor: widgetConfig.handleBackgroundColor,
-                        color: widgetConfig.handleTextColor,
-                        borderRadius: widgetConfig.handleBorderRadius || '12px',
-                        fontSize: widgetConfig.handleSize === 'small' ? '14px' : widgetConfig.handleSize === 'large' ? '18px' : '16px',
-                      }}
-                      animate={
-                        widgetConfig.handleAnimation === 'pulse' ? { scale: [1, 1.05, 1] } :
-                        widgetConfig.handleAnimation === 'bounce' ? { y: [0, -5, 0] } :
-                        widgetConfig.handleAnimation === 'rotate' ? { rotate: [0, 5, -5, 0] } :
-                        {}
-                      }
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      <span className="text-xl">{widgetConfig.handleIcon}</span>
-                      <span className="font-medium">{widgetConfig.handleText}</span>
-                    </motion.div>
-                  )}
-                  {widgetConfig.handleType === 'tab' && (
-                    <div
-                      className="absolute top-1/2 -translate-y-1/2"
-                      style={{
-                        [widgetConfig.handlePosition]: 0,
-                        writingMode: 'vertical-rl',
-                        backgroundColor: widgetConfig.handleBackgroundColor,
-                        color: widgetConfig.handleTextColor,
-                        padding: '12px 8px',
-                        borderRadius: widgetConfig.handlePosition === 'left' ? '0 8px 8px 0' : '8px 0 0 8px',
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{widgetConfig.handleIcon}</span>
-                        <span className="font-medium text-sm">{widgetConfig.handleText}</span>
-                      </div>
+          <div className="flex items-start justify-between gap-6">
+            {/* Title and save status on the left */}
+            <div className="flex items-center gap-4">
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Configuración del Botón Flotante
+              </h3>
+              <SaveStatusIndicator status={saveStatus} />
+            </div>
+            
+            {/* Compact preview on the right */}
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl shadow-lg p-3 border border-gray-200 flex-shrink-0" style={{ width: '200px', height: '80px' }}>
+              <p className="text-[10px] text-gray-500 mb-1 font-medium">Vista Previa</p>
+              <div className="relative h-14 flex items-center justify-center bg-white rounded-lg">
+                {widgetConfig.handleType === 'floating' && (
+                  <motion.div
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg shadow-md"
+                    style={{
+                      backgroundColor: widgetConfig.handleBackgroundColor,
+                      color: widgetConfig.handleTextColor,
+                      borderRadius: widgetConfig.handleBorderRadius || '12px',
+                      fontSize: widgetConfig.handleSize === 'small' ? '12px' : widgetConfig.handleSize === 'large' ? '14px' : '13px',
+                    }}
+                    animate={
+                      widgetConfig.handleAnimation === 'pulse' ? { scale: [1, 1.05, 1] } :
+                      widgetConfig.handleAnimation === 'bounce' ? { y: [0, -3, 0] } :
+                      widgetConfig.handleAnimation === 'rotate' ? { rotate: [0, 5, -5, 0] } :
+                      {}
+                    }
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <span className="text-base">{widgetConfig.handleIcon}</span>
+                    <span className="font-medium">{widgetConfig.handleText}</span>
+                  </motion.div>
+                )}
+                {widgetConfig.handleType === 'tab' && (
+                  <div
+                    className="absolute top-1/2 -translate-y-1/2 text-xs"
+                    style={{
+                      [widgetConfig.handlePosition]: 0,
+                      writingMode: 'vertical-rl',
+                      backgroundColor: widgetConfig.handleBackgroundColor,
+                      color: widgetConfig.handleTextColor,
+                      padding: '8px 4px',
+                      borderRadius: widgetConfig.handlePosition === 'left' ? '0 6px 6px 0' : '6px 0 0 6px',
+                    }}
+                  >
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm">{widgetConfig.handleIcon}</span>
+                      <span className="font-medium text-[10px]">{widgetConfig.handleText}</span>
                     </div>
-                  )}
-                  {widgetConfig.handleType === 'bubble' && (
-                    <motion.div
-                      className="rounded-full shadow-lg flex items-center justify-center"
-                      style={{
-                        backgroundColor: widgetConfig.handleBackgroundColor,
-                        color: widgetConfig.handleTextColor,
-                        width: widgetConfig.handleSize === 'small' ? '48px' : widgetConfig.handleSize === 'large' ? '64px' : '56px',
-                        height: widgetConfig.handleSize === 'small' ? '48px' : widgetConfig.handleSize === 'large' ? '64px' : '56px',
-                      }}
-                      animate={
-                        widgetConfig.handleAnimation === 'pulse' ? { scale: [1, 1.1, 1] } :
-                        widgetConfig.handleAnimation === 'bounce' ? { y: [0, -8, 0] } :
-                        widgetConfig.handleAnimation === 'rotate' ? { rotate: [0, 360] } :
-                        {}
-                      }
-                      transition={{ duration: widgetConfig.handleAnimation === 'rotate' ? 3 : 2, repeat: Infinity }}
-                    >
-                      <span style={{ fontSize: widgetConfig.handleSize === 'small' ? '20px' : widgetConfig.handleSize === 'large' ? '28px' : '24px' }}>
-                        {widgetConfig.handleIcon}
-                      </span>
-                    </motion.div>
-                  )}
-                </div>
+                  </div>
+                )}
+                {widgetConfig.handleType === 'bubble' && (
+                  <motion.div
+                    className="rounded-full shadow-md flex items-center justify-center"
+                    style={{
+                      backgroundColor: widgetConfig.handleBackgroundColor,
+                      color: widgetConfig.handleTextColor,
+                      width: widgetConfig.handleSize === 'small' ? '36px' : widgetConfig.handleSize === 'large' ? '48px' : '42px',
+                      height: widgetConfig.handleSize === 'small' ? '36px' : widgetConfig.handleSize === 'large' ? '48px' : '42px',
+                    }}
+                    animate={
+                      widgetConfig.handleAnimation === 'pulse' ? { scale: [1, 1.1, 1] } :
+                      widgetConfig.handleAnimation === 'bounce' ? { y: [0, -5, 0] } :
+                      widgetConfig.handleAnimation === 'rotate' ? { rotate: [0, 360] } :
+                      {}
+                    }
+                    transition={{ duration: widgetConfig.handleAnimation === 'rotate' ? 3 : 2, repeat: Infinity }}
+                  >
+                    <span style={{ fontSize: widgetConfig.handleSize === 'small' ? '16px' : widgetConfig.handleSize === 'large' ? '22px' : '19px' }}>
+                      {widgetConfig.handleIcon}
+                    </span>
+                  </motion.div>
+                )}
               </div>
             </div>
           </div>
@@ -159,7 +158,7 @@ export const HandleSection: React.FC<HandleSectionProps> = ({
               </TooltipContent>
             </Tooltip>
           </div>
-          {/* Handle type selection temporarily disabled - HandleTypeCard component not available */}
+          {/* Handle type selection with visual previews */}
           <div className="grid grid-cols-3 gap-3 px-2">
             <button
               onClick={() => updateConfig({ handleType: 'floating' })}
@@ -169,7 +168,20 @@ export const HandleSection: React.FC<HandleSectionProps> = ({
                   : 'border-gray-200 hover:border-purple-300'
               }`}
             >
-              <div className="text-center">
+              <div className="text-center space-y-2">
+                {/* Mini preview of floating button */}
+                <div className="h-12 flex items-center justify-center">
+                  <div 
+                    className="flex items-center gap-1 px-2 py-1 rounded shadow-sm text-[10px]"
+                    style={{
+                      backgroundColor: widgetConfig.handleBackgroundColor,
+                      color: widgetConfig.handleTextColor,
+                    }}
+                  >
+                    <span>{widgetConfig.handleIcon}</span>
+                    <span>¡Gira!</span>
+                  </div>
+                </div>
                 <p className="font-medium">Botón Flotante</p>
                 <p className="text-sm text-gray-600">Se desliza desde el lateral</p>
               </div>
@@ -183,7 +195,25 @@ export const HandleSection: React.FC<HandleSectionProps> = ({
                   : 'border-gray-200 hover:border-purple-300'
               }`}
             >
-              <div className="text-center">
+              <div className="text-center space-y-2">
+                {/* Mini preview of tab */}
+                <div className="h-12 flex items-center justify-center">
+                  <div className="relative w-full h-10">
+                    <div 
+                      className="absolute right-0 top-1/2 -translate-y-1/2 px-1 py-2 text-[8px] rounded-l"
+                      style={{
+                        backgroundColor: widgetConfig.handleBackgroundColor,
+                        color: widgetConfig.handleTextColor,
+                        writingMode: 'vertical-rl',
+                      }}
+                    >
+                      <div className="flex items-center gap-0.5">
+                        <span className="text-[10px]">{widgetConfig.handleIcon}</span>
+                        <span>Gira</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <p className="font-medium">Pestaña Lateral</p>
                 <p className="text-sm text-gray-600">Pestaña vertical en el lateral</p>
               </div>
@@ -197,7 +227,21 @@ export const HandleSection: React.FC<HandleSectionProps> = ({
                   : 'border-gray-200 hover:border-purple-300'
               }`}
             >
-              <div className="text-center">
+              <div className="text-center space-y-2">
+                {/* Mini preview of bubble */}
+                <div className="h-12 flex items-center justify-center">
+                  <div 
+                    className="rounded-full shadow-sm flex items-center justify-center"
+                    style={{
+                      backgroundColor: widgetConfig.handleBackgroundColor,
+                      color: widgetConfig.handleTextColor,
+                      width: '32px',
+                      height: '32px',
+                    }}
+                  >
+                    <span className="text-base">{widgetConfig.handleIcon}</span>
+                  </div>
+                </div>
                 <p className="font-medium">Botón Burbuja</p>
                 <p className="text-sm text-gray-600">Botón de acción flotante</p>
               </div>
@@ -316,6 +360,7 @@ export const HandleSection: React.FC<HandleSectionProps> = ({
               </div>
             </div>
             
+            
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <label className="block text-sm font-medium text-gray-700">Animación</label>
@@ -359,3 +404,5 @@ export const HandleSection: React.FC<HandleSectionProps> = ({
     </TooltipProvider>
   );
 };
+
+export default HandleSection;

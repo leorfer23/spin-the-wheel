@@ -325,10 +325,13 @@ export function oauthAPIPlugin(): Plugin {
               .eq("id", finalStoreId);
 
             // Redirect to dashboard with success
+            // Include a session recovery parameter to help maintain authentication
+            const redirectUrl = `/dashboard?integration_success=true&store_id=${finalStoreId}&user_id=${userId || ''}`;
+            console.log("Redirecting to:", redirectUrl);
             res.statusCode = 302;
             res.setHeader(
               "Location",
-              `/dashboard?integration_success=true&store_id=${finalStoreId}`
+              redirectUrl
             );
             res.end();
           } catch (error) {

@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { ArrowRight, CheckCircle, Sparkles, Trophy, Gift, Target, Star } from 'lucide-react';
+import { ArrowRight, Sparkles, Trophy, Gift, Target, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const Auth: React.FC = () => {
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const location = useLocation();
+  const [mode, setMode] = useState<'login' | 'signup'>(
+    location.state?.mode === 'signup' ? 'signup' : 'login'
+  );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
@@ -20,7 +22,6 @@ export const Auth: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccess(false);
 
     if (mode === 'signup') {
       if (password !== confirmPassword) {
@@ -41,17 +42,11 @@ export const Auth: React.FC = () => {
         navigate('/dashboard');
       } else {
         await signUp(email, password);
-        setSuccess(true);
-        // Don't navigate - user needs to confirm email first
-        // Show success message but keep them on auth page
-        setLoading(false);
+        // Navigate to dashboard immediately after signup
+        navigate('/dashboard');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : `Error al ${mode === 'login' ? 'iniciar sesión' : 'crear cuenta'}`);
-      setLoading(false);
-    }
-    // Only set loading to false for login or on error
-    if (mode === 'login' && !error) {
       setLoading(false);
     }
   };
@@ -59,7 +54,6 @@ export const Auth: React.FC = () => {
   const switchMode = () => {
     setMode(mode === 'login' ? 'signup' : 'login');
     setError('');
-    setSuccess(false);
   };
 
   return (
@@ -198,22 +192,6 @@ export const Auth: React.FC = () => {
                 {error}
               </motion.div>
             )}
-            {success && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mb-6 p-4 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-sm"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="w-4 h-4" />
-                  <span className="font-semibold">¡Cuenta creada exitosamente!</span>
-                </div>
-                <p className="text-xs">
-                  Te hemos enviado un correo de confirmación. Por favor, revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.
-                </p>
-              </motion.div>
-            )}
           </AnimatePresence>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -297,16 +275,16 @@ export const Auth: React.FC = () => {
             {mode === 'signup' && (
               <div className="text-sm text-gray-600">
                 Al registrarte, aceptas nuestros{' '}
-                <a href="#" className="text-purple-600 hover:text-purple-700 font-medium">Términos de Servicio</a>{' '}
+                <Link to="/terms" className="text-purple-600 hover:text-purple-700 font-medium">Términos de Servicio</Link>{' '}
                 y{' '}
-                <a href="#" className="text-purple-600 hover:text-purple-700 font-medium">Política de Privacidad</a>
+                <Link to="/privacy" className="text-purple-600 hover:text-purple-700 font-medium">Política de Privacidad</Link>
               </div>
             )}
 
             {/* Submit button */}
             <Button
               type="submit"
-              disabled={loading || success}
+              disabled={loading}
               className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white font-medium text-base rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group"
             >
               {loading ? (
@@ -316,11 +294,6 @@ export const Auth: React.FC = () => {
                 >
                   <Sparkles className="w-5 h-5" />
                 </motion.div>
-              ) : success ? (
-                <>
-                  <CheckCircle className="w-5 h-5" />
-                  Cuenta creada
-                </>
               ) : (
                 <>
                   {mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}

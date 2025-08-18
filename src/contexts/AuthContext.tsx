@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { UserPreferencesService } from '../services/userPreferencesService';
 
 interface AuthContextType {
   user: User | null;
@@ -37,9 +38,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     getSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
+      
+      // If session was recovered after OAuth redirect, ensure we're on the right page
+      if (event === 'SIGNED_IN' && window.location.pathname === '/login') {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('integration_success') === 'true' || params.get('integration_error')) {
+          // This was an OAuth callback, redirect to dashboard with params
+          window.location.href = `/dashboard${window.location.search}`;
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -56,9 +67,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       throw new Error(error.message || 'Error al crear la cuenta');
     }
-    // Don't automatically set the user - let them confirm email first
-    // The session will be handled by the onAuthStateChange listener after confirmation
-    // Return the user data so the signup page can check if confirmation is needed
+    // Set the user immediately after signup (no email confirmation required)
+    if (data.user) {
+      setUser(data.user);
+      // Create default user preferences for the new user
+      await UserPreferencesService.createDefaultPreferences(data.user.id);
+    }
     return data;
   };
 

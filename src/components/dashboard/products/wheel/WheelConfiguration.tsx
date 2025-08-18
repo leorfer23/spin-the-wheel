@@ -209,7 +209,7 @@ export function WheelConfiguration({
                 <TooltipTrigger asChild>
                   <motion.button
                     onClick={() => setActiveSection(tab.id as any)}
-                    className={`relative p-3 rounded-full transition-all duration-200 cursor-pointer ${
+                    className={`config-${tab.id} relative p-3 rounded-full transition-all duration-200 cursor-pointer ${
                       activeSection === tab.id
                         ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg"
                         : "hover:bg-gray-100 text-gray-600 hover:text-gray-900"

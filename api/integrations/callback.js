@@ -254,7 +254,10 @@ module.exports = async (req, res) => {
       .eq('id', finalStoreId);
 
     // Redirect to dashboard with success
-    return res.redirect(302, `/dashboard?integration_success=true&store_id=${finalStoreId}`);
+    // Include a session recovery parameter to help maintain authentication
+    const redirectUrl = `/dashboard?integration_success=true&store_id=${finalStoreId}&user_id=${userId || ''}`;
+    console.log("Redirecting to:", redirectUrl);
+    return res.redirect(302, redirectUrl);
   } catch (error) {
     console.error('OAuth callback error:', error);
     return res.redirect(302, `/dashboard?integration_error=${encodeURIComponent(

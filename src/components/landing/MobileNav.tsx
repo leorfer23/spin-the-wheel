@@ -36,7 +36,7 @@ export const MobileNav: React.FC = () => {
           >
             <div className="px-4 py-4 space-y-3">
               <Button 
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white cursor-pointer"
                 onClick={() => {
                   setMobileMenuOpen(false);
                   navigate('/signup');

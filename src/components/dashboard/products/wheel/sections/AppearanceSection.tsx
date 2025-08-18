@@ -1,16 +1,7 @@
 import React from "react";
-import { Palette, Zap, Sparkles, Brush } from "lucide-react";
+import { Palette, Zap, Sparkles, HelpCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import type { WheelDesignConfig } from "../wheelConfigTypes";
-import { 
-  BackgroundSettings, 
-  PegSettings, 
-  EffectsSettings,
-  DesignThemeSelector,
-  ShadowSettings,
-  WheelBorderSettings,
-  SegmentStyleSettings
-} from "./appearance";
 import { SaveStatusIndicator } from "../components/SaveStatusIndicator";
 import { useAutoSave } from "@/hooks/useAutoSave";
 
@@ -23,11 +14,8 @@ interface AppearanceSectionProps {
 export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
   wheelDesign,
   onUpdateWheelDesign,
-  saveStatus: _saveStatus // Unused, keeping for backward compatibility
+  saveStatus: _saveStatus
 }) => {
-  const [mode, setMode] = React.useState<'easy' | 'advanced'>('easy');
-  
-  // Use centralized auto-save
   const { save, saveStatus } = useAutoSave({
     type: 'appearance',
     onSave: async (updates) => {
@@ -39,6 +27,90 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     save(updates);
   };
 
+  const simpleThemes = [
+    {
+      id: 'modern' as const,
+      name: 'Moderno',
+      description: 'Limpio y profesional',
+      preview: {
+        backgroundColor: '#f3f4f6',
+        wheelBorderColor: '#8b5cf6',
+        shadowColor: '#8b5cf6',
+        pegColor: '#ec4899',
+        centerButtonBackgroundColor: '#8b5cf6',
+        centerButtonTextColor: '#ffffff',
+        pointerColor: '#FF1744',
+        wheelBorderStyle: 'solid' as const,
+        wheelBorderWidth: 4,
+        shadowBlur: 30,
+        shadowIntensity: 0.3,
+        glowEffect: true,
+        pegStyle: 'sticks',
+        pegSize: 10,
+        pointerStyle: 'triangle',
+        pointerSize: 60
+      }
+    },
+    {
+      id: 'circus' as const,
+      name: 'Circo',
+      description: 'Festivo y divertido',
+      preview: {
+        backgroundColor: '#fef3c7',
+        wheelBorderColor: '#dc2626',
+        wheelBorderStyle: 'double' as const,
+        wheelBorderWidth: 8,
+        shadowColor: '#f59e0b',
+        pegColor: '#fbbf24',
+        centerButtonBackgroundColor: '#dc2626',
+        centerButtonTextColor: '#ffffff',
+        pointerColor: '#FF1744',
+        shadowBlur: 40,
+        shadowIntensity: 0.4,
+        sparkleEffect: true,
+        centerButtonBorderColor: '#fbbf24',
+        centerButtonBorderWidth: 3,
+        pegStyle: 'dots',
+        pegSize: 10,
+        pointerStyle: 'triangle',
+        pointerSize: 60
+      }
+    },
+    {
+      id: 'elegant' as const,
+      name: 'Elegante',
+      description: 'Sofisticado y premium',
+      preview: {
+        backgroundColor: '#1f2937',
+        wheelBorderColor: '#fbbf24',
+        wheelBorderStyle: 'solid' as const,
+        wheelBorderWidth: 3,
+        wheelBackgroundColor: '#111827',
+        shadowColor: '#fbbf24',
+        pegColor: '#fbbf24',
+        centerButtonBackgroundColor: '#111827',
+        centerButtonTextColor: '#fbbf24',
+        pointerColor: '#FF1744',
+        shadowBlur: 50,
+        shadowIntensity: 0.5,
+        glowEffect: true,
+        pegGlowEnabled: true,
+        pegGlowColor: '#fbbf24',
+        pegStyle: 'sticks',
+        pegSize: 10,
+        pointerStyle: 'triangle',
+        pointerSize: 60
+      }
+    }
+  ];
+
+  const applyTheme = (theme: typeof simpleThemes[0]) => {
+    updateDesign({
+      designTheme: theme.id,
+      ...theme.preview
+    });
+  };
+
   return (
     <motion.div
       key="appearance"
@@ -48,43 +120,7 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
       className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl p-6 flex-1 overflow-hidden"
     >
       <div className="space-y-4 h-full overflow-y-auto pr-2 custom-scrollbar">
-        {/* Mode Toggle */}
-        <div className="flex items-center justify-between mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl">
-              <Sparkles className="w-5 h-5 text-purple-600" />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-gray-800">Modo de Configuración</h3>
-              <p className="text-xs text-gray-600">
-                {mode === 'easy' ? 'Configuración simplificada' : 'Todas las opciones disponibles'}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 bg-white rounded-xl p-1">
-            <button
-              onClick={() => setMode('easy')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                mode === 'easy'
-                  ? 'bg-purple-500 text-white shadow-lg'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              Fácil
-            </button>
-            <button
-              onClick={() => setMode('advanced')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                mode === 'advanced'
-                  ? 'bg-purple-500 text-white shadow-lg'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              Avanzado
-            </button>
-          </div>
-        </div>
-
+        
         {/* Design Theme Card */}
         <motion.div 
           className="bg-white/80 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/50 p-8"
@@ -104,54 +140,52 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
             <SaveStatusIndicator status={saveStatus} />
           </div>
 
-          <DesignThemeSelector 
-            wheelDesign={wheelDesign} 
-            onUpdateDesign={updateDesign} 
-          />
-        </motion.div>
-
-        {/* Visual Design Card */}
-        <motion.div 
-          className="bg-white/80 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/50 p-8"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1 }}
-        >
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl">
-                <Palette className="w-6 h-6 text-purple-600" />
-              </div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Diseño Visual
-              </h3>
-            </div>
-            <SaveStatusIndicator status={saveStatus} />
-          </div>
-
-          <div className="space-y-6">
-            <BackgroundSettings 
-              wheelDesign={wheelDesign} 
-              onUpdateDesign={updateDesign} 
-            />
-            
-            {mode === 'advanced' && (
-              <>
-                <div className="border-t pt-6">
-                  <WheelBorderSettings
-                    wheelDesign={wheelDesign}
-                    onUpdateDesign={updateDesign}
-                  />
-                </div>
-                
-                <div className="border-t pt-6">
-                  <ShadowSettings
-                    wheelDesign={wheelDesign}
-                    onUpdateDesign={updateDesign}
-                  />
-                </div>
-              </>
-            )}
+          <div className="grid grid-cols-3 gap-4">
+            {simpleThemes.map((theme) => {
+              const isSelected = wheelDesign.designTheme === theme.id;
+              
+              return (
+                <motion.button
+                  key={theme.id}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => applyTheme(theme)}
+                  className={`relative p-6 rounded-2xl transition-all text-center overflow-hidden group ${
+                    isSelected
+                      ? "ring-2 ring-purple-500 bg-purple-50 shadow-lg"
+                      : "ring-1 ring-gray-200 hover:ring-purple-300 hover:bg-gray-50"
+                  }`}
+                >
+                  {isSelected && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute top-3 right-3 w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center"
+                    >
+                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </motion.div>
+                  )}
+                  
+                  <h5 className={`font-bold text-lg mb-2 ${isSelected ? 'text-purple-900' : 'text-gray-800'}`}>
+                    {theme.name}
+                  </h5>
+                  <p className="text-sm text-gray-600">{theme.description}</p>
+                  
+                  {/* Preview circle */}
+                  <div className="mt-4 flex justify-center">
+                    <div 
+                      className="w-16 h-16 rounded-full border-4 shadow-lg"
+                      style={{
+                        borderColor: theme.preview.wheelBorderColor,
+                        backgroundColor: theme.preview.centerButtonBackgroundColor
+                      }}
+                    />
+                  </div>
+                </motion.button>
+              );
+            })}
           </div>
         </motion.div>
 
@@ -170,46 +204,129 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
           </div>
 
           <div className="space-y-6">
-            <PegSettings 
-              wheelDesign={wheelDesign} 
-              onUpdateDesign={updateDesign} 
-            />
-
-            {/* Center Button */}
-            <CenterButtonConfig 
-              wheelDesign={wheelDesign} 
-              onUpdateDesign={updateDesign} 
-            />
-            
-            {/* Pointer Configuration */}
-            <PointerConfig 
-              wheelDesign={wheelDesign} 
-              onUpdateDesign={updateDesign} 
-            />
-          </div>
-        </motion.div>
-
-        {/* Segment Styling Card - Advanced only */}
-        {mode === 'advanced' && (
-          <motion.div 
-            className="bg-white/80 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/50 p-8"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.25 }}
-          >
-            <div className="flex items-center gap-3 mb-8">
-              <div className="p-3 bg-gradient-to-br from-green-500/10 to-teal-500/10 rounded-2xl">
-                <Brush className="w-6 h-6 text-green-600" />
+            {/* Simplified Peg Settings */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-3 block">Decoración del Borde</label>
+              <div className="grid grid-cols-2 gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => updateDesign({ pegStyle: 'sticks', pegSize: 10 })}
+                  className={`p-4 rounded-2xl transition-all flex flex-col items-center gap-2 ${
+                    wheelDesign.pegStyle === 'sticks'
+                      ? "ring-2 ring-purple-500 bg-purple-50 shadow-lg"
+                      : "ring-1 ring-gray-200 hover:ring-purple-300 hover:bg-gray-50"
+                  }`}
+                >
+                  <span className="text-2xl">|</span>
+                  <span className="text-sm font-medium text-gray-700">Palitos</span>
+                </motion.button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => updateDesign({ pegStyle: 'dots', pegSize: 10 })}
+                  className={`p-4 rounded-2xl transition-all flex flex-col items-center gap-2 ${
+                    wheelDesign.pegStyle === 'dots'
+                      ? "ring-2 ring-purple-500 bg-purple-50 shadow-lg"
+                      : "ring-1 ring-gray-200 hover:ring-purple-300 hover:bg-gray-50"
+                  }`}
+                >
+                  <span className="text-2xl">•</span>
+                  <span className="text-sm font-medium text-gray-700">Puntos</span>
+                </motion.button>
               </div>
-              <h3 className="text-xl font-bold text-gray-800">Estilo de Segmentos</h3>
             </div>
 
-            <SegmentStyleSettings
-              wheelDesign={wheelDesign}
-              onUpdateDesign={updateDesign}
-            />
-          </motion.div>
-        )}
+            {/* Peg Color Only */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-3 block">Color de Decoración</label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={wheelDesign.pegColor}
+                  onChange={(e) => updateDesign({ pegColor: e.target.value })}
+                  className="w-14 h-14 rounded-xl cursor-pointer ring-2 ring-gray-200 hover:ring-purple-300 transition-all"
+                />
+                <input
+                  type="text"
+                  value={wheelDesign.pegColor}
+                  onChange={(e) => updateDesign({ pegColor: e.target.value })}
+                  className="flex-1 px-4 py-3 bg-gray-50 rounded-xl text-sm font-mono"
+                  placeholder="#FF0000"
+                />
+              </div>
+            </div>
+
+            {/* Center Button - Simplified */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-3 block">Botón Central</label>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-2 block">Texto del Botón</label>
+                    <input
+                      type="text"
+                      value={wheelDesign.centerButtonText}
+                      onChange={(e) => updateDesign({ centerButtonText: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 rounded-xl text-sm font-medium"
+                      placeholder="GIRAR"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-2 block">Tamaño del Texto</label>
+                    <select 
+                      value={wheelDesign.centerButtonTextSize}
+                      onChange={(e) => updateDesign({ centerButtonTextSize: e.target.value })}
+                      className="w-full px-4 py-3 bg-gray-50 rounded-xl text-sm"
+                    >
+                      <option value="small">Pequeño</option>
+                      <option value="medium">Mediano</option>
+                      <option value="large">Grande</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-2 block">Color de Fondo</label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={wheelDesign.centerButtonBackgroundColor}
+                        onChange={(e) => updateDesign({ centerButtonBackgroundColor: e.target.value })}
+                        className="w-12 h-12 rounded-xl cursor-pointer ring-2 ring-gray-200 hover:ring-purple-300 transition-all"
+                      />
+                      <input
+                        type="text"
+                        value={wheelDesign.centerButtonBackgroundColor}
+                        onChange={(e) => updateDesign({ centerButtonBackgroundColor: e.target.value })}
+                        className="flex-1 px-3 py-2 bg-gray-50 rounded-lg text-sm font-mono"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-2 block">Color del Texto</label>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={wheelDesign.centerButtonTextColor}
+                        onChange={(e) => updateDesign({ centerButtonTextColor: e.target.value })}
+                        className="w-12 h-12 rounded-xl cursor-pointer ring-2 ring-gray-200 hover:ring-purple-300 transition-all"
+                      />
+                      <input
+                        type="text"
+                        value={wheelDesign.centerButtonTextColor}
+                        onChange={(e) => updateDesign({ centerButtonTextColor: e.target.value })}
+                        className="flex-1 px-3 py-2 bg-gray-50 rounded-lg text-sm font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
         {/* Effects & Animation Card */}
         <motion.div 
@@ -222,28 +339,122 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
             <div className="p-3 bg-gradient-to-br from-pink-500/10 to-orange-500/10 rounded-2xl">
               <Sparkles className="w-6 h-6 text-pink-600" />
             </div>
-            <h3 className="text-xl font-bold text-gray-800">Efectos y Animación</h3>
+            <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+              Efectos y Animación
+              <div className="group relative">
+                <HelpCircle className="w-4 h-4 text-gray-400 cursor-help" />
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10">
+                  <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 max-w-xs whitespace-normal">
+                    <p className="mb-2">Los efectos de giro cambian cómo se siente la rueda al girar:</p>
+                    <ul className="space-y-1">
+                      <li>• <strong>Suave:</strong> Giro clásico y uniforme</li>
+                      <li>• <strong>Elástico:</strong> Rebota un poco al parar</li>
+                      <li>• <strong>Potente:</strong> Empieza rápido y frena fuerte</li>
+                    </ul>
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                  </div>
+                </div>
+              </div>
+            </h3>
           </div>
 
           <div className="space-y-6">
-            <SpinningEffects 
-              wheelDesign={wheelDesign} 
-              onUpdateDesign={updateDesign} 
-            />
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-3 block">Efecto de Giro</label>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { 
+                    id: 'smooth', 
+                    name: 'Suave', 
+                    description: 'Giro uniforme',
+                    animation: 'animate-spin',
+                  },
+                  { 
+                    id: 'elastic', 
+                    name: 'Elástico', 
+                    description: 'Con rebote',
+                    animation: 'animate-[spin_1s_cubic-bezier(0.68,-0.55,0.265,1.55)_infinite]',
+                  },
+                  { 
+                    id: 'power', 
+                    name: 'Potente', 
+                    description: 'Frenado fuerte',
+                    animation: 'animate-[spin_1s_cubic-bezier(0.87,0,0.13,1)_infinite]',
+                  }
+                ].map((effect) => (
+                  <motion.button
+                    key={effect.id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => updateDesign({ spinningEffect: effect.id })}
+                    className={`relative p-4 rounded-2xl transition-all text-left overflow-hidden ${
+                      wheelDesign.spinningEffect === effect.id
+                        ? "ring-2 ring-purple-500 bg-purple-50 shadow-lg"
+                        : "ring-1 ring-gray-200 hover:ring-purple-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    <div className="absolute top-3 right-3">
+                      <div className={`w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 ${
+                        wheelDesign.spinningEffect === effect.id ? effect.animation : ''
+                      }`}>
+                        <div className="absolute inset-1 bg-white rounded-full"></div>
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-4 bg-purple-600 rounded-full"></div>
+                      </div>
+                    </div>
+                    <h5 className="font-medium text-gray-800 mb-1">{effect.name}</h5>
+                    <p className="text-xs text-gray-600">{effect.description}</p>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
 
-            {mode === 'advanced' && (
-              <>
-                <AnimationSettings 
-                  wheelDesign={wheelDesign} 
-                  onUpdateDesign={updateDesign} 
-                />
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                  Duración del Giro
+                </label>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="range"
+                      min="2"
+                      max="10"
+                      value={wheelDesign.spinDuration}
+                      onChange={(e) => updateDesign({ spinDuration: parseInt(e.target.value) })}
+                      className="flex-1 accent-purple-600"
+                    />
+                    <span className="text-sm font-medium text-gray-600 w-12 text-right">{wheelDesign.spinDuration}s</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-400">
+                    <span>Rápido</span>
+                    <span>Lento</span>
+                  </div>
+                </div>
+              </div>
 
-                <EffectsSettings 
-                  wheelDesign={wheelDesign} 
-                  onUpdateDesign={updateDesign} 
-                />
-              </>
-            )}
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                  Número de Vueltas
+                </label>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="range"
+                      min="3"
+                      max="10"
+                      value={wheelDesign.rotations}
+                      onChange={(e) => updateDesign({ rotations: parseInt(e.target.value) })}
+                      className="flex-1 accent-purple-600"
+                    />
+                    <span className="text-sm font-medium text-gray-600 w-12 text-right">{wheelDesign.rotations}x</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-400">
+                    <span>Pocas</span>
+                    <span>Muchas</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </motion.div>
 
@@ -251,367 +462,3 @@ export const AppearanceSection: React.FC<AppearanceSectionProps> = ({
     </motion.div>
   );
 };
-
-const CenterButtonConfig: React.FC<{
-  wheelDesign: WheelDesignConfig;
-  onUpdateDesign: (updates: Partial<WheelDesignConfig>) => void;
-}> = ({ wheelDesign, onUpdateDesign }) => (
-  <div>
-    <label className="text-sm font-medium text-gray-700 mb-3 block">Botón Central</label>
-    <div className="space-y-4">
-      <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
-        <button
-          type="button"
-          onClick={() => onUpdateDesign({ centerButtonLogo: '' })}
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
-            !wheelDesign.centerButtonLogo
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Texto
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            const url = prompt('Ingresa la URL de la imagen del logo:');
-            if (url) {
-              onUpdateDesign({ centerButtonLogo: url });
-            }
-          }}
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
-            wheelDesign.centerButtonLogo
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          Logo
-        </button>
-      </div>
-      
-      {wheelDesign.centerButtonLogo ? (
-        <div className="space-y-3">
-          <div className="relative">
-            <label className="text-xs font-medium text-gray-600 mb-2 block">URL del Logo</label>
-            <input
-              type="text"
-              value={wheelDesign.centerButtonLogo}
-              onChange={(e) => onUpdateDesign({ centerButtonLogo: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-50 rounded-xl text-sm"
-              placeholder="https://example.com/logo.png"
-            />
-          </div>
-          {wheelDesign.centerButtonLogo && (
-            <div className="flex items-center justify-center p-4 bg-gray-50 rounded-xl">
-              <img 
-                src={wheelDesign.centerButtonLogo} 
-                alt="Center logo preview"
-                className="max-h-24 max-w-24 object-contain"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="text-xs font-medium text-gray-600 mb-2 block">Texto del Botón</label>
-            <input
-              type="text"
-              value={wheelDesign.centerButtonText}
-              onChange={(e) => onUpdateDesign({ centerButtonText: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-50 rounded-xl text-sm font-medium"
-              placeholder="Ingresa el texto del botón"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-gray-600 mb-2 block">Tamaño del Texto</label>
-            <select 
-              value={wheelDesign.centerButtonTextSize}
-              onChange={(e) => onUpdateDesign({ centerButtonTextSize: e.target.value })}
-              className="w-full px-4 py-3 bg-gray-50 rounded-xl text-sm"
-            >
-              <option value="small">Pequeño</option>
-              <option value="medium">Mediano</option>
-              <option value="large">Grande</option>
-              <option value="extra-large">Extra Grande</option>
-            </select>
-          </div>
-        </div>
-      )}
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="text-xs font-medium text-gray-600 mb-2 block">Color de Fondo</label>
-          <div className="flex items-center gap-3">
-            <input
-              type="color"
-              value={wheelDesign.centerButtonBackgroundColor}
-              onChange={(e) => onUpdateDesign({ centerButtonBackgroundColor: e.target.value })}
-              className="w-12 h-12 rounded-xl cursor-pointer ring-2 ring-gray-200 hover:ring-purple-300 transition-all"
-            />
-            <input
-              type="text"
-              value={wheelDesign.centerButtonBackgroundColor}
-              onChange={(e) => onUpdateDesign({ centerButtonBackgroundColor: e.target.value })}
-              className="flex-1 px-3 py-2 bg-gray-50 rounded-lg text-sm font-mono"
-            />
-          </div>
-        </div>
-        <div>
-          <label className="text-xs font-medium text-gray-600 mb-2 block">Color del Texto</label>
-          <div className="flex items-center gap-3">
-            <input
-              type="color"
-              value={wheelDesign.centerButtonTextColor}
-              onChange={(e) => onUpdateDesign({ centerButtonTextColor: e.target.value })}
-              className="w-12 h-12 rounded-xl cursor-pointer ring-2 ring-gray-200 hover:ring-purple-300 transition-all"
-            />
-            <input
-              type="text"
-              value={wheelDesign.centerButtonTextColor}
-              onChange={(e) => onUpdateDesign({ centerButtonTextColor: e.target.value })}
-              className="flex-1 px-3 py-2 bg-gray-50 rounded-lg text-sm font-mono"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-const PointerConfig: React.FC<{
-  wheelDesign: WheelDesignConfig;
-  onUpdateDesign: (updates: Partial<WheelDesignConfig>) => void;
-}> = ({ wheelDesign, onUpdateDesign }) => (
-  <div>
-    <label className="text-sm font-medium text-gray-700 mb-3 block">Diseño del Puntero</label>
-    <div className="space-y-6">
-      <div>
-        <label className="text-xs font-medium text-gray-600 mb-3 block">Estilo del Puntero</label>
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { 
-              id: 'triangle', 
-              name: 'Triángulo', 
-              preview: (
-                <svg width="60" height="60" viewBox="0 0 60 60">
-                  <g transform="translate(30, 40)">
-                    <path d="M 0,0 L 12,-30 L -12,-30 Z" fill={wheelDesign.pointerColor} stroke="#ffffff" strokeWidth="2"/>
-                  </g>
-                </svg>
-              )
-            },
-            { 
-              id: 'arrow', 
-              name: 'Flecha', 
-              preview: (
-                <svg width="60" height="60" viewBox="0 0 60 60">
-                  <g transform="translate(30, 40)">
-                    <circle cx="0" cy="-20" r="12" fill={wheelDesign.pointerColor} opacity="0.9"/>
-                    <path d="M 0,-5 L 8,-15 L 5,-25 L 0,-30 L -5,-25 L -8,-15 Z" fill={wheelDesign.pointerColor}/>
-                    <ellipse cx="0" cy="-20" rx="6" ry="5" fill="#ffffff" opacity="0.4"/>
-                  </g>
-                </svg>
-              )
-            },
-            { 
-              id: 'circle', 
-              name: 'Círculo', 
-              preview: (
-                <svg width="60" height="60" viewBox="0 0 60 60">
-                  <g transform="translate(30, 40)">
-                    <circle cx="0" cy="-20" r="14" fill={wheelDesign.pointerColor} opacity="0.3"/>
-                    <circle cx="0" cy="-20" r="11" fill={wheelDesign.pointerColor}/>
-                    <path d="M -8,-10 L 0,0 L 8,-10 Z" fill={wheelDesign.pointerColor}/>
-                    <circle cx="0" cy="-20" r="4" fill="#ffffff" opacity="0.8"/>
-                  </g>
-                </svg>
-              )
-            }
-          ].map((style) => (
-            <motion.button
-              key={style.id}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onUpdateDesign({ pointerStyle: style.id })}
-              className={`relative p-4 rounded-2xl transition-all flex flex-col items-center gap-3 min-h-[140px] ${
-                wheelDesign.pointerStyle === style.id
-                  ? "ring-2 ring-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 shadow-xl"
-                  : "ring-1 ring-gray-200 hover:ring-purple-300 hover:bg-gray-50 bg-white"
-              }`}
-            >
-              {wheelDesign.pointerStyle === style.id && (
-                <div className="absolute top-2 right-2 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              )}
-              <div className="flex-1 flex items-center justify-center">
-                {style.preview}
-              </div>
-              <span className="text-sm font-medium text-gray-700">{style.name}</span>
-            </motion.button>
-          ))}
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="text-xs font-medium text-gray-600 mb-2 block">Color del Puntero</label>
-          <div className="flex items-center gap-3">
-            <input
-              type="color"
-              value={wheelDesign.pointerColor}
-              onChange={(e) => onUpdateDesign({ pointerColor: e.target.value })}
-              className="w-14 h-14 rounded-xl cursor-pointer ring-2 ring-gray-200 hover:ring-purple-300 transition-all"
-            />
-            <input
-              type="text"
-              value={wheelDesign.pointerColor}
-              onChange={(e) => onUpdateDesign({ pointerColor: e.target.value })}
-              className="flex-1 px-3 py-3 bg-gray-50 rounded-xl text-sm font-mono"
-              placeholder="#FF1744"
-            />
-          </div>
-        </div>
-        
-        <div>
-          <label className="text-xs font-medium text-gray-600 mb-2 block">Tamaño del Puntero</label>
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min="30"
-                max="80"
-                value={wheelDesign.pointerSize || 60}
-                onChange={(e) => onUpdateDesign({ pointerSize: parseInt(e.target.value) })}
-                className="flex-1 accent-purple-600"
-              />
-              <span className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-lg min-w-[60px] text-center">
-                {wheelDesign.pointerSize || 60}px
-              </span>
-            </div>
-            <div className="flex justify-between text-xs text-gray-400">
-              <span>Pequeño</span>
-              <span>Mediano</span>
-              <span>Grande</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-const SpinningEffects: React.FC<{
-  wheelDesign: WheelDesignConfig;
-  onUpdateDesign: (updates: Partial<WheelDesignConfig>) => void;
-}> = ({ wheelDesign, onUpdateDesign }) => (
-  <div>
-    <label className="text-sm font-medium text-gray-700 mb-3 block">Efecto de Giro</label>
-    <div className="grid grid-cols-3 gap-3">
-      {[
-        { 
-          id: 'smooth', 
-          name: 'Suave', 
-          description: 'Giro suave clásico',
-          animation: 'animate-spin',
-        },
-        { 
-          id: 'elastic', 
-          name: 'Elástico', 
-          description: 'Final con rebote',
-          animation: 'animate-[spin_1s_cubic-bezier(0.68,-0.55,0.265,1.55)_infinite]',
-        },
-        { 
-          id: 'power', 
-          name: 'Potente', 
-          description: 'Desaceleración fuerte',
-          animation: 'animate-[spin_1s_cubic-bezier(0.87,0,0.13,1)_infinite]',
-        }
-      ].map((effect) => (
-        <motion.button
-          key={effect.id}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => onUpdateDesign({ spinningEffect: effect.id })}
-          className={`relative p-4 rounded-2xl transition-all text-left overflow-hidden ${
-            wheelDesign.spinningEffect === effect.id
-              ? "ring-2 ring-purple-500 bg-purple-50 shadow-lg scale-105"
-              : "ring-1 ring-gray-200 hover:ring-purple-300 hover:bg-gray-50"
-          }`}
-        >
-          <div className="absolute top-3 right-3">
-            <div className={`w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 ${
-              wheelDesign.spinningEffect === effect.id ? effect.animation : ''
-            }`}>
-              <div className="absolute inset-1 bg-white rounded-full"></div>
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-4 bg-purple-600 rounded-full"></div>
-            </div>
-          </div>
-          <h5 className="font-medium text-gray-800 mb-1">{effect.name}</h5>
-          <p className="text-xs text-gray-600">{effect.description}</p>
-        </motion.button>
-      ))}
-    </div>
-  </div>
-);
-
-const AnimationSettings: React.FC<{
-  wheelDesign: WheelDesignConfig;
-  onUpdateDesign: (updates: Partial<WheelDesignConfig>) => void;
-}> = ({ wheelDesign, onUpdateDesign }) => (
-  <div className="grid grid-cols-2 gap-6">
-    <div>
-      <label className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-        Duración del Giro
-        <span className="text-xs text-gray-500">(Más lento ← → Más rápido)</span>
-      </label>
-      <div className="space-y-2">
-        <div className="flex items-center gap-4">
-          <input
-            type="range"
-            min="2"
-            max="10"
-            value={wheelDesign.spinDuration}
-            onChange={(e) => onUpdateDesign({ spinDuration: parseInt(e.target.value) })}
-            className="flex-1 accent-purple-600"
-          />
-          <span className="text-sm font-medium text-gray-600 w-12 text-right">{wheelDesign.spinDuration}s</span>
-        </div>
-        <div className="flex justify-between text-xs text-gray-400">
-          <span>Rápido</span>
-          <span>Largo</span>
-        </div>
-      </div>
-    </div>
-
-    <div>
-      <label className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-        Rotaciones
-        <span className="text-xs text-gray-500">(Menos giros ← → Más giros)</span>
-      </label>
-      <div className="space-y-2">
-        <div className="flex items-center gap-4">
-          <input
-            type="range"
-            min="3"
-            max="10"
-            value={wheelDesign.rotations}
-            onChange={(e) => onUpdateDesign({ rotations: parseInt(e.target.value) })}
-            className="flex-1 accent-purple-600"
-          />
-          <span className="text-sm font-medium text-gray-600 w-12 text-right">{wheelDesign.rotations}x</span>
-        </div>
-        <div className="flex justify-between text-xs text-gray-400">
-          <span>Pocas</span>
-          <span>Muchas</span>
-        </div>
-      </div>
-    </div>
-  </div>
-);

@@ -14,6 +14,9 @@ import { StoreService } from "../services/storeService";
 import { WheelService } from "../services/wheelService";
 import { tiendaNubeIntegrationService } from "../services/tiendaNubeIntegrationService";
 import { motion, AnimatePresence } from "framer-motion";
+import { useOnboarding } from "./onboarding/OnboardingProvider";
+import { UserPreferencesService } from "../services/userPreferencesService";
+import { useHelpBubbles } from "./help/HelpBubbleProvider";
 import {
   Lock,
   ChevronRight,
@@ -29,6 +32,9 @@ import {
   AlertCircle,
   Loader2,
   Grid3x3,
+  GraduationCap,
+  HelpCircle,
+  RotateCcw,
 } from "lucide-react";
 
 interface UserSettingsDialogProps {
@@ -41,6 +47,8 @@ export function UserSettingsDialog({
   onOpenChange,
 }: UserSettingsDialogProps) {
   const { user } = useAuth();
+  const { startOnboarding } = useOnboarding();
+  const { helpEnabled, toggleHelp, resetHelpBubbles } = useHelpBubbles();
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -269,16 +277,77 @@ export function UserSettingsDialog({
           {/* Actions */}
           <div className="space-y-2 pt-2">
             {!isChangingPassword ? (
-              <button
-                onClick={() => setIsChangingPassword(true)}
-                className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                  <span className="text-sm font-medium">Cambiar Contraseña</span>
+              <>
+                <button
+                  onClick={() => setIsChangingPassword(true)}
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <Lock className="h-5 w-5 text-gray-400" />
+                    <span className="text-sm font-medium">Cambiar Contraseña</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                </button>
+                
+                <button
+                  onClick={async () => {
+                    if (user) {
+                      await UserPreferencesService.resetOnboarding(user.id);
+                      onOpenChange(false);
+                      startOnboarding();
+                    }
+                  }}
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <GraduationCap className="h-5 w-5 text-gray-400" />
+                    <span className="text-sm font-medium">Reiniciar Tutorial</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                </button>
+                
+                <div className="border-t pt-4">
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">Configuración de Ayuda</h3>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <HelpCircle className="h-5 w-5 text-gray-400" />
+                        <div>
+                          <p className="text-sm font-medium">Ayudas Contextuales</p>
+                          <p className="text-xs text-gray-500">Mostrar burbujas de ayuda en la aplicación</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={toggleHelp}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                          helpEnabled ? 'bg-purple-600' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            helpEnabled ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                    
+                    <button
+                      onClick={() => {
+                        resetHelpBubbles();
+                        onOpenChange(false);
+                      }}
+                      className="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <RotateCcw className="h-5 w-5 text-gray-400" />
+                        <span className="text-sm font-medium">Restablecer Ayudas Vistas</span>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </button>
+                  </div>
                 </div>
-                <ChevronRight className="h-4 w-4 text-gray-400" />
-              </button>
+              </>
             ) : (
               <div className="space-y-3 p-4 bg-gray-50 rounded-lg">
                 <div className="space-y-2">

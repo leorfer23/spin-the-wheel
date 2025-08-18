@@ -8,10 +8,12 @@ import { JackpotProduct } from "../../components/dashboard/products/jackpot/Jack
 import { IntegrationNotification } from "../../components/dashboard/IntegrationNotification";
 import { useWheelStore } from "../../stores/wheelStore";
 import { useJackpotStore } from "../../stores/jackpotStore";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { supabase } from "../../lib/supabase";
 
 export const ModularDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { product: productParam, wheelId, jackpotId } = useParams();
 
   const validProducts: ProductType[] = useMemo(
@@ -20,6 +22,51 @@ export const ModularDashboard: React.FC = () => {
   );
 
   const [selectedProduct, setSelectedProduct] = useState<ProductType>("wheel");
+
+  // Check for OAuth flow recovery
+  useEffect(() => {
+    const checkOAuthRecovery = async () => {
+      const params = new URLSearchParams(location.search);
+      const isOAuthCallback = params.get('integration_success') === 'true' || 
+                             params.get('integration_error') !== null;
+      
+      if (isOAuthCallback) {
+        // Check if we have stored OAuth user info
+        const storedUserId = localStorage.getItem('oauth_user_id');
+        const initiatedAt = localStorage.getItem('oauth_initiated_at');
+        
+        if (storedUserId && initiatedAt) {
+          // Check if OAuth was initiated recently (within last 10 minutes)
+          const timeDiff = Date.now() - parseInt(initiatedAt);
+          if (timeDiff < 10 * 60 * 1000) { // 10 minutes
+            // Verify current session matches stored user
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (!session || session.user.id !== storedUserId) {
+              console.log('Session mismatch after OAuth, attempting recovery...');
+              // Try to refresh the session
+              const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
+              
+              if (!refreshedSession) {
+                console.error('Could not recover session after OAuth');
+                // Clear OAuth storage and redirect to login
+                localStorage.removeItem('oauth_user_id');
+                localStorage.removeItem('oauth_initiated_at');
+                navigate(`/login${location.search}`);
+                return;
+              }
+            }
+          }
+          
+          // Clear OAuth storage after successful recovery
+          localStorage.removeItem('oauth_user_id');
+          localStorage.removeItem('oauth_initiated_at');
+        }
+      }
+    };
+    
+    checkOAuthRecovery();
+  }, [location.search, navigate]);
 
   // Keep selected product in sync with URL params
   useEffect(() => {
@@ -82,6 +129,7 @@ export const ModularDashboard: React.FC = () => {
   return (
     <>
       <IntegrationNotification />
+      <div className="onboarding-welcome" />
       <DashboardLayout
         leftContent={
           <ProductSelector
@@ -104,6 +152,7 @@ export const ModularDashboard: React.FC = () => {
           />
         }
       />
+      <div className="onboarding-complete" />
     </>
   );
 };

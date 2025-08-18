@@ -22,7 +22,21 @@ export const AddStoreDialog: React.FC<AddStoreDialogProps> = ({
       
       if (!session) {
         console.error('No session found');
-        return;
+        // Try to refresh the session
+        const { data: { session: refreshedSession } } = await supabase.auth.refreshSession();
+        if (!refreshedSession) {
+          console.error('Could not refresh session');
+          window.location.href = '/login';
+          return;
+        }
+      }
+      
+      const currentUserId = session?.user.id;
+      
+      // Store session info in localStorage to persist across redirect
+      if (currentUserId) {
+        localStorage.setItem('oauth_user_id', currentUserId);
+        localStorage.setItem('oauth_initiated_at', Date.now().toString());
       }
       
       // Initiate OAuth flow for Tienda Nube
@@ -33,7 +47,7 @@ export const AddStoreDialog: React.FC<AddStoreDialogProps> = ({
         },
         body: JSON.stringify({
           platform: 'tiendanube',
-          userId: session.user.id,
+          userId: currentUserId,
         }),
       });
 

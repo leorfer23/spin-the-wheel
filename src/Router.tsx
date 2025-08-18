@@ -5,6 +5,8 @@ import { StoreProvider } from "./contexts/StoreContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
+import { OnboardingProvider } from "./components/onboarding/OnboardingProvider";
+import { HelpBubbleProvider } from "./components/help/HelpBubbleProvider";
 
 // Lazy load pages
 const Landing = lazy(() =>
@@ -25,6 +27,8 @@ const ModularDashboard = lazy(() =>
 );
 const WheelTest = lazy(() => import("./pages/WheelTest"));
 const CouponTest = lazy(() => import("./pages/test/CouponTest"));
+const TermsOfService = lazy(() => import("./pages/legal/TermsOfService"));
+const PrivacyPolicy = lazy(() => import("./pages/legal/PrivacyPolicy"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,6 +51,8 @@ export const Router: React.FC = () => {
       <AuthProvider>
         <StoreProvider>
           <BrowserRouter>
+            <OnboardingProvider>
+              <HelpBubbleProvider>
             <Toaster
               position="top-right"
               toastOptions={{
@@ -76,13 +82,17 @@ export const Router: React.FC = () => {
                 <Route path="/auth" element={<Auth />} />
                 <Route
                   path="/login"
-                  element={<Navigate to="/auth" replace />}
+                  element={<Navigate to="/auth" state={{ mode: 'login' }} replace />}
                 />
                 <Route
                   path="/signup"
-                  element={<Navigate to="/auth" replace />}
+                  element={<Navigate to="/auth" state={{ mode: 'signup' }} replace />}
                 />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
+                
+                {/* Legal pages */}
+                <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
 
                 {/* Protected dashboard routes */}
                 <Route
@@ -152,12 +162,15 @@ export const Router: React.FC = () => {
 
                 {/* Test routes */}
                 <Route path="/test" element={<WheelTest />} />
+                <Route path="/demo" element={<WheelTest />} />
                 <Route path="/test/coupon" element={<CouponTest />} />
 
                 {/* Catch all - redirect to home */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Suspense>
+              </HelpBubbleProvider>
+            </OnboardingProvider>
           </BrowserRouter>
         </StoreProvider>
       </AuthProvider>

@@ -10,6 +10,8 @@ import { useAutoSave } from "@/hooks/useAutoSave";
 import type { TiendaNubeCoupon } from "@/types/tiendanube.types";
 import { CouponDebugPanel } from "../components/CouponDebugPanel";
 import { useStore } from "@/contexts/StoreContext";
+import { HelpBubble } from "@/components/help/HelpBubble";
+import { getHelpContent } from "@/config/helpContent";
 interface SegmentsSectionProps {
   segments: Segment[];
   onUpdateSegments: (segments: Segment[]) => void;
@@ -241,11 +243,18 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
           <div className="p-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl">
             <Gift className="w-5 h-5 text-white" />
           </div>
-          <div>
-            <h3 className="text-xl font-semibold text-gray-900">
-              Segmentos de Premios
-            </h3>
-            <p className="text-sm text-gray-500">Configura los premios y sus probabilidades</p>
+          <div className="flex items-center gap-2">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">
+                Segmentos de Premios
+              </h3>
+              <p className="text-sm text-gray-500">Configura los premios y sus probabilidades</p>
+            </div>
+            <HelpBubble
+              content={getHelpContent('wheelSegments')}
+              position="right"
+              id="wheel-segments"
+            />
           </div>
           <SaveStatusIndicator status={saveStatus} />
         </div>
@@ -415,6 +424,12 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
                       <div className="flex items-center gap-2 bg-white/80 px-4 py-2 rounded-xl">
                         <span className="text-xs font-medium text-gray-500">Probabilidad</span>
                         <span className="text-lg font-bold text-purple-600">{percentage}%</span>
+                        <HelpBubble
+                          content={getHelpContent('segmentProbability')}
+                          position="left"
+                          size="sm"
+                          id={`segment-probability-${segment.id}`}
+                        />
                       </div>
                     </div>
                   </div>

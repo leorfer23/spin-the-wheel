@@ -14,17 +14,18 @@ interface ScheduleSectionProps {
 export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
   scheduleConfig,
   onUpdateScheduleConfig,
-  saveStatus: _saveStatus // Unused, keeping for backward compatibility
+  saveStatus: _saveStatus, // Unused, keeping for backward compatibility
 }) => {
-  const [localScheduleConfig, setLocalScheduleConfig] = useState<WheelScheduleConfig>(scheduleConfig);
-  
+  const [localScheduleConfig, setLocalScheduleConfig] =
+    useState<WheelScheduleConfig>(scheduleConfig);
+
   // Use centralized auto-save
   const { save, saveStatus } = useAutoSave({
-    type: 'schedule',
+    type: "schedule",
     onSave: async (config) => {
       await onUpdateScheduleConfig(config);
     },
-    debounceDelay: 1500 // Slightly longer delay for schedule changes
+    debounceDelay: 1500, // Slightly longer delay for schedule changes
   });
 
   // Update local state when prop changes (from database)
@@ -38,10 +39,11 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
   };
 
   const handleEnabledChange = (enabled: boolean) => {
-    const updatedConfig = { 
-      ...localScheduleConfig, 
+    const updatedConfig = {
+      ...localScheduleConfig,
       enabled,
-      timezone: localScheduleConfig.timezone || 'America/Argentina/Buenos_Aires'
+      timezone:
+        localScheduleConfig.timezone || "America/Argentina/Buenos_Aires",
     };
     setLocalScheduleConfig(updatedConfig);
     save(updatedConfig);
@@ -56,18 +58,12 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({
       className="flex-1 overflow-hidden"
     >
       <div className="h-full overflow-y-auto custom-scrollbar">
-        <div className="p-6 space-y-6">
+        <div className="p-2 space-y-2">
           {/* Header with Save Status */}
           <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900">
-                Programación de Horarios
-              </h3>
-              <p className="text-sm text-gray-500">Configura cuándo estará activa tu ruleta</p>
-            </div>
             <SaveStatusIndicator status={saveStatus} />
           </div>
-          
+
           <SimpleScheduleConfig
             config={localScheduleConfig}
             onChange={handleScheduleConfigChange}

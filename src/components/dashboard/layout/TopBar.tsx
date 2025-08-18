@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { UserSettingsDialog } from "../../UserSettingsDialog";
 import { AddStoreDialog } from "./AddStoreDialog";
 import { WheelService } from "../../../services/wheelService";
+import { HelpBubble } from "@/components/help/HelpBubble";
+import { getHelpContent } from "@/config/helpContent";
 
 export const TopBar: React.FC = () => {
   const { signOut } = useAuth();
@@ -77,20 +79,28 @@ export const TopBar: React.FC = () => {
               <span className="text-sm text-gray-600">Cargando tiendas...</span>
             </div>
           ) : stores.length === 0 ? (
-            <button
-              onClick={handleAddStore}
-              className="px-6 py-3 bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl hover:from-purple-200 hover:to-blue-200 transition-all flex items-center gap-3 group cursor-pointer hover:scale-105 active:scale-95"
-            >
-              <Plus className="h-4 w-4 text-purple-700 group-hover:rotate-90 transition-transform duration-300" />
-              <span className="text-sm font-medium text-purple-700">
-                Agregar tu primera tienda
-              </span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleAddStore}
+                className="store-connection px-6 py-3 bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl hover:from-purple-200 hover:to-blue-200 transition-all flex items-center gap-3 group cursor-pointer hover:scale-105 active:scale-95"
+              >
+                <Plus className="h-4 w-4 text-purple-700 group-hover:rotate-90 transition-transform duration-300" />
+                <span className="text-sm font-medium text-purple-700">
+                  Agregar tu primera tienda
+                </span>
+              </button>
+              <HelpBubble
+                content={getHelpContent('storeConnection')}
+                position="bottom"
+                id="store-connection"
+              />
+            </div>
           ) : (
-            <button
-              onClick={() => setStoreDropdownOpen(!storeDropdownOpen)}
-              className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-gray-200/50 rounded-2xl hover:bg-white/80 hover:border-purple-200 transition-all flex items-center gap-3 group shadow-sm hover:shadow-md cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
-            >
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setStoreDropdownOpen(!storeDropdownOpen)}
+                className="px-5 py-2.5 bg-white/60 backdrop-blur-sm border border-gray-200/50 rounded-2xl hover:bg-white/80 hover:border-purple-200 transition-all flex items-center gap-3 group shadow-sm hover:shadow-md cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+              >
               <div className="p-1.5 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl">
                 <Store className="h-3.5 w-3.5 text-purple-700" />
               </div>
@@ -117,6 +127,14 @@ export const TopBar: React.FC = () => {
                 }`}
               />
             </button>
+            {stores.length > 1 && (
+              <HelpBubble
+                content={getHelpContent('storeSelector')}
+                position="bottom"
+                id="store-selector"
+              />
+            )}
+          </div>
           )}
 
           <AnimatePresence>

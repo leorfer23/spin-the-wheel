@@ -347,7 +347,7 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
         </div>
 
         {/* Content Area - Carousel */}
-        <div className="flex-1">
+        <div className="flex-1 wheel-preview">
           <PreviewCarousel
             segments={(selectedWheel.segments || []).map((s) => ({
               ...s,

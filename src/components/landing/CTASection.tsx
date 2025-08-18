@@ -52,7 +52,7 @@ export const CTASection: React.FC = () => {
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button 
                   size="lg"
-                  className="bg-white text-purple-600 hover:bg-gray-100 px-6 sm:px-8 lg:px-10 py-4 sm:py-5 lg:py-6 text-base sm:text-lg rounded-xl sm:rounded-2xl shadow-xl w-full sm:w-auto"
+                  className="bg-white text-purple-600 hover:bg-gray-100 px-6 sm:px-8 lg:px-10 py-4 sm:py-5 lg:py-6 text-base sm:text-lg rounded-xl sm:rounded-2xl shadow-xl w-full sm:w-auto cursor-pointer"
                   onClick={() => navigate('/signup')}
                 >
                   Activar Oferta Ahora

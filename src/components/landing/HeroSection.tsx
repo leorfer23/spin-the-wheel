@@ -174,7 +174,7 @@ export const HeroSection: React.FC = () => {
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-2xl shadow-lg shadow-blue-500/25 w-full sm:w-auto"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-2xl shadow-lg shadow-blue-500/25 w-full sm:w-auto cursor-pointer"
                 onClick={() => navigate("/signup")}
               >
                 Empieza Gratis
@@ -186,7 +186,7 @@ export const HeroSection: React.FC = () => {
               <Button
                 variant="outline"
                 size="lg"
-                className="px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-2xl border-2 w-full sm:w-auto"
+                className="px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-2xl border-2 w-full sm:w-auto cursor-pointer"
                 onClick={() => navigate("/signup")}
               >
                 Prueba Gratis

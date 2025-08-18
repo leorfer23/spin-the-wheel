@@ -178,7 +178,7 @@ export const PricingSection: React.FC = () => {
                 </ul>
                 
                 <Button 
-                  className={`w-full ${
+                  className={`w-full cursor-pointer ${
                     plan.highlight 
                       ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700' 
                       : 'bg-gray-900 text-white hover:bg-gray-800'
