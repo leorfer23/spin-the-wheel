@@ -1,18 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
+import { Switch } from '../../components/ui/switch';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedCredentials = localStorage.getItem('rememberedCredentials');
+    if (savedCredentials) {
+      try {
+        const { email: savedEmail, password: savedPassword } = JSON.parse(savedCredentials);
+        setEmail(savedEmail);
+        setPassword(savedPassword);
+        setRememberMe(true);
+      } catch (err) {
+        localStorage.removeItem('rememberedCredentials');
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +37,13 @@ export const Login: React.FC = () => {
 
     try {
       await signIn(email, password);
+      
+      if (rememberMe) {
+        localStorage.setItem('rememberedCredentials', JSON.stringify({ email, password }));
+      } else {
+        localStorage.removeItem('rememberedCredentials');
+      }
+      
       navigate('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Credenciales inválidas');
@@ -29,8 +52,15 @@ export const Login: React.FC = () => {
     }
   };
 
+  const handleRememberMeChange = (checked: boolean) => {
+    setRememberMe(checked);
+    if (!checked) {
+      localStorage.removeItem('rememberedCredentials');
+    }
+  };
+
   return (
-    <div className="min-h-screen relative flex items-center justify-center overflow-hidden">
+    <div className="h-screen relative flex items-center justify-center overflow-hidden">
       {/* Dynamic gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-blue-50 to-purple-50">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.3),transparent_50%)]" />
@@ -71,29 +101,29 @@ export const Login: React.FC = () => {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 w-full max-w-md px-6"
+        className="relative z-10 w-full max-w-md px-4 sm:px-6"
       >
         {/* Main floating card */}
         <div className="relative">
           {/* Glassmorphism card */}
-          <div className="backdrop-blur-2xl bg-white/70 rounded-[2.5rem] shadow-[0_8px_40px_rgba(0,0,0,0.08)] border border-white/50 p-10">
+          <div className="backdrop-blur-2xl bg-white/70 rounded-[2rem] sm:rounded-[2.5rem] shadow-[0_8px_40px_rgba(0,0,0,0.08)] border border-white/50 p-6 sm:p-8 lg:p-10">
             
             {/* Hero Image Placeholder */}
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.1, duration: 0.5 }}
-              className="mb-8 mx-auto w-full h-48 bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl flex items-center justify-center relative overflow-hidden"
+              className="mb-6 sm:mb-8 mx-auto w-full h-32 sm:h-40 lg:h-48 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl sm:rounded-3xl flex items-center justify-center relative overflow-hidden"
             >
               {/* Placeholder for illustration */}
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10" />
               <div className="text-center z-10">
-                <Sparkles className="w-12 h-12 text-purple-500 mx-auto mb-3" />
+                <Sparkles className="w-10 h-10 sm:w-12 sm:h-12 text-purple-500 mx-auto mb-2 sm:mb-3" />
                 <p className="text-sm font-medium text-purple-600">
                   {/* Image placeholder description */}
                   Coloca una ilustración divertida y minimalista aquí:
                   <br />
-                  <span className="text-xs opacity-75">
+                  <span className="text-xs opacity-75 hidden sm:block">
                     Una persona interactuando con una ruleta de la fortuna,
                     <br />
                     o formas abstractas que sugieran suerte y recompensas
@@ -107,9 +137,9 @@ export const Login: React.FC = () => {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="text-center mb-8"
+              className="text-center mb-6 sm:mb-8"
             >
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                 Bienvenido de vuelta
               </h1>
               <p className="text-gray-500 text-sm">
@@ -124,7 +154,7 @@ export const Login: React.FC = () => {
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                  className="mb-6 p-4 bg-red-50 text-red-600 rounded-2xl text-sm text-center"
+                  className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 text-red-600 rounded-xl sm:rounded-2xl text-sm text-center"
                 >
                   {error}
                 </motion.div>
@@ -164,13 +194,21 @@ export const Login: React.FC = () => {
                 />
               </motion.div>
 
-              {/* Forgot password link */}
+              {/* Remember me and Forgot password */}
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
-                className="flex justify-end"
+                className="flex justify-between items-center"
               >
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Switch
+                    checked={rememberMe}
+                    onCheckedChange={handleRememberMeChange}
+                    className="data-[state=checked]:bg-purple-600"
+                  />
+                  <span className="text-sm text-gray-600">Recordarme</span>
+                </label>
                 <Link 
                   to="/forgot-password" 
                   className="text-sm text-gray-500 hover:text-purple-600 transition-colors"
@@ -215,9 +253,9 @@ export const Login: React.FC = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.5 }}
-            className="mt-6 backdrop-blur-xl bg-white/60 rounded-3xl p-6 text-center border border-white/50 shadow-lg"
+            className="mt-4 sm:mt-6 backdrop-blur-xl bg-white/60 rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-center border border-white/50 shadow-lg"
           >
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600">
               ¿Nuevo en Spin the Wheel?{' '}
               <Link 
                 to="/signup" 

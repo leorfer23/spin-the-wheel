@@ -33,7 +33,8 @@ export const SegmentsSection: React.FC<SegmentsProps> = ({
         <div></div>
       </div>
       {symbols.map((s, i) => {
-        const total = s.weight1 + s.weight2 + s.weight3;
+        // TODO: Update to use new reel-based weight structure in M2
+        const total = 100; // Placeholder
         return (
           <div key={s.id} className="grid grid-cols-7 gap-2 items-center">
             <div className="text-2xl">{s.icon}</div>
@@ -45,20 +46,23 @@ export const SegmentsSection: React.FC<SegmentsProps> = ({
             <input
               type="number"
               className="border rounded px-2 py-1"
-              value={s.weight1}
-              onChange={(e) => update(i, "weight1", e.target.value)}
+              value={30}
+              disabled
+              placeholder="Reel 1"
             />
             <input
               type="number"
               className="border rounded px-2 py-1"
-              value={s.weight2}
-              onChange={(e) => update(i, "weight2", e.target.value)}
+              value={30}
+              disabled
+              placeholder="Reel 2"
             />
             <input
               type="number"
               className="border rounded px-2 py-1"
-              value={s.weight3}
-              onChange={(e) => update(i, "weight3", e.target.value)}
+              value={30}
+              disabled
+              placeholder="Reel 3"
             />
             <div className="text-sm text-gray-600">{total}</div>
             <div></div>

@@ -75,21 +75,6 @@ CREATE TABLE spinawheel.campaigns (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Segments table
-CREATE TABLE spinawheel.segments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    wheel_id UUID NOT NULL REFERENCES spinawheel.wheels(id) ON DELETE CASCADE,
-    label VARCHAR(255) NOT NULL,
-    value VARCHAR(255) NOT NULL,
-    color VARCHAR(7) NOT NULL,
-    weight INTEGER DEFAULT 1,
-    prize_type spinawheel.prize_type NOT NULL,
-    prize_data JSONB,
-    inventory_limit INTEGER,
-    inventory_used INTEGER DEFAULT 0,
-    CONSTRAINT weight_positive CHECK (weight > 0),
-    CONSTRAINT inventory_check CHECK (inventory_used <= inventory_limit OR inventory_limit IS NULL)
-);
 
 -- Spins table
 CREATE TABLE spinawheel.spins (
@@ -105,16 +90,22 @@ CREATE TABLE spinawheel.spins (
     claim_code VARCHAR(50)
 );
 
--- Email captures table
-CREATE TABLE spinawheel.email_captures (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    spin_id UUID NOT NULL REFERENCES spinawheel.spins(id) ON DELETE CASCADE,
-    email VARCHAR(255) NOT NULL,
-    marketing_consent BOOLEAN DEFAULT false,
-    synced_to_provider BOOLEAN DEFAULT false,
-    sync_status TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+create table spinawheel.email_captures (
+  id uuid not null default extensions.uuid_generate_v4 (),
+  email character varying(255) not null,
+  marketing_consent boolean null default false,
+  synced_to_provider boolean null default false,
+  sync_status text null,
+  created_at timestamp with time zone null default now(),
+  impression_id uuid null,
+  captured_at_step character varying(50) null,
+  additional_fields jsonb null,
+  utm_source character varying(255) null,
+  utm_medium character varying(255) null,
+  utm_campaign character varying(255) null,
+  constraint email_captures_pkey primary key (id),
+  constraint email_captures_impression_id_fkey foreign KEY (impression_id) references spinawheel.widget_impressions (id)
+) TABLESPACE pg_default;
 
 -- Integrations table
 CREATE TABLE spinawheel.integrations (

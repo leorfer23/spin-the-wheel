@@ -1,22 +1,22 @@
 import type { Database } from './database.types';
 
 // Type aliases for easier use
-export type Store = Database['public']['Tables']['stores']['Row'];
-export type Wheel = Database['public']['Tables']['wheels']['Row'];
-export type Campaign = Database['public']['Tables']['campaigns']['Row'];
-export type Segment = Database['public']['Tables']['segments']['Row'];
-export type Spin = Database['public']['Tables']['spins']['Row'];
-export type EmailCapture = Database['public']['Tables']['email_captures']['Row'];
-export type Integration = Database['public']['Tables']['integrations']['Row'];
+export type Store = Database['spinawheel']['Tables']['stores']['Row'];
+export type Wheel = Database['spinawheel']['Tables']['wheels']['Row'];
+export type Campaign = Database['spinawheel']['Tables']['campaigns']['Row'];
+export type Segment = Database['spinawheel']['Tables']['segments']['Row'];
+export type Spin = Database['spinawheel']['Tables']['spins']['Row'];
+export type EmailCapture = Database['spinawheel']['Tables']['email_captures']['Row'];
+export type Integration = Database['spinawheel']['Tables']['integrations']['Row'];
 
 // Input types for creating/updating
-export type StoreInput = Database['public']['Tables']['stores']['Insert'];
-export type WheelInput = Database['public']['Tables']['wheels']['Insert'];
-export type CampaignInput = Database['public']['Tables']['campaigns']['Insert'];
-export type SegmentInput = Database['public']['Tables']['segments']['Insert'];
-export type SpinInput = Database['public']['Tables']['spins']['Insert'];
-export type EmailCaptureInput = Database['public']['Tables']['email_captures']['Insert'];
-export type IntegrationInput = Database['public']['Tables']['integrations']['Insert'];
+export type StoreInput = Database['spinawheel']['Tables']['stores']['Insert'];
+export type WheelInput = Database['spinawheel']['Tables']['wheels']['Insert'];
+export type CampaignInput = Database['spinawheel']['Tables']['campaigns']['Insert'];
+export type SegmentInput = Database['spinawheel']['Tables']['segments']['Insert'];
+export type SpinInput = Database['spinawheel']['Tables']['spins']['Insert'];
+export type EmailCaptureInput = Database['spinawheel']['Tables']['email_captures']['Insert'];
+export type IntegrationInput = Database['spinawheel']['Tables']['integrations']['Insert'];
 
 // Extended types with relations
 export interface StoreWithWheels extends Store {

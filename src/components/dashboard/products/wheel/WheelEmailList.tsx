@@ -1,50 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Inbox, Download } from 'lucide-react';
+import { Mail, Inbox, Download, Search, Trophy, User } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-
-interface EmailEntry {
-  id: string;
-  email: string;
-  prize: string;
-  created_at: string;
-  marketing_consent: boolean;
-}
+import { analyticsService } from '@/services/analyticsService';
 
 interface WheelEmailListProps {
   wheelId: string;
 }
 
 export const WheelEmailList: React.FC<WheelEmailListProps> = ({ wheelId }) => {
-  // Fetch email captures from Supabase
-  const { data: emails, isLoading } = useQuery<EmailEntry[]>({
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Fetch email captures using analytics service
+  const { data: emails, isLoading } = useQuery({
     queryKey: ['email-captures', wheelId],
     queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from('email_captures')
-          .select('*')
-          .eq('wheel_id', wheelId)
-          .order('created_at', { ascending: false })
-          .limit(50);
-
-        if (error) {
-          return [];
-        }
-        return data || [];
-      } catch (error) {
-        return [];
-      }
+      return await analyticsService.getEmailCaptures(wheelId);
     },
     enabled: !!wheelId
   });
 
   const emailList = emails || [];
+  
+  // Filter emails based on search term
+  const filteredEmails = emailList.filter(email => 
+    email.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
   const totalEmails = emailList.length;
   const validEmailRate = totalEmails > 0 
-    ? Math.round((emailList.filter(e => e.marketing_consent).length / totalEmails) * 100)
+    ? Math.round((emailList.filter(e => e.marketingConsent).length / totalEmails) * 100)
     : 0;
+  const totalPrizesWon = emailList.reduce((sum, e) => sum + e.prizesWon.length, 0);
+  
   // Calculate time ago
   const getTimeAgo = (date: string) => {
     const now = new Date();
@@ -60,29 +48,7 @@ export const WheelEmailList: React.FC<WheelEmailListProps> = ({ wheelId }) => {
   // Export emails to CSV
   const exportToCSV = () => {
     if (!emailList || emailList.length === 0) return;
-
-    const csvHeaders = ['Email', 'Premio', 'Fecha', 'Consentimiento de Marketing'];
-    const csvData = emailList.map(entry => [
-      entry.email,
-      entry.prize || 'N/A',
-      new Date(entry.created_at).toLocaleString('es-ES'),
-      entry.marketing_consent ? 'Sí' : 'No'
-    ]);
-
-    const csvContent = [
-      csvHeaders.join(','),
-      ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `emails_capturados_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    analyticsService.exportEmailsToCSV(emailList);
   };
 
   return (
@@ -114,8 +80,39 @@ export const WheelEmailList: React.FC<WheelEmailListProps> = ({ wheelId }) => {
           </div>
         ) : emailList.length > 0 ? (
           <>
+            {/* Search Bar */}
+            <div className="mb-6">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar por email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:border-purple-400 transition-colors"
+                />
+              </div>
+            </div>
+
+            {/* Stats Row */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="bg-gray-50 rounded-xl p-4">
+                <p className="text-sm text-gray-600">Total Emails</p>
+                <p className="text-2xl font-bold text-gray-900">{totalEmails}</p>
+              </div>
+              <div className="bg-purple-50 rounded-xl p-4">
+                <p className="text-sm text-purple-600">Con Consentimiento</p>
+                <p className="text-2xl font-bold text-purple-900">{validEmailRate}%</p>
+              </div>
+              <div className="bg-pink-50 rounded-xl p-4">
+                <p className="text-sm text-pink-600">Premios Ganados</p>
+                <p className="text-2xl font-bold text-pink-900">{totalPrizesWon}</p>
+              </div>
+            </div>
+
+            {/* Email List */}
             <div className="space-y-2">
-              {emailList.slice(0, 10).map((entry) => (
+              {filteredEmails.slice(0, 10).map((entry) => (
                 <motion.div
                   key={entry.id}
                   initial={{ opacity: 0, x: -20 }}
@@ -123,21 +120,38 @@ export const WheelEmailList: React.FC<WheelEmailListProps> = ({ wheelId }) => {
                   className="flex items-center justify-between py-4 px-4 rounded-xl hover:bg-gray-50/50 transition-colors border-b border-gray-100/50 last:border-0"
                 >
                   <div className="flex-1">
-                    <p className="text-base font-medium text-gray-900">{entry.email}</p>
-                    <div className="flex items-center gap-3 mt-1">
-                      {entry.prize && (
-                        <>
-                          <span className="text-sm text-gray-600">Ganó: {entry.prize}</span>
-                          <span className="text-sm text-gray-400">•</span>
-                        </>
-                      )}
-                      <span className="text-sm text-gray-400">{getTimeAgo(entry.created_at)}</span>
-                      {entry.marketing_consent && (
-                        <>
-                          <span className="text-sm text-gray-400">•</span>
-                          <span className="text-xs px-2 py-0.5 bg-green-50 text-green-600 rounded-full">Consentimiento de marketing</span>
-                        </>
-                      )}
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
+                        <User className="h-4 w-4 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="text-base font-medium text-gray-900">{entry.email}</p>
+                        <div className="flex items-center gap-3 mt-1">
+                          {entry.prizesWon.length > 0 && (
+                            <>
+                              <span className="text-sm text-gray-600 flex items-center gap-1">
+                                <Trophy className="h-3 w-3" />
+                                {entry.prizesWon[0]}
+                                {entry.prizesWon.length > 1 && ` +${entry.prizesWon.length - 1}`}
+                              </span>
+                              <span className="text-sm text-gray-400">•</span>
+                            </>
+                          )}
+                          <span className="text-sm text-gray-400">{getTimeAgo(entry.capturedAt)}</span>
+                          {entry.totalSpins > 0 && (
+                            <>
+                              <span className="text-sm text-gray-400">•</span>
+                              <span className="text-sm text-gray-600">{entry.totalSpins} giros</span>
+                            </>
+                          )}
+                          {entry.marketingConsent && (
+                            <>
+                              <span className="text-sm text-gray-400">•</span>
+                              <span className="text-xs px-2 py-0.5 bg-green-50 text-green-600 rounded-full">Marketing OK</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </motion.div>

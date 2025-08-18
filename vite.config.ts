@@ -44,7 +44,8 @@ export default defineConfig(({ mode }) => {
     rollupOptions: {
       input: {
         main: fileURLToPath(new URL('./index.html', import.meta.url)),
-        tiendanubeWidget: fileURLToPath(new URL('./public/tiendanube-widget.js', import.meta.url))
+        tiendanubeWidget: fileURLToPath(new URL('./public/tiendanube-widget.js', import.meta.url)),
+        testJackpot: fileURLToPath(new URL('./public/test-jackpot.html', import.meta.url))
       },
       output: {
         manualChunks: {

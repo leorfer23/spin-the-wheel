@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Eye, BarChart3, CheckCircle } from "lucide-react";
+import { Eye, BarChart3 } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FortuneWheel } from "../../../wheel/FortuneWheel";
 import { WheelSelector } from "./WheelSelector";
@@ -18,6 +18,8 @@ import { useAuth } from "../../../../contexts/AuthContext";
 import type { WheelConfig } from "./types";
 import type { WheelScheduleConfig } from "../../../../types/models";
 import { CreateFirstProductPlaceholder } from "../common/CreateFirstProductPlaceholder";
+import { Switch } from "../../../ui/switch";
+import { Label } from "../../../ui/label";
 
 interface WheelProductProps {
   onModeChange?: (mode: "edit" | "report") => void;
@@ -51,6 +53,7 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
     createWheel,
     updateWheelName,
     deleteWheel,
+    setWheelActive,
   } = useWheelStore();
 
   // Load wheels when store is selected (only once per store change)
@@ -290,21 +293,16 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
 
           {/* Action Buttons on the right */}
           <div className="w-48 flex justify-end gap-2">
-            {/* Active Indicator */}
-            {selectedWheel?.is_active && (
-              <Tooltip delayDuration={0}>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1.5 px-3 py-2 bg-green-50 rounded-lg">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-700">
-                      Activa
-                    </span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent className="bg-gray-900 text-white">
-                  Esta ruleta está actualmente activa
-                </TooltipContent>
-              </Tooltip>
+            {/* Active Toggle */}
+            {selectedWheel && (
+              <WheelActiveToggle
+                isActive={!!selectedWheel.is_active}
+                wheelId={selectedWheelId || ""}
+                onToggle={async (checked) => {
+                  if (!selectedWheelId) return;
+                  await setWheelActive(selectedWheelId, checked);
+                }}
+              />
             )}
 
             <Tooltip delayDuration={0}>
@@ -444,5 +442,58 @@ export const WheelProduct: React.FC<WheelProductProps> = ({
         )}
       </div>
     </TooltipProvider>
+  );
+};
+
+const WheelActiveToggle: React.FC<{
+  isActive: boolean;
+  wheelId: string;
+  onToggle: (checked: boolean) => Promise<void> | void;
+}> = ({ isActive, wheelId, onToggle }) => {
+  const [updating, setUpdating] = useState(false);
+  const toggleId = `wheel-active-${wheelId}`;
+
+  return (
+    <Tooltip delayDuration={0}>
+      <TooltipTrigger asChild>
+        <div
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors select-none ${
+            isActive
+              ? "bg-green-50 border-green-200"
+              : "bg-gray-50 border-gray-200"
+          }`}
+        >
+          <Switch
+            id={toggleId}
+            checked={isActive}
+            disabled={updating}
+            onCheckedChange={(checked) => {
+              if (updating) return;
+              setUpdating(true);
+              Promise.resolve(onToggle(checked)).finally(() =>
+                setUpdating(false)
+              );
+            }}
+          />
+          <Label
+            className={`text-sm font-medium cursor-pointer ${
+              isActive ? "text-green-700" : "text-gray-600"
+            }`}
+            onClick={() => {
+              if (updating) return;
+              setUpdating(true);
+              Promise.resolve(onToggle(!isActive)).finally(() =>
+                setUpdating(false)
+              );
+            }}
+          >
+            {isActive ? "Activa" : "Inactiva"}
+          </Label>
+        </div>
+      </TooltipTrigger>
+      <TooltipContent className="bg-gray-900 text-white">
+        Activa o desactiva la ruleta para tu tienda
+      </TooltipContent>
+    </Tooltip>
   );
 };

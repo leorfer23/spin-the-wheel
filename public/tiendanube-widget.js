@@ -117,10 +117,15 @@
       
       if (response.ok) {
         const data = await response.json();
-        impressionId = data.impressionId;
+        impressionId = data.id; // Server returns 'id', not 'impressionId'
+        
+        // Store in global variable for widget components to access
+        window.__coolPopsImpressionId = impressionId;
+        
         console.log('[CoolPops Widget] Impression tracked successfully:', {
           impressionId: impressionId,
-          response: data
+          response: data,
+          globalVarSet: window.__coolPopsImpressionId
         });
       } else {
         const errorText = await response.text();

@@ -19,6 +19,9 @@ function getSupabaseClient() {
     }
 
     supabaseInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+      db: {
+        schema: 'spinawheel'
+      },
       auth: {
         persistSession: true,
         autoRefreshToken: true,

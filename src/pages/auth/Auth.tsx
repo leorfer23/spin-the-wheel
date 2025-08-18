@@ -42,10 +42,9 @@ export const Auth: React.FC = () => {
       } else {
         await signUp(email, password);
         setSuccess(true);
-        // Don't set loading to false here, let the redirect happen
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 1500);
+        // Don't navigate - user needs to confirm email first
+        // Show success message but keep them on auth page
+        setLoading(false);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : `Error al ${mode === 'login' ? 'iniciar sesión' : 'crear cuenta'}`);
@@ -64,7 +63,7 @@ export const Auth: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="h-screen flex overflow-hidden">
       {/* Left side - Brand showcase */}
       <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-gradient-to-br from-blue-600 via-purple-600 to-purple-700 relative overflow-hidden">
         {/* Background pattern */}
@@ -106,14 +105,14 @@ export const Auth: React.FC = () => {
         </motion.div>
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20">
+        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20 py-8 h-full overflow-y-auto">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
           >
             {/* Logo */}
-            <div className="mb-12 mt-8">
+            <div className="mb-8 xl:mb-12">
               <div className="inline-block bg-white rounded-2xl p-4 shadow-lg">
                 <img 
                   src="/rooleta_wordmark_transparent.png" 
@@ -124,18 +123,18 @@ export const Auth: React.FC = () => {
             </div>
 
             {/* Main content */}
-            <h1 className="text-5xl xl:text-6xl font-bold text-white mb-6 leading-tight">
+            <h1 className="text-4xl xl:text-5xl 2xl:text-6xl font-bold text-white mb-4 xl:mb-6 leading-tight">
               Aumenta tus ventas<br />
               con premios<br />
               interactivos
             </h1>
-            <p className="text-xl text-white/80 mb-12 max-w-lg">
+            <p className="text-lg xl:text-xl text-white/80 mb-8 xl:mb-12 max-w-lg">
               Crea ruletas atractivas que convierten visitantes en clientes. 
               Perfecto para Shopify, WooCommerce y cualquier plataforma de comercio electrónico.
             </p>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-8 max-w-md">
+            <div className="grid grid-cols-3 gap-6 xl:gap-8 max-w-md">
               <div>
                 <div className="text-3xl font-bold text-white mb-1">92%</div>
                 <div className="text-sm text-white/60">Tasa de Engagement</div>
@@ -151,7 +150,7 @@ export const Auth: React.FC = () => {
             </div>
 
             {/* Testimonial */}
-            <div className="mt-16 p-6 bg-white/10 backdrop-blur rounded-2xl border border-white/20">
+            <div className="mt-8 xl:mt-12 2xl:mt-16 p-4 xl:p-6 bg-white/10 backdrop-blur rounded-2xl border border-white/20">
               <p className="text-white/90 italic mb-4">
                 "¡Rooleta aumentó nuestra lista de emails en un 300% e impulsó las ventas un 45% en solo 2 meses!"
               </p>
@@ -168,7 +167,7 @@ export const Auth: React.FC = () => {
       </div>
 
       {/* Right side - Auth form */}
-      <div className="flex-1 flex items-center justify-center px-8 sm:px-12 lg:px-16 xl:px-24 bg-gray-50">
+      <div className="flex-1 flex items-center justify-center px-8 sm:px-12 lg:px-16 xl:px-24 bg-gray-50 overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -204,10 +203,15 @@ export const Auth: React.FC = () => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="mb-6 p-4 bg-green-50 border border-green-200 text-green-600 rounded-lg text-sm flex items-center gap-2"
+                className="mb-6 p-4 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-sm"
               >
-                <CheckCircle className="w-4 h-4" />
-                ¡Éxito! Redirigiendo al panel...
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="font-semibold">¡Cuenta creada exitosamente!</span>
+                </div>
+                <p className="text-xs">
+                  Te hemos enviado un correo de confirmación. Por favor, revisa tu bandeja de entrada y haz clic en el enlace para activar tu cuenta.
+                </p>
               </motion.div>
             )}
           </AnimatePresence>

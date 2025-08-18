@@ -1,25 +1,24 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { ArrowRight, CheckCircle, Sparkles, Zap } from 'lucide-react';
+import { ArrowRight, Sparkles, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { EmailConfirmationDialog } from '../../components/auth/EmailConfirmationDialog';
 
 export const Signup: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
   const { signUp } = useAuth();
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccess(false);
 
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden');
@@ -34,9 +33,19 @@ export const Signup: React.FC = () => {
     setLoading(true);
 
     try {
-      await signUp(email, password);
-      setSuccess(true);
-      setTimeout(() => navigate('/dashboard'), 2000);
+      const result = await signUp(email, password);
+      
+      // Check if email confirmation is required
+      // If user exists but session is null, confirmation is required
+      // If both user and session exist, confirmation is not required (dev mode)
+      if (result?.user && !result?.session) {
+        // Email confirmation required - show dialog
+        setShowConfirmationDialog(true);
+      } else if (result?.user && result?.session) {
+        // No confirmation required - user can proceed
+        // But we still show the dialog to inform them about the email
+        setShowConfirmationDialog(true);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al crear la cuenta');
     } finally {
@@ -44,8 +53,15 @@ export const Signup: React.FC = () => {
     }
   };
 
+  const handleCloseDialog = () => {
+    setShowConfirmationDialog(false);
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+  };
+
   return (
-    <div className="min-h-screen relative flex items-center justify-center overflow-hidden">
+    <div className="h-screen relative flex items-center justify-center overflow-hidden">
       {/* Dynamic gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(59,130,246,0.3),transparent_50%)]" />
@@ -88,29 +104,29 @@ export const Signup: React.FC = () => {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="relative z-10 w-full max-w-md px-6"
+        className="relative z-10 w-full max-w-md px-4 sm:px-6"
       >
         {/* Main floating card */}
         <div className="relative">
           {/* Glassmorphism card */}
-          <div className="backdrop-blur-2xl bg-white/70 rounded-[2.5rem] shadow-[0_8px_40px_rgba(0,0,0,0.08)] border border-white/50 p-10">
+          <div className="backdrop-blur-2xl bg-white/70 rounded-[2rem] sm:rounded-[2.5rem] shadow-[0_8px_40px_rgba(0,0,0,0.08)] border border-white/50 p-6 sm:p-8 lg:p-10">
             
             {/* Hero Image Placeholder */}
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.1, duration: 0.5 }}
-              className="mb-8 mx-auto w-full h-48 bg-gradient-to-br from-blue-100 to-purple-100 rounded-3xl flex items-center justify-center relative overflow-hidden"
+              className="mb-6 sm:mb-8 mx-auto w-full h-32 sm:h-40 lg:h-48 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl sm:rounded-3xl flex items-center justify-center relative overflow-hidden"
             >
               {/* Placeholder for illustration */}
               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10" />
               <div className="text-center z-10">
-                <Zap className="w-12 h-12 text-orange-500 mx-auto mb-3" />
+                <Zap className="w-10 h-10 sm:w-12 sm:h-12 text-orange-500 mx-auto mb-2 sm:mb-3" />
                 <p className="text-sm font-medium text-orange-600">
                   {/* Image placeholder description */}
                   Coloca una ilustración atractiva aquí:
                   <br />
-                  <span className="text-xs opacity-75">
+                  <span className="text-xs opacity-75 hidden sm:block">
                     Un personaje celebrando o explosión de confeti,
                     <br />
                     mostrando emoción por unirse
@@ -124,9 +140,9 @@ export const Signup: React.FC = () => {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="text-center mb-8"
+              className="text-center mb-6 sm:mb-8"
             >
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                 Comienza a girar hoy
               </h1>
               <p className="text-gray-500 text-sm">
@@ -134,27 +150,16 @@ export const Signup: React.FC = () => {
               </p>
             </motion.div>
 
-            {/* Success/Error messages */}
+            {/* Error messages */}
             <AnimatePresence mode="wait">
               {error && (
                 <motion.div
                   initial={{ opacity: 0, y: -10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                  className="mb-6 p-4 bg-red-50 text-red-600 rounded-2xl text-sm text-center"
+                  className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 text-red-600 rounded-xl sm:rounded-2xl text-sm text-center"
                 >
                   {error}
-                </motion.div>
-              )}
-              {success && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  className="mb-6 p-4 bg-green-50 text-green-600 rounded-2xl text-sm text-center flex items-center justify-center gap-2"
-                >
-                  <CheckCircle className="w-4 h-4" />
-                  ¡Éxito! Redirigiendo al panel...
                 </motion.div>
               )}
             </AnimatePresence>
@@ -230,7 +235,7 @@ export const Signup: React.FC = () => {
               >
                 <Button
                   type="submit"
-                  disabled={loading || success}
+                  disabled={loading}
                   className="w-full h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium text-base rounded-2xl shadow-lg shadow-blue-600/20 transition-all duration-200 group"
                 >
                   <span className="flex items-center justify-center gap-2">
@@ -241,11 +246,6 @@ export const Signup: React.FC = () => {
                       >
                         <Sparkles className="w-5 h-5" />
                       </motion.div>
-                    ) : success ? (
-                      <>
-                        <CheckCircle className="w-5 h-5" />
-                        Cuenta creada
-                      </>
                     ) : (
                       <>
                         Crear cuenta
@@ -263,9 +263,9 @@ export const Signup: React.FC = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.5 }}
-            className="mt-6 backdrop-blur-xl bg-white/60 rounded-3xl p-6 text-center border border-white/50 shadow-lg"
+            className="mt-4 sm:mt-6 backdrop-blur-xl bg-white/60 rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-center border border-white/50 shadow-lg"
           >
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600">
               ¿Ya tienes una cuenta?{' '}
               <Link 
                 to="/login" 
@@ -277,6 +277,12 @@ export const Signup: React.FC = () => {
           </motion.div>
         </div>
       </motion.div>
+      
+      <EmailConfirmationDialog 
+        isOpen={showConfirmationDialog}
+        email={email}
+        onClose={handleCloseDialog}
+      />
     </div>
   );
 };

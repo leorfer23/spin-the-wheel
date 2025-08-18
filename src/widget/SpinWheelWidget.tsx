@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { FullWidget } from '../components/widget/FullWidget';
 import type { WheelWidgetConfig } from '../types/widget';
+import { widgetAnalytics } from '../services/widgetAnalyticsService';
 
 interface WidgetProps {
   wheelConfig: WheelWidgetConfig;
@@ -88,10 +89,47 @@ export const SpinWheelWidget: React.FC<WidgetProps> = ({
     };
   }, [wheelConfig]);
 
-  const handleEmailSubmit = useCallback((email: string) => {
+  const handleEmailSubmit = useCallback(async (email: string, marketingConsent?: boolean) => {
     setCapturedEmail(email);
-    // Email is stored for later use in prize acceptance
-  }, []);
+    
+    // Get impression ID from global variable
+    const impressionId = (window as any).__coolPopsImpressionId;
+    
+    console.log('[CoolPops] Email submit initiated:', {
+      email,
+      marketingConsent,
+      impressionId,
+      wheelId: wheelConfig.id,
+      storeId: storeData.id,
+      globalVar: (window as any).__coolPopsImpressionId
+    });
+    
+    // Track email capture to Supabase
+    try {
+      await widgetAnalytics.trackEmailCapture({
+        email,
+        marketingConsent: marketingConsent || false,
+        impressionId,
+        capturedAtStep: 'before_spin',
+        additionalFields: {
+          wheelId: wheelConfig.id,
+          storeId: storeData.id,
+          timestamp: new Date().toISOString()
+        }
+      });
+      console.log('[CoolPops] Email captured successfully:', {
+        email,
+        impressionId,
+        response: 'success'
+      });
+    } catch (error) {
+      console.error('[CoolPops] Failed to track email capture:', error);
+      console.error('[CoolPops] Error details:', {
+        impressionId,
+        error: JSON.stringify(error, null, 2)
+      });
+    }
+  }, [wheelConfig.id, storeData.id]);
 
   const handleSpinComplete = useCallback(async (result: any) => {
     // Find the full segment data

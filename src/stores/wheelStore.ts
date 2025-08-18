@@ -1,9 +1,9 @@
-import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
-import { WheelService } from '../services/wheelService';
-import toast from 'react-hot-toast';
-import type { WheelScheduleConfig } from '../types/models';
-import type { Segment } from '../components/dashboard/products/wheel/types';
+import { create } from "zustand";
+import { devtools } from "zustand/middleware";
+import { WheelService } from "../services/wheelService";
+import toast from "react-hot-toast";
+import type { WheelScheduleConfig } from "../types/models";
+import type { Segment } from "../components/dashboard/products/wheel/types";
 
 // Extended Segment type with optional UI properties
 interface ExtendedSegment extends Segment {
@@ -23,8 +23,8 @@ import {
   DEFAULT_EMAIL_CAPTURE_CONFIG,
   DEFAULT_SEGMENTS_SIMPLE,
   DEFAULT_SCHEDULE_CONFIG,
-  mergeWithDefaults
-} from '../config/wheelDefaults';
+  mergeWithDefaults,
+} from "../config/wheelDefaults";
 
 interface Wheel {
   id: string;
@@ -43,32 +43,33 @@ interface WheelState {
   selectedWheel: Wheel | null;
   isLoading: boolean;
   error: Error | null;
-  
+
   // UI state
-  wheelMode: 'edit' | 'report';
+  wheelMode: "edit" | "report";
   hasWheelSelected: boolean;
   activeConfigSection: string;
-  
+
   // Actions - Data fetching
   loadWheels: (storeId: string) => Promise<void>;
   loadWheel: (wheelId: string) => Promise<void>;
-  
+
   // Actions - CRUD operations
   createWheel: (storeId: string, name: string) => Promise<void>;
   updateWheelName: (wheelId: string, name: string) => Promise<void>;
   deleteWheel: (wheelId: string) => Promise<void>;
   selectWheel: (wheelId: string | null) => void;
-  
+
   // Actions - Update operations
   updateSegments: (segments: Segment[]) => Promise<void>;
   updateSchedule: (schedule: WheelScheduleConfig) => Promise<void>;
   updateWheelDesign: (design: any) => Promise<void>;
   updateWidgetConfig: (config: any) => Promise<void>;
-  
+  setWheelActive: (wheelId: string, active: boolean) => Promise<void>;
+
   // Actions - UI
-  setWheelMode: (mode: 'edit' | 'report') => void;
+  setWheelMode: (mode: "edit" | "report") => void;
   setActiveConfigSection: (section: string) => void;
-  
+
   // Actions - Reset
   resetWheelSelection: () => void;
   clearError: () => void;
@@ -83,203 +84,249 @@ export const useWheelStore = create<WheelState>()(
       selectedWheel: null,
       isLoading: false,
       error: null,
-      wheelMode: 'edit',
+      wheelMode: "edit",
       hasWheelSelected: false,
-      activeConfigSection: 'segments',
-      
+      activeConfigSection: "segments",
+
       // Load all wheels for a store
       loadWheels: async (storeId: string) => {
         set({ isLoading: true, error: null });
-        
+
         try {
           const response = await WheelService.getWheels(storeId);
-          
+
           if (response.success && response.data) {
-            const formattedWheels = response.data.map(wheel => {
-              const config = wheel.config as any || {};
+            const formattedWheels = response.data.map((wheel) => {
+              const config = (wheel.config as any) || {};
               return {
                 id: wheel.id,
                 name: wheel.name,
                 segments: config.segments || DEFAULT_SEGMENTS_SIMPLE,
-                schedule: mergeWithDefaults(DEFAULT_SCHEDULE_CONFIG, wheel.schedule_config as any),
-                wheelDesign: mergeWithDefaults(DEFAULT_WHEEL_DESIGN, config.style),
+                schedule: mergeWithDefaults(
+                  DEFAULT_SCHEDULE_CONFIG,
+                  wheel.schedule_config as any
+                ),
+                wheelDesign: mergeWithDefaults(
+                  DEFAULT_WHEEL_DESIGN,
+                  config.style
+                ),
                 widgetConfig: {
-                  ...mergeWithDefaults(DEFAULT_WIDGET_HANDLE_CONFIG, config.wheelHandle),
-                  ...mergeWithDefaults(DEFAULT_EMAIL_CAPTURE_CONFIG, config.emailCapture)
+                  ...mergeWithDefaults(
+                    DEFAULT_WIDGET_HANDLE_CONFIG,
+                    config.wheelHandle
+                  ),
+                  ...mergeWithDefaults(
+                    DEFAULT_EMAIL_CAPTURE_CONFIG,
+                    config.emailCapture
+                  ),
                 },
-                is_active: wheel.is_active
+                is_active: wheel.is_active,
               };
             });
-            
+
             set({ wheels: formattedWheels, isLoading: false });
-            
+
             // Auto-select first wheel if none selected
             const state = get();
             if (formattedWheels.length > 0 && !state.selectedWheelId) {
               get().selectWheel(formattedWheels[0].id);
             }
           } else {
-            throw new Error(response.error || 'Error al cargar las ruletas');
+            throw new Error(response.error || "Error al cargar las ruletas");
           }
         } catch (error) {
           set({ error: error as Error, isLoading: false });
         }
       },
-      
+
       // Load a specific wheel with all details
       loadWheel: async (wheelId: string) => {
         set({ isLoading: true, error: null });
-        
+
         try {
           const response = await WheelService.getWheel(wheelId);
-          
+
           if (response.success && response.data) {
             const wheel = response.data;
-            const config = wheel.config as any || {};
+            const config = (wheel.config as any) || {};
             const formattedWheel: Wheel = {
               id: wheel.id,
               name: wheel.name,
               segments: config.segments || DEFAULT_SEGMENTS_SIMPLE,
-              schedule: mergeWithDefaults(DEFAULT_SCHEDULE_CONFIG, wheel.schedule_config as any),
-              wheelDesign: mergeWithDefaults(DEFAULT_WHEEL_DESIGN, config.style),
+              schedule: mergeWithDefaults(
+                DEFAULT_SCHEDULE_CONFIG,
+                wheel.schedule_config as any
+              ),
+              wheelDesign: mergeWithDefaults(
+                DEFAULT_WHEEL_DESIGN,
+                config.style
+              ),
               widgetConfig: {
-                ...mergeWithDefaults(DEFAULT_WIDGET_HANDLE_CONFIG, config.wheelHandle),
-                ...mergeWithDefaults(DEFAULT_EMAIL_CAPTURE_CONFIG, config.emailCapture)
+                ...mergeWithDefaults(
+                  DEFAULT_WIDGET_HANDLE_CONFIG,
+                  config.wheelHandle
+                ),
+                ...mergeWithDefaults(
+                  DEFAULT_EMAIL_CAPTURE_CONFIG,
+                  config.emailCapture
+                ),
               },
-              is_active: wheel.is_active
+              is_active: wheel.is_active,
             };
-            
-            
+
             // Update in wheels array and set as selected
-            set(state => ({
-              wheels: state.wheels.map(w => w.id === wheelId ? formattedWheel : w),
+            set((state) => ({
+              wheels: state.wheels.map((w) =>
+                w.id === wheelId ? formattedWheel : w
+              ),
               selectedWheel: formattedWheel,
               selectedWheelId: wheelId,
               hasWheelSelected: true,
-              isLoading: false
+              isLoading: false,
             }));
           } else {
-            throw new Error(response.error || 'Error al cargar la ruleta');
+            throw new Error(response.error || "Error al cargar la ruleta");
           }
         } catch (error) {
           set({ error: error as Error, isLoading: false });
         }
       },
-      
+
       // Create a new wheel
       createWheel: async (storeId: string, name: string) => {
         set({ isLoading: true, error: null });
-        
+
         try {
           const response = await WheelService.createWheel(storeId, {
             name,
-            config: { 
+            config: {
               segments: DEFAULT_SEGMENTS_SIMPLE,
               style: DEFAULT_WHEEL_DESIGN,
               wheelHandle: DEFAULT_WIDGET_HANDLE_CONFIG,
-              emailCapture: DEFAULT_EMAIL_CAPTURE_CONFIG
+              emailCapture: DEFAULT_EMAIL_CAPTURE_CONFIG,
             } as any,
             schedule_config: DEFAULT_SCHEDULE_CONFIG as any,
-            is_active: true
+            is_active: true,
           });
-          
+
           if (response.success && response.data) {
-            toast.success('¡Ruleta creada exitosamente!');
-            
+            toast.success("¡Ruleta creada exitosamente!");
+
             // Reload wheels and select the new one
             await get().loadWheels(storeId);
             get().selectWheel(response.data.id);
             set({ isLoading: false });
           } else {
-            throw new Error(response.error || 'Error al crear la ruleta');
+            throw new Error(response.error || "Error al crear la ruleta");
           }
         } catch (error) {
-          toast.error(error instanceof Error ? error.message : 'Error al crear la ruleta');
+          toast.error(
+            error instanceof Error ? error.message : "Error al crear la ruleta"
+          );
           set({ error: error as Error, isLoading: false });
         }
       },
-      
+
       // Update wheel name
       updateWheelName: async (wheelId: string, name: string) => {
-        
         try {
           const response = await WheelService.updateWheel(wheelId, { name });
-          
+
           if (response.success) {
-            set(state => ({
-              wheels: state.wheels.map(w => w.id === wheelId ? { ...w, name } : w),
-              selectedWheel: state.selectedWheel?.id === wheelId 
-                ? { ...state.selectedWheel, name }
-                : state.selectedWheel
+            set((state) => ({
+              wheels: state.wheels.map((w) =>
+                w.id === wheelId ? { ...w, name } : w
+              ),
+              selectedWheel:
+                state.selectedWheel?.id === wheelId
+                  ? { ...state.selectedWheel, name }
+                  : state.selectedWheel,
             }));
-            toast.success('¡Nombre actualizado exitosamente!');
+            toast.success("¡Nombre actualizado exitosamente!");
           } else {
-            throw new Error(response.error || 'Error al actualizar el nombre');
+            throw new Error(response.error || "Error al actualizar el nombre");
           }
         } catch (error) {
-          toast.error('Error al actualizar el nombre');
+          toast.error("Error al actualizar el nombre");
         }
       },
-      
+
       // Delete wheel
       deleteWheel: async (wheelId: string) => {
-        
         try {
           const response = await WheelService.deleteWheel(wheelId);
-          
+
           if (response.success) {
             const state = get();
-            const remainingWheels = state.wheels.filter(w => w.id !== wheelId);
-            
+            const remainingWheels = state.wheels.filter(
+              (w) => w.id !== wheelId
+            );
+
             // Update state
             set({ wheels: remainingWheels });
-            
+
             // If deleted wheel was selected, select another
             if (state.selectedWheelId === wheelId) {
               if (remainingWheels.length > 0) {
                 get().selectWheel(remainingWheels[0].id);
               } else {
-                set({ selectedWheel: null, selectedWheelId: null, hasWheelSelected: false });
+                set({
+                  selectedWheel: null,
+                  selectedWheelId: null,
+                  hasWheelSelected: false,
+                });
               }
             }
-            
-            toast.success('¡Ruleta eliminada exitosamente!');
+
+            toast.success("¡Ruleta eliminada exitosamente!");
           } else {
-            throw new Error(response.error || 'Error al eliminar la ruleta');
+            throw new Error(response.error || "Error al eliminar la ruleta");
           }
         } catch (error) {
-          toast.error('Error al eliminar la ruleta');
+          toast.error("Error al eliminar la ruleta");
         }
       },
-      
+
       // Select a wheel
       selectWheel: (wheelId: string | null) => {
         if (!wheelId) {
-          set({ selectedWheel: null, selectedWheelId: null, hasWheelSelected: false });
+          set({
+            selectedWheel: null,
+            selectedWheelId: null,
+            hasWheelSelected: false,
+          });
           return;
         }
-        
+
         const state = get();
-        const wheel = state.wheels.find(w => w.id === wheelId);
-        
+        const wheel = state.wheels.find((w) => w.id === wheelId);
+
         if (wheel) {
-          set({ selectedWheel: wheel, selectedWheelId: wheelId, hasWheelSelected: true });
+          set({
+            selectedWheel: wheel,
+            selectedWheelId: wheelId,
+            hasWheelSelected: true,
+          });
           // Load full details
           get().loadWheel(wheelId);
         } else {
-          set({ selectedWheel: null, selectedWheelId: null, hasWheelSelected: false });
+          set({
+            selectedWheel: null,
+            selectedWheelId: null,
+            hasWheelSelected: false,
+          });
         }
       },
-      
+
       // Update segments
       updateSegments: async (segments: Segment[]) => {
         const state = get();
         if (!state.selectedWheelId || !state.selectedWheel) {
           return;
         }
-        
+
         // Ensure each segment has all properties
-        const completeSegments = segments.map(segment => {
+        const completeSegments = segments.map((segment) => {
           const ext = segment as ExtendedSegment;
           return {
             id: ext.id,
@@ -287,9 +334,9 @@ export const useWheelStore = create<WheelState>()(
             value: ext.value,
             color: ext.color,
             weight: ext.weight || 20,
-            textColor: ext.textColor || '#FFFFFF',
+            textColor: ext.textColor || "#FFFFFF",
             fontSize: ext.fontSize || 14,
-            fontWeight: ext.fontWeight || 'normal',
+            fontWeight: ext.fontWeight || "normal",
             icon: ext.icon || null,
             image: ext.image || null,
             description: ext.description || null,
@@ -298,205 +345,267 @@ export const useWheelStore = create<WheelState>()(
             soundEffect: ext.soundEffect || null,
           };
         });
-        
+
         try {
           // Get the full wheel data from the API first to preserve other config fields
-          const wheelResponse = await WheelService.getWheel(state.selectedWheelId);
+          const wheelResponse = await WheelService.getWheel(
+            state.selectedWheelId
+          );
           if (!wheelResponse.success || !wheelResponse.data) {
-            throw new Error('Error al obtener los datos actuales de la ruleta');
+            throw new Error("Error al obtener los datos actuales de la ruleta");
           }
-          
+
           const currentConfig = (wheelResponse.data.config as any) || {};
           const updatedConfig = {
             ...currentConfig,
-            segments: completeSegments
+            segments: completeSegments,
           };
-          
-          const response = await WheelService.updateWheel(state.selectedWheelId, {
-            config: updatedConfig as any
-          });
-          
+
+          const response = await WheelService.updateWheel(
+            state.selectedWheelId,
+            {
+              config: updatedConfig as any,
+            }
+          );
+
           if (response.success) {
-            set(state => ({
-              selectedWheel: state.selectedWheel 
+            set((state) => ({
+              selectedWheel: state.selectedWheel
                 ? { ...state.selectedWheel, segments: completeSegments }
                 : null,
-              wheels: state.wheels.map(w => 
-                w.id === state.selectedWheelId 
+              wheels: state.wheels.map((w) =>
+                w.id === state.selectedWheelId
                   ? { ...w, segments: completeSegments }
                   : w
-              )
+              ),
             }));
           } else {
-            throw new Error(response.error || 'Error al actualizar los segmentos');
+            throw new Error(
+              response.error || "Error al actualizar los segmentos"
+            );
           }
         } catch (error) {
-          toast.error('Error al actualizar los segmentos');
+          toast.error("Error al actualizar los segmentos");
         }
       },
-      
+
       // Update schedule
       updateSchedule: async (scheduleUpdates: Partial<WheelScheduleConfig>) => {
         const state = get();
         if (!state.selectedWheelId || !state.selectedWheel) {
           return;
         }
-        
+
         // Merge updates with current schedule to create complete object
-        const currentSchedule = state.selectedWheel.schedule || DEFAULT_SCHEDULE_CONFIG;
+        const currentSchedule =
+          state.selectedWheel.schedule || DEFAULT_SCHEDULE_CONFIG;
         const completeSchedule = mergeWithDefaults(DEFAULT_SCHEDULE_CONFIG, {
           ...currentSchedule,
-          ...scheduleUpdates
+          ...scheduleUpdates,
         });
-        
+
         try {
-          const response = await WheelService.updateWheel(state.selectedWheelId, {
-            schedule_config: completeSchedule as any
-          });
-          
+          const response = await WheelService.updateWheel(
+            state.selectedWheelId,
+            {
+              schedule_config: completeSchedule as any,
+            }
+          );
+
           if (response.success) {
-            set(state => ({
-              selectedWheel: state.selectedWheel 
+            set((state) => ({
+              selectedWheel: state.selectedWheel
                 ? { ...state.selectedWheel, schedule: completeSchedule }
                 : null,
-              wheels: state.wheels.map(w => 
-                w.id === state.selectedWheelId 
+              wheels: state.wheels.map((w) =>
+                w.id === state.selectedWheelId
                   ? { ...w, schedule: completeSchedule }
                   : w
-              )
+              ),
             }));
           } else {
-            throw new Error(response.error || 'Error al actualizar el horario');
+            throw new Error(response.error || "Error al actualizar el horario");
           }
         } catch (error) {
-          toast.error('Error al actualizar el horario');
+          toast.error("Error al actualizar el horario");
         }
       },
-      
+
       // Update wheel design
       updateWheelDesign: async (designUpdates: any) => {
         const state = get();
         if (!state.selectedWheelId || !state.selectedWheel) {
           return;
         }
-        
+
         // Merge updates with current wheel design to create complete object
-        const currentWheelDesign = state.selectedWheel.wheelDesign || DEFAULT_WHEEL_DESIGN;
+        const currentWheelDesign =
+          state.selectedWheel.wheelDesign || DEFAULT_WHEEL_DESIGN;
         const completeDesign = {
           ...DEFAULT_WHEEL_DESIGN, // Start with defaults
-          ...currentWheelDesign,    // Apply current saved values
-          ...designUpdates          // Apply new updates
+          ...currentWheelDesign, // Apply current saved values
+          ...designUpdates, // Apply new updates
         };
-        
+
         try {
           // Get the full wheel data from the API first to preserve other config fields
-          const wheelResponse = await WheelService.getWheel(state.selectedWheelId);
+          const wheelResponse = await WheelService.getWheel(
+            state.selectedWheelId
+          );
           if (!wheelResponse.success || !wheelResponse.data) {
-            throw new Error('Error al obtener los datos actuales de la ruleta');
+            throw new Error("Error al obtener los datos actuales de la ruleta");
           }
-          
+
           const currentConfig = (wheelResponse.data.config as any) || {};
           const updatedConfig = {
             ...currentConfig,
-            style: completeDesign // Save the complete design object
+            style: completeDesign, // Save the complete design object
           };
-          
-          const response = await WheelService.updateWheel(state.selectedWheelId, {
-            config: updatedConfig as any
-          });
-          
+
+          const response = await WheelService.updateWheel(
+            state.selectedWheelId,
+            {
+              config: updatedConfig as any,
+            }
+          );
+
           if (response.success) {
-            set(state => ({
-              selectedWheel: state.selectedWheel 
+            set((state) => ({
+              selectedWheel: state.selectedWheel
                 ? { ...state.selectedWheel, wheelDesign: completeDesign }
                 : null,
-              wheels: state.wheels.map(w => 
-                w.id === state.selectedWheelId 
+              wheels: state.wheels.map((w) =>
+                w.id === state.selectedWheelId
                   ? { ...w, wheelDesign: completeDesign }
                   : w
-              )
+              ),
             }));
           } else {
-            throw new Error(response.error || 'Error al actualizar el diseño');
+            throw new Error(response.error || "Error al actualizar el diseño");
           }
         } catch (error) {
-          toast.error('Error al actualizar el diseño');
+          toast.error("Error al actualizar el diseño");
         }
       },
-      
+
       // Update widget config
       updateWidgetConfig: async (configUpdates: any) => {
         const state = get();
         if (!state.selectedWheelId || !state.selectedWheel) {
           return;
         }
-        
+
         try {
           // Get the full wheel data from the API first to preserve other config fields
-          const wheelResponse = await WheelService.getWheel(state.selectedWheelId);
+          const wheelResponse = await WheelService.getWheel(
+            state.selectedWheelId
+          );
           if (!wheelResponse.success || !wheelResponse.data) {
-            throw new Error('Error al obtener los datos actuales de la ruleta');
+            throw new Error("Error al obtener los datos actuales de la ruleta");
           }
-          
+
           const currentConfig = (wheelResponse.data.config as any) || {};
-          
+
           // Determine if this is an email capture or handle update based on properties
-          const isEmailCaptureConfig = 'captureFormat' in configUpdates || 
-                                      'captureTitle' in configUpdates || 
-                                      'captureSubtitle' in configUpdates ||
-                                      'emailPlaceholder' in configUpdates;
-          
+          const isEmailCaptureConfig =
+            "captureFormat" in configUpdates ||
+            "captureTitle" in configUpdates ||
+            "captureSubtitle" in configUpdates ||
+            "emailPlaceholder" in configUpdates;
+
           // Merge with defaults to create complete objects
-          const currentHandle = mergeWithDefaults(DEFAULT_WIDGET_HANDLE_CONFIG, currentConfig.wheelHandle);
-          const currentCapture = mergeWithDefaults(DEFAULT_EMAIL_CAPTURE_CONFIG, currentConfig.emailCapture);
-          
+          const currentHandle = mergeWithDefaults(
+            DEFAULT_WIDGET_HANDLE_CONFIG,
+            currentConfig.wheelHandle
+          );
+          const currentCapture = mergeWithDefaults(
+            DEFAULT_EMAIL_CAPTURE_CONFIG,
+            currentConfig.emailCapture
+          );
+
           // Apply updates to the appropriate config
-          const completeHandle = isEmailCaptureConfig ? currentHandle : mergeWithDefaults(currentHandle, configUpdates);
-          const completeCapture = isEmailCaptureConfig ? mergeWithDefaults(currentCapture, configUpdates) : currentCapture;
-          
+          const completeHandle = isEmailCaptureConfig
+            ? currentHandle
+            : mergeWithDefaults(currentHandle, configUpdates);
+          const completeCapture = isEmailCaptureConfig
+            ? mergeWithDefaults(currentCapture, configUpdates)
+            : currentCapture;
+
           const updatedConfig = {
             ...currentConfig,
             wheelHandle: completeHandle,
-            emailCapture: completeCapture
+            emailCapture: completeCapture,
           };
-          
-          const response = await WheelService.updateWheel(state.selectedWheelId, {
-            config: updatedConfig as any
-          });
-          
+
+          const response = await WheelService.updateWheel(
+            state.selectedWheelId,
+            {
+              config: updatedConfig as any,
+            }
+          );
+
           if (response.success) {
             const updatedWidgetConfig = {
               ...completeHandle,
-              ...completeCapture
+              ...completeCapture,
             };
-            
-            set(state => ({
-              selectedWheel: state.selectedWheel 
+
+            set((state) => ({
+              selectedWheel: state.selectedWheel
                 ? { ...state.selectedWheel, widgetConfig: updatedWidgetConfig }
                 : null,
-              wheels: state.wheels.map(w => 
-                w.id === state.selectedWheelId 
+              wheels: state.wheels.map((w) =>
+                w.id === state.selectedWheelId
                   ? { ...w, widgetConfig: updatedWidgetConfig }
                   : w
-              )
+              ),
             }));
           } else {
-            throw new Error(response.error || 'Error al actualizar la configuración del widget');
+            throw new Error(
+              response.error ||
+                "Error al actualizar la configuración del widget"
+            );
           }
         } catch (error) {
-          toast.error('Error al actualizar la configuración del widget');
+          toast.error("Error al actualizar la configuración del widget");
         }
       },
-      
+
+      // Toggle wheel active state
+      setWheelActive: async (wheelId: string, active: boolean) => {
+        try {
+          const response = await WheelService.updateWheel(wheelId, {
+            is_active: active,
+          } as any);
+
+          if (response.success) {
+            set((state) => ({
+              selectedWheel:
+                state.selectedWheel?.id === wheelId
+                  ? { ...state.selectedWheel, is_active: active }
+                  : state.selectedWheel,
+              wheels: state.wheels.map((w) =>
+                w.id === wheelId ? { ...w, is_active: active } : w
+              ),
+            }));
+            toast.success(active ? "¡Ruleta activada!" : "Ruleta desactivada");
+          } else {
+            throw new Error(response.error || "Error al actualizar el estado");
+          }
+        } catch (error) {
+          toast.error("Error al actualizar el estado");
+        }
+      },
+
       // UI Actions
-      setWheelMode: (mode: 'edit' | 'report') => {
+      setWheelMode: (mode: "edit" | "report") => {
         set({ wheelMode: mode });
       },
-      
+
       setActiveConfigSection: (section: string) => {
         set({ activeConfigSection: section });
       },
-      
+
       // Reset wheel selection
       resetWheelSelection: () => {
         set({
@@ -504,17 +613,17 @@ export const useWheelStore = create<WheelState>()(
           selectedWheel: null,
           hasWheelSelected: false,
           wheels: [],
-          error: null
+          error: null,
         });
       },
-      
+
       // Clear error
       clearError: () => {
         set({ error: null });
-      }
+      },
     }),
     {
-      name: 'wheel-store'
+      name: "wheel-store",
     }
   )
 );

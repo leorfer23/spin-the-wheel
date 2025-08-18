@@ -2,6 +2,7 @@ import type { ProductRegistry } from "./types";
 import type { ProductMeta } from "@/types/product";
 import { useWheelStore } from "@/stores/wheelStore";
 import { WheelConfiguration } from "@/components/dashboard/products/wheel/WheelConfiguration";
+import { WheelReportingWrapper } from "@/components/dashboard/products/wheel/WheelReportingWrapper";
 import { useJackpotStore } from "@/stores/jackpotStore";
 import { JackpotConfiguration } from "@/components/dashboard/products/jackpot/JackpotConfiguration";
 import type { JackpotSymbol } from "@/components/dashboard/products/jackpot/types";
@@ -53,6 +54,7 @@ export const PRODUCT_REGISTRY: ProductRegistry = {
   wheel: {
     id: "wheel",
     ConfigComponent: WheelConfiguration,
+    ReportComponent: WheelReportingWrapper,
     useConfigProps: () => {
       const {
         selectedWheel,
@@ -92,6 +94,14 @@ export const PRODUCT_REGISTRY: ProductRegistry = {
         onActiveSectionChange: setActiveConfigSection,
         scheduleConfig: wheelData.schedule,
         onUpdateScheduleConfig: updateSchedule,
+      };
+    },
+    useReportProps: () => {
+      const { selectedWheel } = useWheelStore();
+      
+      return {
+        wheelId: selectedWheel?.id || "",
+        segments: selectedWheel?.segments || [],
       };
     },
     useCanRenderConfig: () => {

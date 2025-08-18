@@ -3,7 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { EmailCapture } from './EmailCapture';
 import { FortuneWheel } from '../wheel/FortuneWheel';
 import { TicketAnimation } from './TicketAnimation';
-import { Sparkles } from 'lucide-react';
+import { PrizePreview } from './PrizePreview';
+import { Sparkles, Volume2, VolumeX } from 'lucide-react';
+import { soundEffects } from '../../utils/soundEffects';
 
 interface UnifiedWheelDialogProps {
   config: any;
@@ -21,6 +23,8 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
   const [isWheelActivating, setIsWheelActivating] = useState(false);
   const [wheelPreviewRotation, setWheelPreviewRotation] = useState(0);
   const [timeLeft, setTimeLeft] = useState({ minutes: 15, seconds: 0 });
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [isSubmittingEmail, setIsSubmittingEmail] = useState(false);
 
   // Add countdown timer for urgency
   useEffect(() => {
@@ -48,27 +52,62 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
     }
   }, [hasTicket]);
 
-  const handleEmailSubmit = useCallback((submittedEmail: string, marketingConsent: boolean) => {
+  const handleEmailSubmit = useCallback(async (submittedEmail: string, marketingConsent: boolean) => {
+    setIsSubmittingEmail(true);
+    soundEffects.play('click');
+    
+    // Simulate API call delay for better UX
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
     onEmailSubmit?.(submittedEmail, marketingConsent);
     
     // Start ticket animation
     setShowTicketAnimation(true);
+    setIsSubmittingEmail(false);
   }, [onEmailSubmit]);
 
   const handleTicketAnimationComplete = useCallback(() => {
     setShowTicketAnimation(false);
     setIsWheelActivating(true);
+    soundEffects.play('unlock');
+    
+    // Reset wheel rotation to default position
+    setWheelPreviewRotation(0);
     
     // Activate wheel after a brief delay
     setTimeout(() => {
       setHasTicket(true);
       setIsWheelActivating(false);
+      soundEffects.play('whoosh');
     }, 500);
   }, []);
 
   const handleSpinComplete = useCallback((result: any) => {
+    soundEffects.play('win');
     onSpinComplete?.(result);
   }, [onSpinComplete]);
+
+  // Toggle sound
+  const toggleSound = useCallback(() => {
+    setSoundEnabled(prev => {
+      const newState = !prev;
+      soundEffects.setEnabled(newState);
+      soundEffects.play('click');
+      return newState;
+    });
+  }, []);
+
+  // Prepare prizes for preview
+  const getPrizesForPreview = () => {
+    return config.segments.map((seg: any) => ({
+      id: seg.id,
+      label: seg.label,
+      color: seg.color,
+      icon: seg.icon,
+      rarity: seg.weight > 30 ? 'common' : seg.weight > 15 ? 'rare' : seg.weight > 5 ? 'epic' : 'legendary',
+      probability: seg.weight
+    }));
+  };
 
   // Removed best prize calculation for minimalistic design
 
@@ -137,7 +176,31 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
 
         {/* Desktop: Left side - Wheel with excitement elements */}
         <div className="flex-[1.2] flex flex-col items-center justify-center p-8 relative">
-          {/* Removed prize showcase for minimalistic design */}
+          {/* Sound control button */}
+          <button
+            onClick={toggleSound}
+            className="absolute top-4 left-4 z-20 p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors"
+            aria-label={soundEnabled ? 'Mute sounds' : 'Enable sounds'}
+          >
+            {soundEnabled ? (
+              <Volume2 className="w-5 h-5 text-white" />
+            ) : (
+              <VolumeX className="w-5 h-5 text-white" />
+            )}
+          </button>
+
+          {/* Prize preview carousel - show above wheel when no ticket */}
+          {!hasTicket && (
+            <motion.div
+              className="absolute top-16 left-0 right-0 z-15"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              <PrizePreview prizes={getPrizesForPreview()} />
+            </motion.div>
+          )}
 
           {/* Simple overlay when no ticket - subtle blur only */}
           <AnimatePresence>
@@ -190,7 +253,7 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
                 width: '90%',
                 maxWidth: '450px',
                 aspectRatio: '1',
-                transform: !hasTicket ? `rotate(${wheelPreviewRotation}deg)` : undefined
+                transform: !hasTicket ? `rotate(${wheelPreviewRotation}deg)` : 'rotate(0deg)'
               }}
               animate={hasTicket ? {
                 scale: [1, 1.05, 1],
@@ -314,12 +377,22 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
 
                 {/* Minimalistic email capture */}
                 <div className="relative">
+                  {isSubmittingEmail && (
+                    <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                      >
+                        <Sparkles className="w-8 h-8 text-purple-600" />
+                      </motion.div>
+                    </div>
+                  )}
                   <EmailCapture
                     onSubmit={handleEmailSubmit}
                     imageUrl={config.captureImageUrl}
                     title=""
                     subtitle=""
-                    buttonText="→"
+                    buttonText={isSubmittingEmail ? '...' : '→'}
                     privacyText=""
                     primaryColor={config.primaryColor || "#8B5CF6"}
                     format="instant"
@@ -389,6 +462,19 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
           <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-pink-400 rounded-full mix-blend-multiply filter blur-2xl opacity-20 animate-blob animation-delay-2000"></div>
         </div>
 
+        {/* Sound control button for mobile */}
+        <button
+          onClick={toggleSound}
+          className="absolute top-4 right-4 z-30 p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors"
+          aria-label={soundEnabled ? 'Mute sounds' : 'Enable sounds'}
+        >
+          {soundEnabled ? (
+            <Volume2 className="w-4 h-4 text-white" />
+          ) : (
+            <VolumeX className="w-4 h-4 text-white" />
+          )}
+        </button>
+
         {/* Mobile: Show wheel and email form together (vertical stack) */}
         <div className="flex flex-col min-h-full relative z-10">
           {/* Top section - Wheel (smaller on mobile) */}
@@ -442,7 +528,7 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
               animate={{ 
                 opacity: hasTicket ? 1 : 0.5, 
                 scale: 1,
-                rotate: wheelPreviewRotation
+                rotate: !hasTicket ? wheelPreviewRotation : 0
               }}
               transition={{ duration: 0.5 }}
               className={`relative ${!hasTicket ? 'pointer-events-none' : ''}`}
@@ -468,6 +554,11 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
+              {/* Compact prize preview for mobile */}
+              <div className="mb-4">
+                <PrizePreview prizes={getPrizesForPreview()} compact />
+              </div>
+
               {/* Countdown timer */}
               <div className="text-center mb-4">
                 <div className="inline-flex items-center gap-2 text-sm text-gray-600">

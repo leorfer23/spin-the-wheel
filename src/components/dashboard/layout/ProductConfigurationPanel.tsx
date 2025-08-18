@@ -20,13 +20,19 @@ export const ProductConfigurationPanel: React.FC<
   const configProps = adapter?.useConfigProps
     ? adapter.useConfigProps()
     : undefined;
+  const reportProps = adapter?.useReportProps
+    ? adapter.useReportProps()
+    : undefined;
   const Config = adapter?.ConfigComponent as any;
+  const Report = adapter?.ReportComponent as any;
 
   const renderContent = () => {
     if (!adapter) {
       return (
         <div className="flex items-center justify-center h-full">
-          <p className="text-gray-500">Configuración próximamente</p>
+          <p className="text-gray-500">
+            {mode === "report" ? "Reportes próximamente" : "Configuración próximamente"}
+          </p>
         </div>
       );
     }
@@ -35,13 +41,27 @@ export const ProductConfigurationPanel: React.FC<
       return (
         <div className="flex items-center justify-center h-full">
           <p className="text-gray-500">
-            Seleccioná un elemento para configurar
+            Seleccioná un elemento para {mode === "report" ? "ver reportes" : "configurar"}
           </p>
         </div>
       );
     }
 
-    return <Config {...configProps} />;
+    if (mode === "report" && Report) {
+      return <Report {...reportProps} />;
+    }
+
+    if (mode === "edit" && Config) {
+      return <Config {...configProps} />;
+    }
+
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-gray-500">
+          {mode === "report" ? "Reportes no disponibles" : "Configuración no disponible"}
+        </p>
+      </div>
+    );
   };
 
   // Keep minimal structure to match current panel container

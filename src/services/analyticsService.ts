@@ -1,5 +1,10 @@
 import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
+import type { 
+  WheelDailyAnalytics, 
+  EmailAnalytics,
+  AnalyticsSummary
+} from '@/types/analytics';
 
 export interface AnalyticsOverview {
   totalSpins: number;
@@ -40,7 +45,7 @@ export interface EmailCapture {
  */
 export const analyticsService = {
   /**
-   * Get analytics overview for a wheel within a date range
+   * Get analytics overview for a wheel within a date range using the new views
    */
   async getWheelAnalytics(
     wheelId: string, 
@@ -50,24 +55,27 @@ export const analyticsService = {
     overview: AnalyticsOverview;
     timeSeries: TimeSeriesData[];
   }> {
-    // Use the function we created in the migration
-    const { data, error } = await supabase.rpc('get_wheel_analytics', {
-      p_wheel_id: wheelId,
-      p_start_date: format(startDate, 'yyyy-MM-dd'),
-      p_end_date: format(endDate, 'yyyy-MM-dd')
-    });
+    // Use the new wheel_daily_analytics view
+    const { data, error } = await supabase
+      .from('wheel_daily_analytics')
+      .select('*')
+      .eq('wheel_id', wheelId)
+      .gte('date', format(startDate, 'yyyy-MM-dd'))
+      .lte('date', format(endDate, 'yyyy-MM-dd'))
+      .order('date', { ascending: true });
 
     if (error) throw error;
 
-    // Calculate overview from time series
-    const timeSeries = (data || []).map((day: any) => ({
+    // Convert to time series format
+    const timeSeries = (data || []).map((day: WheelDailyAnalytics) => ({
       date: day.date,
-      totalSpins: Number(day.total_spins),
-      uniqueVisitors: Number(day.unique_visitors),
-      emailsCaptured: Number(day.emails_captured),
-      conversionRate: Number(day.conversion_rate)
+      totalSpins: day.total_spins,
+      uniqueVisitors: day.unique_visitors,
+      emailsCaptured: day.emails_captured,
+      conversionRate: day.email_capture_rate
     }));
 
+    // Calculate overview
     const overview = timeSeries.reduce((acc: AnalyticsOverview, day: TimeSeriesData) => ({
       totalSpins: acc.totalSpins + day.totalSpins,
       uniqueVisitors: acc.uniqueVisitors + day.uniqueVisitors,
@@ -114,58 +122,44 @@ export const analyticsService = {
   },
 
   /**
-   * Get email captures for a wheel
+   * Get email captures for a wheel using the new email_analytics view
    */
   async getEmailCaptures(wheelId: string): Promise<EmailCapture[]> {
     const { data, error } = await supabase
-      .from('email_captures')
-      .select(`
-        id,
-        email,
-        marketing_consent,
-        created_at,
-        spins!inner(
-          id,
-          segment_won_id,
-          campaigns!inner(
-            wheel_id
-          ),
-          segments!inner(
-            label,
-            value,
-            prize_type
-          )
-        )
-      `)
-      .eq('spins.campaigns.wheel_id', wheelId)
-      .order('created_at', { ascending: false });
+      .from('email_analytics')
+      .select('*')
+      .eq('wheel_id', wheelId)
+      .order('captured_at', { ascending: false });
 
     if (error) throw error;
 
     // Process and aggregate by email
     const emailMap = new Map<string, EmailCapture>();
     
-    data?.forEach(capture => {
+    (data as EmailAnalytics[])?.forEach(capture => {
       const email = capture.email;
       
       if (!emailMap.has(email)) {
         emailMap.set(email, {
-          id: capture.id,
+          id: capture.capture_id,
           email: email,
-          capturedAt: capture.created_at,
-          marketingConsent: capture.marketing_consent,
+          capturedAt: capture.captured_at,
+          marketingConsent: true, // This field might need to be added to the view
           prizesWon: [],
           totalSpins: 0
         });
       }
       
       const entry = emailMap.get(email)!;
-      entry.totalSpins++;
       
-      // Add prize if it's not a "no prize" segment
-      const segment = (capture.spins as any)?.segments;
-      if (segment && segment.prize_type !== 'no_prize') {
-        entry.prizesWon.push(segment.label);
+      // Count spins
+      if (capture.spin_id) {
+        entry.totalSpins++;
+        
+        // Add prize if won
+        if (capture.is_winner && capture.segment_name) {
+          entry.prizesWon.push(capture.segment_name);
+        }
       }
     });
 
@@ -214,33 +208,95 @@ export const analyticsService = {
       timestamp: string;
     }>;
   }> {
-    // Get spins from last 5 minutes
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-    
-    const { data, error } = await supabase
-      .from('spins')
-      .select(`
-        email,
-        created_at,
-        segments!inner(label),
-        campaigns!inner(wheel_id)
-      `)
-      .eq('campaigns.wheel_id', wheelId)
-      .gte('created_at', fiveMinutesAgo.toISOString())
-      .order('created_at', { ascending: false })
+    // Get hourly analytics for current hour
+    await supabase
+      .from('wheel_hourly_analytics')
+      .select('*')
+      .eq('wheel_id', wheelId)
+      .order('hour', { ascending: false })
+      .limit(1);
+
+    // Get recent email captures with spin info
+    const { data: recentActivity } = await supabase
+      .from('email_analytics')
+      .select('email, captured_at, segment_name, is_winner')
+      .eq('wheel_id', wheelId)
+      .order('captured_at', { ascending: false })
       .limit(10);
 
-    if (error) throw error;
+    const recentSpins = (recentActivity || [])
+      .filter((activity: any) => activity.segment_name)
+      .map((activity: any) => ({
+        email: activity.email,
+        prize: activity.segment_name || '',
+        timestamp: activity.captured_at
+      }));
 
-    const recentSpins = (data || []).map(spin => ({
-      email: spin.email,
-      prize: (spin.segments as any).label,
-      timestamp: spin.created_at
-    }));
+    // Get active sessions from impressions in last 5 minutes
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const { count: activeSessions } = await supabase
+      .from('widget_impressions')
+      .select('*', { count: 'exact', head: true })
+      .eq('wheel_id', wheelId)
+      .gte('created_at', fiveMinutesAgo.toISOString());
 
-    // Count unique emails in last 5 minutes as active sessions
-    const activeSessions = new Set(recentSpins.map(s => s.email)).size;
+    return { 
+      activeSessions: activeSessions || 0, 
+      recentSpins 
+    };
+  },
 
-    return { activeSessions, recentSpins };
+  /**
+   * Get detailed analytics summary
+   */
+  async getAnalyticsSummary(
+    wheelId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<AnalyticsSummary> {
+    const { data } = await supabase
+      .from('wheel_daily_analytics')
+      .select('*')
+      .eq('wheel_id', wheelId)
+      .gte('date', format(startDate, 'yyyy-MM-dd'))
+      .lte('date', format(endDate, 'yyyy-MM-dd'));
+
+    const dailyData = data as WheelDailyAnalytics[] || [];
+    
+    const totals = dailyData.reduce((acc, day) => ({
+      totalImpressions: acc.totalImpressions + day.total_impressions,
+      uniqueVisitors: acc.uniqueVisitors + day.unique_visitors,
+      emailsCaptured: acc.emailsCaptured + day.emails_captured,
+      totalSpins: acc.totalSpins + day.total_spins,
+      openRate: acc.openRate + day.open_rate,
+      emailCaptureRate: acc.emailCaptureRate + day.email_capture_rate,
+      spinRate: acc.spinRate + day.spin_rate,
+    }), {
+      totalImpressions: 0,
+      uniqueVisitors: 0,
+      emailsCaptured: 0,
+      totalSpins: 0,
+      openRate: 0,
+      emailCaptureRate: 0,
+      spinRate: 0,
+    });
+
+    const days = dailyData.length || 1;
+    
+    return {
+      totalImpressions: totals.totalImpressions,
+      uniqueVisitors: totals.uniqueVisitors,
+      emailsCaptured: totals.emailsCaptured,
+      totalSpins: totals.totalSpins,
+      conversionRate: totals.totalImpressions > 0 
+        ? (totals.emailsCaptured / totals.totalImpressions) * 100 
+        : 0,
+      openRate: totals.openRate / days,
+      emailCaptureRate: totals.emailCaptureRate / days,
+      spinRate: totals.spinRate / days,
+      averageEngagement: totals.emailsCaptured > 0 
+        ? (totals.totalSpins / totals.emailsCaptured) * 100 
+        : 0,
+    };
   }
 };

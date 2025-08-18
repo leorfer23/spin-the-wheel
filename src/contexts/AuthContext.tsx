@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<any>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -56,11 +56,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       throw new Error(error.message || 'Error al crear la cuenta');
     }
-    // Supabase automatically signs in the user after successful signup
-    // The session will be handled by the onAuthStateChange listener
-    if (data.user) {
-      setUser(data.user);
-    }
+    // Don't automatically set the user - let them confirm email first
+    // The session will be handled by the onAuthStateChange listener after confirmation
+    // Return the user data so the signup page can check if confirmation is needed
+    return data;
   };
 
   const signIn = async (email: string, password: string) => {

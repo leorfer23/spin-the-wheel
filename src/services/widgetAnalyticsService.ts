@@ -211,22 +211,40 @@ class WidgetAnalyticsService {
     try {
       const utmParams = this.getUTMParams();
       
-      const { error } = await supabase
+      console.log('[WidgetAnalytics] Attempting to track email capture:', {
+        email: data.email,
+        impressionId: data.impressionId,
+        capturedAtStep: data.capturedAtStep,
+        additionalFields: data.additionalFields
+      });
+      
+      const { data: insertResult, error } = await supabase
         .from('email_captures')
         .insert({
-          spin_id: data.spinId,
-          impression_id: data.impressionId,
           email: data.email,
           marketing_consent: data.marketingConsent || false,
+          impression_id: data.impressionId,
           captured_at_step: data.capturedAtStep,
           additional_fields: data.additionalFields,
           utm_source: data.utmSource || utmParams.utm_source,
           utm_medium: data.utmMedium || utmParams.utm_medium,
           utm_campaign: data.utmCampaign || utmParams.utm_campaign
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error('[WidgetAnalytics] Failed to track email capture:', error);
+        console.error('[WidgetAnalytics] Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+          fullError: JSON.stringify(error, null, 2)
+        });
+        throw error;
+      } else {
+        console.log('[WidgetAnalytics] Email capture tracked successfully:', insertResult);
       }
 
       // Also track as an event

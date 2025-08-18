@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, session } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -18,7 +18,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  if (!user) {
+  // Check if user exists AND has a valid session
+  // If email confirmation is required, session will be null until confirmed
+  if (!user || !session) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
