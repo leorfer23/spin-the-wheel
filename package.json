@@ -10,6 +10,8 @@
     "test:oauth:callback": "node test-oauth-callback-local.cjs",
     "build": "tsc -b && vite build",
     "build:widget": "vite build --config vite.widget.config.ts",
+    "install:ci": "npm ci --legacy-peer-deps",
+    "install:force": "npm install --legacy-peer-deps",
     "lint": "eslint .",
     "preview": "vite preview",
     "widget:test": "vite --config vite.widget.config.ts",
