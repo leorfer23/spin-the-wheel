@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Trophy, Gift, Star, Sparkles } from 'lucide-react';
+import { Trophy, Gift, Star, Sparkles } from 'lucide-react';
 
 interface Prize {
   id: string;
@@ -31,15 +31,6 @@ export const PrizePreview: React.FC<PrizePreviewProps> = ({ prizes, compact = fa
     return () => clearInterval(interval);
   }, [isAutoPlaying, prizes.length]);
 
-  const handlePrevious = () => {
-    setIsAutoPlaying(false);
-    setCurrentIndex((prev) => (prev - 1 + prizes.length) % prizes.length);
-  };
-
-  const handleNext = () => {
-    setIsAutoPlaying(false);
-    setCurrentIndex((prev) => (prev + 1) % prizes.length);
-  };
 
   const getRarityColor = (rarity?: string) => {
     switch (rarity) {
@@ -114,19 +105,19 @@ export const PrizePreview: React.FC<PrizePreviewProps> = ({ prizes, compact = fa
 
   // Full carousel view for desktop
   return (
-    <div className="w-full max-w-sm mx-auto">
-      <div className="text-center mb-4">
-        <h3 className="text-lg font-bold text-white mb-1">
+    <div className="w-full max-w-md mx-auto">
+      <div className="text-center mb-12">
+        <h3 className="text-3xl font-bold text-white mb-3 drop-shadow-2xl">
           🎯 Lo Que Puedes Ganar
         </h3>
-        <p className="text-xs text-white/70">
-          {prizes.length} premios increíbles te esperan
+        <p className="text-lg text-white font-semibold drop-shadow-lg">
+          Ingresa tu email para participar
         </p>
       </div>
 
       <div className="relative">
-        {/* Prize display */}
-        <div className="relative h-32 flex items-center justify-center">
+        {/* Prize display with extra padding for badge */}
+        <div className="relative h-56 flex items-center justify-center pt-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentIndex}
@@ -137,12 +128,12 @@ export const PrizePreview: React.FC<PrizePreviewProps> = ({ prizes, compact = fa
               className="absolute inset-0 flex items-center justify-center"
             >
               <div className="relative">
-                {/* Rarity badge */}
+                {/* Rarity badge - positioned well above the card with more space */}
                 {prizes[currentIndex].rarity && (
                   <motion.div
-                    className={`absolute -top-3 -right-3 px-2 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getRarityColor(prizes[currentIndex].rarity)} shadow-lg`}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
+                    className={`absolute -top-14 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full text-sm font-bold text-white bg-gradient-to-r ${getRarityColor(prizes[currentIndex].rarity)} shadow-xl z-10`}
+                    initial={{ scale: 0, y: 10 }}
+                    animate={{ scale: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                   >
                     <div className="flex items-center gap-1">
@@ -152,107 +143,75 @@ export const PrizePreview: React.FC<PrizePreviewProps> = ({ prizes, compact = fa
                   </motion.div>
                 )}
 
-                {/* Prize card */}
+                {/* Prize card - improved layout */}
                 <motion.div
-                  className="relative bg-white rounded-2xl p-6 shadow-2xl"
+                  className="relative bg-white rounded-2xl shadow-2xl border-3 min-w-[280px]"
                   style={{
-                    background: `linear-gradient(135deg, ${prizes[currentIndex].color}15, ${prizes[currentIndex].color}05)`,
+                    background: `linear-gradient(135deg, white, ${prizes[currentIndex].color}10)`,
                     borderColor: prizes[currentIndex].color,
-                    borderWidth: '2px',
-                    borderStyle: 'solid'
+                    borderWidth: '3px',
+                    boxShadow: `0 0 30px 5px ${prizes[currentIndex].color}30`
                   }}
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.02 }}
                   transition={{ type: 'spring', stiffness: 300 }}
                 >
-                  {/* Prize icon */}
-                  <div className="text-4xl mb-2 text-center">
-                    {prizes[currentIndex].icon || '🎁'}
-                  </div>
-                  
-                  {/* Prize label */}
-                  <h4 className="text-lg font-bold text-gray-800 text-center">
-                    {prizes[currentIndex].label}
-                  </h4>
+                  <div className="p-6">
+                    {/* Prize icon */}
+                    <div className="text-5xl mb-3 text-center">
+                      {prizes[currentIndex].icon || '🎁'}
+                    </div>
+                    
+                    {/* Prize label - with text wrapping */}
+                    <h4 className="text-base font-bold text-gray-800 text-center px-2 min-h-[48px] flex items-center justify-center">
+                      {prizes[currentIndex].label}
+                    </h4>
 
-                  {/* Probability indicator */}
-                  {prizes[currentIndex].probability && (
-                    <div className="mt-2">
-                      <div className="flex items-center justify-center gap-1">
-                        <div className="text-xs text-gray-500">Probabilidad:</div>
-                        <div className="flex gap-0.5">
-                          {[...Array(5)].map((_, i) => (
-                            <div
-                              key={i}
-                              className={`w-2 h-2 rounded-full ${
-                                i < Math.ceil((prizes[currentIndex].probability || 0) / 20)
-                                  ? 'bg-yellow-400'
-                                  : 'bg-gray-300'
-                              }`}
-                            />
-                          ))}
+                    {/* Probability indicator - better layout */}
+                    {prizes[currentIndex].probability && (
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        <div className="flex flex-col items-center gap-1">
+                          <div className="text-xs text-gray-500">Probabilidad</div>
+                          <div className="flex gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <div
+                                key={i}
+                                className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                                  i < Math.ceil((prizes[currentIndex].probability || 0) / 20)
+                                    ? 'bg-yellow-400 shadow-sm'
+                                    : 'bg-gray-200'
+                                }`}
+                              />
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </motion.div>
 
-                {/* Glow effect */}
-                <motion.div
-                  className="absolute inset-0 rounded-2xl opacity-30"
-                  style={{
-                    background: `radial-gradient(circle at center, ${prizes[currentIndex].color}, transparent)`,
-                    filter: 'blur(20px)'
-                  }}
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    opacity: [0.3, 0.5, 0.3]
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut'
-                  }}
-                />
               </div>
             </motion.div>
           </AnimatePresence>
         </div>
 
-        {/* Navigation buttons */}
-        {prizes.length > 1 && (
-          <>
-            <button
-              onClick={handlePrevious}
-              className="absolute left-0 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors"
-              aria-label="Previous prize"
-            >
-              <ChevronLeft className="w-5 h-5 text-white" />
-            </button>
-            <button
-              onClick={handleNext}
-              className="absolute right-0 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors"
-              aria-label="Next prize"
-            >
-              <ChevronRight className="w-5 h-5 text-white" />
-            </button>
-          </>
-        )}
       </div>
 
-      {/* Pagination dots */}
+      {/* Pagination dots - clickable for manual navigation */}
       {prizes.length > 1 && (
         <div className="flex justify-center gap-1.5 mt-4">
           {prizes.map((_, idx) => (
             <button
               key={idx}
               onClick={() => {
-                setIsAutoPlaying(false);
                 setCurrentIndex(idx);
+                setIsAutoPlaying(false);
+                // Resume auto-play after 5 seconds
+                setTimeout(() => setIsAutoPlaying(true), 5000);
               }}
-              className={`transition-all duration-300 ${
+              className={`transition-all duration-300 cursor-pointer hover:bg-white/80 ${
                 idx === currentIndex
-                  ? 'w-6 h-2 bg-white rounded-full'
-                  : 'w-2 h-2 bg-white/40 rounded-full hover:bg-white/60'
+                  ? 'w-8 h-2.5 bg-white rounded-full shadow-lg'
+                  : 'w-2.5 h-2.5 bg-white/60 rounded-full'
               }`}
               aria-label={`Go to prize ${idx + 1}`}
             />

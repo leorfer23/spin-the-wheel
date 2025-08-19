@@ -53,6 +53,14 @@ export const CenterCircle: React.FC<CenterCircleProps> = ({
               onClick={onSpinClick}
               style={{ cursor: isSpinning ? 'not-allowed' : 'pointer' }}
             >
+              {/* Invisible circle to capture clicks across entire center area */}
+              <circle
+                cx="0"
+                cy="0"
+                r={radius}
+                fill="transparent"
+                style={{ cursor: isSpinning ? 'not-allowed' : 'pointer' }}
+              />
               <text
                 x="0"
                 y="0"
@@ -61,7 +69,7 @@ export const CenterCircle: React.FC<CenterCircleProps> = ({
                 fontWeight="bold"
                 textAnchor="middle"
                 dominantBaseline="middle"
-                style={{ userSelect: 'none' }}
+                style={{ userSelect: 'none', pointerEvents: 'none' }}
               >
                 {isSpinning ? '...' : text}
               </text>

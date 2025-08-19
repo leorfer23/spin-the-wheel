@@ -219,6 +219,7 @@ export const FullWidget: React.FC<FullWidgetProps> = ({
                   config={config}
                   onEmailSubmit={handleEmailSubmit}
                   onSpinComplete={handleSpinComplete}
+                  onClose={handleClose}
                 />
               )}
 

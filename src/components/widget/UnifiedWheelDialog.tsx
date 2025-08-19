@@ -11,12 +11,14 @@ interface UnifiedWheelDialogProps {
   config: any;
   onEmailSubmit?: (email: string, marketingConsent: boolean) => void;
   onSpinComplete?: (result: any) => void;
+  onClose?: () => void;
 }
 
 export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
   config,
   onEmailSubmit,
-  onSpinComplete
+  onSpinComplete,
+  onClose
 }) => {
   const [hasTicket, setHasTicket] = useState(false);
   const [showTicketAnimation, setShowTicketAnimation] = useState(false);
@@ -53,6 +55,13 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
   }, [hasTicket]);
 
   const handleEmailSubmit = useCallback(async (submittedEmail: string, marketingConsent: boolean) => {
+    // Check if user declined to provide email
+    if (submittedEmail === 'skip@user.declined') {
+      // Close the widget without giving a ticket
+      onClose?.();
+      return;
+    }
+    
     setIsSubmittingEmail(true);
     soundEffects.play('click');
     
@@ -64,7 +73,7 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
     // Start ticket animation
     setShowTicketAnimation(true);
     setIsSubmittingEmail(false);
-  }, [onEmailSubmit]);
+  }, [onEmailSubmit, onClose]);
 
   const handleTicketAnimationComplete = useCallback(() => {
     setShowTicketAnimation(false);
@@ -133,16 +142,16 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
       borderWidth: config.wheelDesign.wheelBorderWidth || 4,
       backgroundColor: config.wheelDesign.wheelBackgroundColor || 'transparent',
     } : undefined,
-    pegConfig: config.wheelDesign ? {
-      style: (config.wheelDesign.pegStyle as 'dots' | 'stars' | 'diamonds' | 'sticks' | 'none') || 'dots',
-      color: config.wheelDesign.pegColor || '#FFD700',
-      size: config.wheelDesign.pegSize || 8,
-    } : undefined,
-    pointer: config.wheelDesign ? {
-      color: config.wheelDesign.pointerColor || "#FF1744",
-      size: config.wheelDesign.pointerSize || 60,
-      style: (config.wheelDesign.pointerStyle as 'arrow' | 'circle' | 'triangle') || "triangle",
-    } : undefined,
+    pegConfig: {
+      style: (config.wheelDesign?.pegStyle as 'dots' | 'stars' | 'diamonds' | 'sticks' | 'none') || 'dots',
+      color: config.wheelDesign?.pegColor || '#FFD700',
+      size: config.wheelDesign?.pegSize || 8,
+    },
+    pointer: {
+      color: config.wheelDesign?.pointerColor || "#FF1744",
+      size: config.wheelDesign?.pointerSize || 60,
+      style: (config.wheelDesign?.pointerStyle as 'arrow' | 'circle' | 'triangle') || "triangle",
+    },
     spinConfig: {
       duration: config.wheelDesign?.spinDuration || (config.spinDuration || 5000) / 1000,
       easing: (config.wheelDesign?.spinningEffect === 'elastic' ? "ease-in-out" : 
@@ -189,20 +198,20 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
             )}
           </button>
 
-          {/* Prize preview carousel - show above wheel when no ticket */}
+          {/* Prize preview carousel - centered in the middle of the pane */}
           {!hasTicket && (
             <motion.div
-              className="absolute top-16 left-0 right-0 z-15"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 w-full max-w-md"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.5 }}
             >
               <PrizePreview prizes={getPrizesForPreview()} />
             </motion.div>
           )}
 
-          {/* Simple overlay when no ticket - subtle blur only */}
+          {/* Strong overlay when no ticket - heavy blur and darkening for maximum contrast */}
           <AnimatePresence>
             {!hasTicket && (
               <motion.div
@@ -212,8 +221,8 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                {/* Very subtle overlay with blur to indicate locked state */}
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 via-transparent to-pink-900/20 backdrop-blur-[1px]" />
+                {/* Strong overlay with heavy blur and darkening to make prizes pop */}
+                <div className="absolute inset-0 bg-black/50 backdrop-blur-[5px]" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -246,7 +255,7 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
             )}
           </AnimatePresence>
 
-          <div className={`transition-all duration-700 w-full h-full flex items-center justify-center ${!hasTicket ? 'opacity-75 scale-95' : 'opacity-100 scale-100'}`}>
+          <div className={`transition-all duration-700 w-full h-full flex items-center justify-center ${!hasTicket ? 'opacity-30 scale-85' : 'opacity-100 scale-100'}`}>
             <motion.div
               className="relative"
               style={{ 
@@ -288,16 +297,16 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
                     borderWidth: config.wheelDesign.wheelBorderWidth || 4,
                     backgroundColor: config.wheelDesign.wheelBackgroundColor || 'transparent',
                   } : undefined,
-                  pegConfig: config.wheelDesign ? {
-                    style: (config.wheelDesign.pegStyle as 'dots' | 'stars' | 'diamonds' | 'sticks' | 'none') || 'dots',
-                    color: config.wheelDesign.pegColor || '#FFD700',
-                    size: config.wheelDesign.pegSize || 8,
-                  } : undefined,
-                  pointer: config.wheelDesign ? {
-                    color: config.wheelDesign.pointerColor || "#FF1744",
-                    size: config.wheelDesign.pointerSize || 60,
-                    style: (config.wheelDesign.pointerStyle as 'arrow' | 'circle' | 'triangle') || "triangle",
-                  } : undefined,
+                  pegConfig: {
+                    style: (config.wheelDesign?.pegStyle as 'dots' | 'stars' | 'diamonds' | 'sticks' | 'none') || 'dots',
+                    color: config.wheelDesign?.pegColor || '#FFD700',
+                    size: config.wheelDesign?.pegSize || 8,
+                  },
+                  pointer: {
+                    color: config.wheelDesign?.pointerColor || "#FF1744",
+                    size: config.wheelDesign?.pointerSize || 60,
+                    style: (config.wheelDesign?.pointerStyle as 'arrow' | 'circle' | 'triangle') || "triangle",
+                  },
                   spinConfig: {
                     duration: config.wheelDesign?.spinDuration || (config.spinDuration || 5000) / 1000,
                     easing: config.wheelDesign?.spinningEffect === 'elastic' ? "ease-in-out" : 
@@ -392,18 +401,18 @@ export const UnifiedWheelDialog: React.FC<UnifiedWheelDialogProps> = ({
                     imageUrl={config.captureImageUrl}
                     title=""
                     subtitle=""
-                    buttonText={isSubmittingEmail ? '...' : '→'}
+                    buttonText={isSubmittingEmail ? '...' : 'GIRAR'}
                     privacyText=""
                     primaryColor={config.primaryColor || "#8B5CF6"}
                     format="instant"
-                    emailPlaceholder="Ingresa tu email"
+                    emailPlaceholder="Tu email para participar"
                     autoFocus={true}
                     showConsent={false}
                   />
                   
-                  {/* Small note */}
-                  <p className="text-xs text-gray-400 text-center mt-2">
-                    Presiona enter o → para continuar
+                  {/* Bigger note */}
+                  <p className="text-sm text-gray-500 text-center mt-3 font-medium">
+                    ✉️ Ingresa tu email para desbloquear la ruleta
                   </p>
                 </div>
 

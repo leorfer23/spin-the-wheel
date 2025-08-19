@@ -82,16 +82,16 @@ export const EmailCapture: React.FC<EmailCaptureProps> = ({
           <motion.div 
             className="relative flex items-center"
             animate={{ 
-              scale: [1, 1.02, 1]
+              scale: [1, 1.03, 1]
             }}
             transition={{ 
-              duration: 2, 
+              duration: 1.5, 
               repeat: Infinity,
               ease: "easeInOut"
             }}
           >
-            <div className="relative flex-1 flex items-center bg-white rounded-full border-2 overflow-hidden shadow-lg"
-                 style={{ borderColor: primaryColor }}>
+            <div className="relative flex-1 flex items-center bg-white rounded-full border-3 overflow-hidden shadow-2xl hover:shadow-3xl transition-shadow"
+                 style={{ borderColor: primaryColor, borderWidth: '3px' }}>
               <input
                 type="email"
                 value={email}
@@ -100,7 +100,7 @@ export const EmailCapture: React.FC<EmailCaptureProps> = ({
                   setError('');
                 }}
                 placeholder={emailPlaceholder || "Tu email para ganar"}
-                className="flex-1 px-6 py-4 text-base bg-transparent outline-none text-gray-700 placeholder-gray-500 font-medium"
+                className="flex-1 px-8 py-5 text-lg bg-transparent outline-none text-gray-700 placeholder-gray-500 font-semibold"
                 autoFocus={autoFocus}
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
@@ -111,15 +111,16 @@ export const EmailCapture: React.FC<EmailCaptureProps> = ({
               />
               <motion.button
                 type="submit"
-                className="h-full px-8 py-4 flex items-center justify-center text-white font-bold transition-all bg-gradient-to-r hover:shadow-lg"
+                className="h-full px-10 py-5 flex items-center justify-center text-white font-bold text-lg transition-all bg-gradient-to-r hover:shadow-lg rounded-r-full"
                 style={{ 
                   background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`,
-                  minWidth: '60px'
+                  minWidth: '120px'
                 }}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                <span className="mr-2">{buttonText || 'GIRAR'}</span>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </motion.button>

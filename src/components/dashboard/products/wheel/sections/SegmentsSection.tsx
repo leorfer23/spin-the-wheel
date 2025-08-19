@@ -329,7 +329,7 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-4 pr-1 sm:pr-2">
         <AnimatePresence mode="popLayout">
           {localSegments.map((segment, index) => {
             const percentage = Math.round(((segment.weight || 10) / totalWeight) * 100);
@@ -368,39 +368,97 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, index)}
                 whileHover={{ scale: draggedIndex === null ? 1.02 : 1 }}
-                className={`relative bg-gradient-to-r from-white to-gray-50 backdrop-blur-sm rounded-2xl p-6 border-2 ${
+                className={`relative bg-gradient-to-r from-white to-gray-50 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border-2 ${
                   draggedIndex === index 
                     ? 'border-purple-400 shadow-2xl opacity-50' 
                     : dragOverIndex === index 
                       ? 'border-purple-500 shadow-xl bg-purple-50/30' 
                       : 'border-gray-200'
-                } hover:shadow-lg transition-all group`}
+                } hover:shadow-lg transition-all group overflow-visible`}
               >
-                <div className="flex items-center gap-4">
-                  <div 
-                    className="flex items-center gap-2 opacity-50 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing p-2 -m-2 rounded-lg hover:bg-gray-100"
-                    draggable
-                    onDragStart={(e) => handleDragStart(index, e)}
-                    onDragEnd={handleDragEnd}
-                    title="Arrastra para reordenar"
-                  >
-                    <GripVertical className="w-5 h-5 text-gray-400 hover:text-gray-600" />
-                    <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
-                  </div>
-                
-                  <div className="relative group">
-                    <div
-                      className="w-14 h-14 rounded-2xl shadow-md cursor-pointer transition-transform hover:scale-110 relative flex items-center justify-center"
-                      style={{ backgroundColor: segment.color }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleColorPickerOpen(segment.id, e);
-                      }}
+                  {/* Mobile layout: Top row with drag handle, color, and actions */}
+                  <div className="flex items-center justify-between sm:hidden">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="flex items-center gap-2 opacity-50 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing p-2 -m-2 rounded-lg hover:bg-gray-100"
+                        draggable
+                        onDragStart={(e) => handleDragStart(index, e)}
+                        onDragEnd={handleDragEnd}
+                        title="Arrastra para reordenar"
+                      >
+                        <GripVertical className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                        <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
+                      </div>
+                      
+                      <div className="relative group">
+                        <div
+                          className="w-10 h-10 rounded-xl shadow-md cursor-pointer transition-transform hover:scale-110 relative flex items-center justify-center"
+                          style={{ backgroundColor: segment.color }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleColorPickerOpen(segment.id, e);
+                          }}
+                        >
+                          <Palette className="w-3 h-3 text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div 
+                      className="flex items-center gap-1"
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
                     >
-                      <Palette className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => duplicateSegment(segment)}
+                        className="p-2 hover:bg-purple-100 rounded-xl transition-all group"
+                        title="Duplicar segmento"
+                      >
+                        <Copy className="w-4 h-4 text-gray-400 group-hover:text-purple-600 transition-colors" />
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => removeSegment(segment.id)}
+                        disabled={localSegments.length <= 2}
+                        className="p-2 hover:bg-red-100 rounded-xl transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={localSegments.length <= 2 ? "Se requieren mínimo 2 segmentos" : "Eliminar segmento"}
+                      >
+                        <Trash2 className="w-4 h-4 text-gray-400 group-hover:text-red-500 transition-colors" />
+                      </motion.button>
                     </div>
                   </div>
 
+                  {/* Desktop layout: Original horizontal layout */}
+                  <div className="hidden sm:flex items-center gap-4">
+                    <div 
+                      className="flex items-center gap-2 opacity-50 group-hover:opacity-100 transition-all cursor-grab active:cursor-grabbing p-2 -m-2 rounded-lg hover:bg-gray-100"
+                      draggable
+                      onDragStart={(e) => handleDragStart(index, e)}
+                      onDragEnd={handleDragEnd}
+                      title="Arrastra para reordenar"
+                    >
+                      <GripVertical className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                      <span className="text-sm font-medium text-gray-500">#{index + 1}</span>
+                    </div>
+                  
+                    <div className="relative group">
+                      <div
+                        className="w-14 h-14 rounded-2xl shadow-md cursor-pointer transition-transform hover:scale-110 relative flex items-center justify-center"
+                        style={{ backgroundColor: segment.color }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleColorPickerOpen(segment.id, e);
+                        }}
+                      >
+                        <Palette className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Main content area for both mobile and desktop */}
                   <div 
                     className="flex-1 space-y-3"
                     onMouseDown={(e) => e.stopPropagation()}
@@ -410,32 +468,48 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
                       type="text"
                       value={segment.label}
                       onChange={(e) => updateSegment(segment.id, { label: e.target.value })}
-                      className="w-full px-5 py-3 bg-white/80 backdrop-blur-sm border-0 rounded-2xl text-lg font-semibold focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all"
+                      className="w-full px-4 sm:px-5 py-2 sm:py-3 bg-white/80 backdrop-blur-sm border-0 rounded-xl sm:rounded-2xl text-base sm:text-lg font-semibold focus:outline-none focus:ring-4 focus:ring-purple-500/20 transition-all"
                       placeholder="Nombre del premio"
                       draggable={false}
                     />
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                       <SimpleCouponSelector
                         value={segment.value}
                         onValueChange={(value, coupon) => handleCouponValueChange(segment.id, value, coupon)}
                         placeholder="Código del premio o cupón"
                         className="flex-1"
                       />
-                      <div className="flex items-center gap-2 bg-white/80 px-4 py-2 rounded-xl">
-                        <span className="text-xs font-medium text-gray-500">Probabilidad</span>
-                        <span className="text-lg font-bold text-purple-600">{percentage}%</span>
-                        <HelpBubble
-                          content={getHelpContent('segmentProbability')}
-                          position="left"
-                          size="sm"
-                          id={`segment-probability-${segment.id}`}
-                        />
+                      <div className="flex items-center justify-between sm:justify-start gap-2 bg-white/80 px-3 sm:px-4 py-2 rounded-xl">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-gray-500">Probabilidad</span>
+                          <span className="text-base sm:text-lg font-bold text-purple-600">{percentage}%</span>
+                          <HelpBubble
+                            content={getHelpContent('segmentProbability')}
+                            position="auto"
+                            size="sm"
+                            id={`segment-probability-${segment.id}`}
+                          />
+                        </div>
+                        {/* Mobile: Weight slider inline */}
+                        <div className="flex items-center gap-2 sm:hidden">
+                          <input
+                            type="range"
+                            value={segment.weight || 10}
+                            onChange={(e) => updateSegment(segment.id, { weight: parseInt(e.target.value) })}
+                            className="w-20 accent-purple-600 cursor-pointer"
+                            min="1"
+                            max="100"
+                            draggable={false}
+                          />
+                          <span className="text-xs font-medium text-gray-500 min-w-[3rem]">Peso: {segment.weight || 10}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
+                  {/* Desktop: Weight slider and actions */}
                   <div 
-                    className="flex flex-col items-center gap-2"
+                    className="hidden sm:flex flex-col items-center gap-2"
                     onMouseDown={(e) => e.stopPropagation()}
                     onTouchStart={(e) => e.stopPropagation()}
                   >
@@ -452,7 +526,7 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
                   </div>
 
                   <div 
-                    className="flex items-center gap-2"
+                    className="hidden sm:flex items-center gap-2"
                     onMouseDown={(e) => e.stopPropagation()}
                     onTouchStart={(e) => e.stopPropagation()}
                   >
@@ -476,7 +550,6 @@ export const SegmentsSection: React.FC<SegmentsSectionProps> = ({
                       <Trash2 className="w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors" />
                     </motion.button>
                   </div>
-                </div>
               </motion.div>
                 
                 {/* Drop indicator line for bottom */}

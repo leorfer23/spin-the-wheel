@@ -401,7 +401,6 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({
           touchAction: config.spinConfig.allowDrag ? 'none' : 'auto',
           userSelect: 'none'
         }}
-        onClick={!config.spinConfig.allowDrag && !isSpinning ? spin : undefined}
         onMouseDown={config.spinConfig.allowDrag ? handleMouseDown : undefined}
         onTouchStart={config.spinConfig.allowDrag ? handleTouchStart : undefined}
       >
@@ -430,7 +429,7 @@ export const FortuneWheel: React.FC<FortuneWheelProps> = ({
         <CenterCircle
           dimensions={config.dimensions}
           config={config.centerCircle}
-          onSpinClick={!config.spinConfig.allowDrag && !isSpinning ? spin : undefined}
+          onSpinClick={!isSpinning ? spin : undefined}
         />
       </svg>
 
